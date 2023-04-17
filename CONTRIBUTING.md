@@ -8,6 +8,7 @@ Thank you for your interest!
 If you're a developer, you should also install pre-commit hooks before developing.
 
 ```bash
+pip install .[test]
 pre-commit install
 ```
 
