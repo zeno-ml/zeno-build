@@ -61,7 +61,7 @@ def train_model(
     )
 
     # Load dataset
-    dataset = datasets.load_dataset(training_dataset)
+    dataset = datasets.load_dataset(training_dataset, split=training_split)
 
     # Tokenize data
     input_name = (
@@ -78,10 +78,8 @@ def train_model(
     # Define training settings
     training_args = transformers.TrainingArguments(
         output_dir=model_dir,
-        evaluation_strategy="epoch",
         learning_rate=learning_rate,
         per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
         num_train_epochs=num_train_epochs,
         weight_decay=weight_decay,
     )
@@ -90,7 +88,7 @@ def train_model(
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_datasets[training_split],
+        train_dataset=tokenized_datasets,
     )
     trainer.train()
 
@@ -137,7 +135,7 @@ def make_predictions(
 
     # Make predictions
     trainer = transformers.Trainer(model=model)
-    predictions = trainer.predict(tokenized_datasets[test_split])
+    predictions = trainer.predict(tokenized_datasets)
 
     # Convert predictions to labels
     labels = (
