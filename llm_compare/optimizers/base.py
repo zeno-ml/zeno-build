@@ -1,5 +1,7 @@
-from collections.abc import Callable
+"""Base class for optimizers that run hyperparameter sweeps."""
+
 import abc
+from collections.abc import Callable
 from typing import Any, TypeVar
 
 from llm_compare import experiment_run, search_space
