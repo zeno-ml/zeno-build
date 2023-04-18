@@ -3,10 +3,8 @@
 import json
 import os
 
-from datasets import load_dataset
-from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
-                          PreTrainedModel, PreTrainedTokenizer, Trainer,
-                          TrainingArguments)
+import datasets
+import transformers
 
 from llm_compare.cache_utils import get_cache_path
 
@@ -19,7 +17,7 @@ def train_model(
     weight_decay: float = 0.01,
     training_split: str = "train",
     validation_split: str = "validation",
-) -> tuple[PreTrainedModel, PreTrainedTokenizer]:
+) -> tuple[transformers.PreTrainedModel, transformers.PreTrainedTokenizer]:
     """Train a model on a text classification task.
 
     Args:
@@ -34,16 +32,20 @@ def train_model(
     parameters["__name__"] = train_model.__name__
     model_dir = get_cache_path("text_classification", parameters)
     if os.path.exists(model_dir):
-        tokenizer = AutoTokenizer.from_pretrained(model_dir)
-        model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
+        model = transformers.AutoModelForSequenceClassification.from_pretrained(
+            model_dir
+        )
         return tokenizer, model
 
     # Load tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(base_model)
-    model = AutoModelForSequenceClassification.from_pretrained(base_model, num_labels=2)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(base_model)
+    model = transformers.AutoModelForSequenceClassification.from_pretrained(
+        base_model, num_labels=2
+    )
 
     # Load dataset
-    dataset = load_dataset(training_dataset, split=training_split)
+    dataset = datasets.load_dataset(training_dataset)
 
     # Tokenize data
     def tokenize_function(examples):
@@ -52,7 +54,7 @@ def train_model(
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
     # Define training settings
-    training_args = TrainingArguments(
+    training_args = transformers.TrainingArguments(
         output_dir=model_dir,
         evaluation_strategy="epoch",
         learning_rate=learning_rate,
@@ -63,7 +65,7 @@ def train_model(
     )
 
     # Train the model
-    trainer = Trainer(
+    trainer = transformers.Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets[training_split],
@@ -79,8 +81,8 @@ def train_model(
 
 
 def make_predictions(
-    model: PreTrainedModel,
-    tokenizer: PreTrainedTokenizer,
+    model: transformers.PreTrainedModel,
+    tokenizer: transformers.PreTrainedTokenizer,
     test_dataset: str,
     bias: float = 0.0,
     test_split: str = "test",
@@ -98,7 +100,7 @@ def make_predictions(
         The predictions in string format.
     """
     # Load dataset
-    dataset = load_dataset(test_dataset, split=test_split)
+    dataset = datasets.load_dataset(test_dataset, split=test_split)
 
     # Tokenize data
     def tokenize_function(examples):
@@ -107,7 +109,7 @@ def make_predictions(
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
     # Make predictions
-    trainer = Trainer(model=model)
+    trainer = transformers.Trainer(model=model)
     predictions = trainer.predict(tokenized_datasets[test_split])
 
     # Convert predictions to labels
@@ -129,7 +131,7 @@ def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
         The references in string format.
     """
     # Load dataset
-    dataset = load_dataset(test_dataset, split=test_split)
+    dataset = datasets.load_dataset(test_dataset, split=test_split)
 
     # Convert labels to strings
     labels = dataset.features["label"].names

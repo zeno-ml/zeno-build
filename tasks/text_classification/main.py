@@ -27,10 +27,12 @@ def text_classification_main(
     """Run the text classification experiment."""
     # Define the space of hyperparameters to search over
     space = {
-        "training_dataset": search_space.Categorical(["imdb", "ag_news"]),
-        "base_model": search_space.Categorical(["distilbert-base-uncased"]),
+        "training_dataset": search_space.Categorical(["imdb", "rotten_tomatoes"]),
+        "base_model": search_space.Categorical(
+            ["distilbert-base-uncased", "bert-base-uncased"]
+        ),
         "learning_rate": search_space.Float(1e-5, 1e-3),
-        "num_train_epochs": search_space.Int(0, 4),
+        "num_train_epochs": search_space.Int(1, 4),
         "weight_decay": search_space.Float(0.0, 0.01),
         "bias": search_space.Float(-1.0, 1.0),
     }

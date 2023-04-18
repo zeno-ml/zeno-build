@@ -21,14 +21,14 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    "google-vizier>=0.1.4",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
-    "pytest>=6.0.0",
+    "mypy>=1.2.0",
     "pre-commit>=3.2.0",
+    "pytest>=6.0.0", 
 ]
 
 [tool.hatch.build]

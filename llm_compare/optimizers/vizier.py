@@ -19,14 +19,20 @@ class VizierOptimizer(Optimizer):
 
     def __init__(
         self,
-        algorithm: str = "GAUSSIAN_PROCESS_BANDIT",
+        algorithm: str = "RANDOM_SEARCH",
+        owner: str = "llm-compare",
+        study_id: str = "llm-compare",
     ):
         """Initialize a Vizier optimizer.
 
         Args:
             algorithm: The algorithm to use for optimization.
+            owner: The owner of the study.
+            study_id: The ID of the study.
         """
         self.algorithm = algorithm
+        self.owner = owner
+        self.study_id = study_id
 
     def run_sweep(
         self,
@@ -80,7 +86,9 @@ class VizierOptimizer(Optimizer):
 
         # Setup client and begin optimization. Vizier Service will be implicitly
         # created.
-        study = clients.Study.from_study_config(study_config)
+        study = clients.Study.from_study_config(
+            study_config, owner=self.owner, study_id=self.study_id
+        )
         experiment_runs: list[ExperimentRun] = []
         for _ in range(num_trials):
             suggestions = study.suggest(count=1)
