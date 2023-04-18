@@ -2,9 +2,11 @@
 
 import json
 import os
+
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
-from transformers import PreTrainedTokenizer, PreTrainedModel
+from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
+                          PreTrainedModel, PreTrainedTokenizer, Trainer,
+                          TrainingArguments)
 
 from llm_compare.cache_utils import get_cache_path
 
@@ -19,11 +21,11 @@ def train_model(
     validation_split: str = "validation",
 ) -> tuple[PreTrainedModel, PreTrainedTokenizer]:
     """Train a model on a text classification task.
-    
+
     Args:
         training_dataset: The path to the training dataset.
         base_model: The name of the base model to use.
-    
+
     Returns:
         The trained model and tokenizer.
     """
@@ -35,7 +37,7 @@ def train_model(
         tokenizer = AutoTokenizer.from_pretrained(model_dir)
         model = AutoModelForSequenceClassification.from_pretrained(model_dir)
         return tokenizer, model
- 
+
     # Load tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     model = AutoModelForSequenceClassification.from_pretrained(base_model, num_labels=2)
@@ -52,7 +54,7 @@ def train_model(
     # Define training settings
     training_args = TrainingArguments(
         output_dir=model_dir,
-        evaluation_strategy = "epoch",
+        evaluation_strategy="epoch",
         learning_rate=learning_rate,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
@@ -84,14 +86,14 @@ def make_predictions(
     test_split: str = "test",
 ) -> list[str]:
     """Make predictions over a particular dataset.
-    
+
     Args:
         model: The model to evaluate.
         tokenizer: The tokenizer to use.
         test_dataset: The path to the test dataset.
         bias: The bias to apply to the first class.
         test_split: The split of the test dataset to use.
-    
+
     Returns:
         The predictions in string format.
     """
@@ -111,16 +113,18 @@ def make_predictions(
     # Convert predictions to labels
     labels = dataset.features["label"].names
     predictions.predictions[:, 0] += bias
-    return [labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)]
+    return [
+        labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
+    ]
 
 
 def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
     """Get the reference answers for a particular dataset.
-    
+
     Args:
         test_dataset: The path to the test dataset.
         test_split: The split of the test dataset to use.
-    
+
     Returns:
         The references in string format.
     """

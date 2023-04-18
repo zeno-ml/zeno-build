@@ -1,12 +1,11 @@
-
 from typing import Any, TypeVar
 
 from llm_compare.evaluators.base import Evaluator
 
 T = TypeVar("T")
 
-class AccuracyEvaluator(Evaluator):
 
+class AccuracyEvaluator(Evaluator):
     def __init__(self, references: list[T]):
         """Initialize the evaluator.
 
@@ -37,4 +36,6 @@ class AccuracyEvaluator(Evaluator):
                 f"Number of references ({len(self.references)}) does not match "
                 f"number of predictions ({len(predictions)})."
             )
-        return sum(1 if r == p else 0 for r, p in zip(self.references, predictions))/len(self.references)
+        return sum(
+            1 if r == p else 0 for r, p in zip(self.references, predictions)
+        ) / len(self.references)

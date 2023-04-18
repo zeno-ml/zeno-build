@@ -1,7 +1,8 @@
+from llm_compare import optimizers, search_space
+from llm_compare.evaluators import accuracy
 
 from . import modeling
-from llm_compare import search_space, optimizers
-from llm_compare.evaluators import accuracy
+
 
 def text_classification_main():
 
@@ -24,7 +25,9 @@ def text_classification_main():
     }
 
     # Get the reference answers and create an evaluator for accuracy
-    references = modeling.get_references(constants["test_dataset"], constants["test_split"])
+    references = modeling.get_references(
+        constants["test_dataset"], constants["test_split"]
+    )
     evaluator = accuracy.AccuracyEvaluator(references)
 
     # Run the hyperparameter sweep

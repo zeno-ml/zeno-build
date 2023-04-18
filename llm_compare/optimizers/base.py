@@ -1,10 +1,12 @@
-
+from collections.abc import Callable
 import abc
-from typing import Any, Callable, TypeVar
-from llm_compare import search_space, experiment_run
+from typing import Any, TypeVar
+
+from llm_compare import experiment_run, search_space
 from llm_compare.evaluators.base import Evaluator
 
 T = TypeVar("T")
+
 
 class Optimizer:
     """An optimizer for hyperparameter search."""
@@ -26,7 +28,7 @@ class Optimizer:
             constants: Any constants that are fed into the function.
             evaluator: The function used to evaluate the results of a run.
             num_trials: The number of trials to run or None to run exhaustively.
-    
+
         Returns:
             A list of runs.
         """
