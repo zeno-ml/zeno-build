@@ -68,7 +68,6 @@ def text_classification_main(
 
 
 if __name__ == "__main__":
-
     # Parse the command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
