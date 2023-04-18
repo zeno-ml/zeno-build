@@ -1,5 +1,7 @@
-from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
+"""Base class for all evaluators."""
+
+from abc import abstractmethod
+from typing import TypeVar
 
 T = TypeVar("T")
 

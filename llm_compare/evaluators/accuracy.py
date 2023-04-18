@@ -1,4 +1,6 @@
-from typing import Any, TypeVar
+"""Accuracy evaluator."""
+
+from typing import TypeVar
 
 from llm_compare.evaluators.base import Evaluator
 
@@ -6,6 +8,8 @@ T = TypeVar("T")
 
 
 class AccuracyEvaluator(Evaluator):
+    """An evaluator that computes the accuracy of a run."""
+
     def __init__(self, references: list[T]):
         """Initialize the evaluator.
 

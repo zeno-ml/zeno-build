@@ -1,3 +1,5 @@
+"""The standard optimizer used by default."""
+
 from llm_compare.optimizers.vizier import VizierOptimizer
 
 

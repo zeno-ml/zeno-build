@@ -1,3 +1,5 @@
+"""Data class for a single run of an experiment."""
+
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 

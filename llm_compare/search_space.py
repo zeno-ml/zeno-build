@@ -1,6 +1,8 @@
+"""Search space for hyperparameter optimization."""
+
 from abc import ABC
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

@@ -1,3 +1,5 @@
+"""An optimizer using the Vizier toolkit."""
+
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -13,6 +15,8 @@ T = TypeVar("T")
 
 
 class VizierOptimizer(Optimizer):
+    """An optimizer using the Vizier toolkit."""
+
     def __init__(
         self,
         algorithm: str = "GAUSSIAN_PROCESS_BANDIT",
@@ -45,7 +49,8 @@ class VizierOptimizer(Optimizer):
         """
         if num_trials is None:
             raise ValueError(
-                "Vizier does not support exhaustive search, set num_trials to an integer value."
+                "Vizier does not support exhaustive search, set num_trials to an "
+                "integer value."
             )
 
         # Algorithm, search space, and metrics.
@@ -73,7 +78,8 @@ class VizierOptimizer(Optimizer):
             vz.MetricInformation(evaluator.name(), goal=vz.ObjectiveMetricGoal.MAXIMIZE)
         )
 
-        # Setup client and begin optimization. Vizier Service will be implicitly created.
+        # Setup client and begin optimization. Vizier Service will be implicitly
+        # created.
         study = clients.Study.from_study_config(study_config)
         experiment_runs: list[ExperimentRun] = []
         for _ in range(num_trials):
