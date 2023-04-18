@@ -1,5 +1,6 @@
 """Utils to cache the results of a function call."""
 
+from __future__ import annotations
 
 import hashlib
 import json

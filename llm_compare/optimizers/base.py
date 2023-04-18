@@ -1,5 +1,7 @@
 """Base class for optimizers that run hyperparameter sweeps."""
 
+from __future__ import annotations
+
 import abc
 from collections.abc import Callable
 from typing import Any, TypeVar
