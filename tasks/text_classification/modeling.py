@@ -9,7 +9,7 @@ import transformers
 from llm_compare.cache_utils import get_cache_path
 
 DATASET_MAPPING = {
-    "rotten_tomatoes": {
+    "imdb": {
         "label_mapping": {
             0: "negative",
             1: "positive",
