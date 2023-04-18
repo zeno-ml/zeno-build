@@ -80,7 +80,7 @@ def train_model(
         output_dir=model_dir,
         evaluation_strategy="epoch",
         learning_rate=learning_rate,
-        per_device_train_batch_size=8,
+        per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
         num_train_epochs=num_train_epochs,
         weight_decay=weight_decay,
