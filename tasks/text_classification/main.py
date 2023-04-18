@@ -1,14 +1,4 @@
-"""The main entry point for performing comparison on text classification.
-
-If you want to adapt this, look at:
-1. The "space" variable in this file which defines the training data,
-    model, and hyperparameters to search over.
-2. The "constants" variable in this file which defines the test data.
-3. The "modeling.py" file which defines the function that trains and
-    makes predictions.
-4. The "num_trials" variable in this file which defines the number of
-    trials to run.
-"""
+"""The main entry point for performing comparison on text classification."""
 
 import argparse
 import json
