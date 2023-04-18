@@ -15,6 +15,11 @@ def text_classification_main(
     results_dir: str,
 ):
     """Run the text classification experiment."""
+    # Make results dir if it doesn't exist
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    results_file = os.path.join(results_dir, "results.json")
+
     # Define the space of hyperparameters to search over
     space = {
         "training_dataset": search_space.Categorical(["imdb", "sst2"]),
@@ -48,8 +53,11 @@ def text_classification_main(
         constants=constants,
         evaluator=evaluator,
         num_trials=10,
+        results_file=results_file,
     )
-    with open(os.path.join(results_dir, "results.json"), "w") as f:
+
+    # Print out results
+    with open(results_file, "w") as f:
         json.dump(result, f)
 
     # Print the best result

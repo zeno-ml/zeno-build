@@ -1,5 +1,6 @@
 """An optimizer using the Vizier toolkit."""
 
+import json
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -41,6 +42,7 @@ class VizierOptimizer(Optimizer):
         constants: dict[str, Any],
         evaluator: Evaluator,
         num_trials: int | None,
+        results_file: str | None = None,
     ) -> list[ExperimentRun]:
         """Run a hyperparameter sweep with Vizier.
 
@@ -49,6 +51,8 @@ class VizierOptimizer(Optimizer):
             space: The space of hyperparameters to search over.
             constants: Any constants that are fed into the function.
             evaluator: The function used to evaluate the results of a run.
+            num_trials: The number of trials to run.
+            results_file: The file to save the results to.
 
         Returns:
             A list of runs.
@@ -98,4 +102,7 @@ class VizierOptimizer(Optimizer):
                 objective = evaluator.evaluate(results)
                 suggestion.complete(vz.Measurement({evaluator.name(): objective}))
                 experiment_runs.append(ExperimentRun(params, results, objective))
+                if results_file is not None:
+                    with open(results_file, "w") as f:
+                        json.dump(experiment_runs, f)
         return experiment_runs

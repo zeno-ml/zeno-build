@@ -1,5 +1,6 @@
 """An optimizer using random search."""
 
+import json
 import logging
 import random
 from collections.abc import Callable
@@ -60,6 +61,7 @@ class RandomOptimizer(Optimizer):
         constants: dict[str, Any],
         evaluator: Evaluator,
         num_trials: int | None,
+        results_file: str | None = None,
     ) -> list[ExperimentRun]:
         """Run a hyperparameter sweep with Random search.
 
@@ -69,6 +71,7 @@ class RandomOptimizer(Optimizer):
             constants: Any constants that are fed into the function.
             evaluator: The function used to evaluate the results of a run.
             num_trials: The number of trials to run.
+            results_file: The file to save the results to.
 
         Returns:
             A list of runs.
@@ -86,4 +89,7 @@ class RandomOptimizer(Optimizer):
             results = function(**params, **constants)
             objective = evaluator.evaluate(results)
             experiment_runs.append(ExperimentRun(params, results, objective))
+            if results_file is not None:
+                with open(results_file, "w") as f:
+                    json.dump(experiment_runs, f)
         return experiment_runs
