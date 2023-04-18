@@ -1,6 +1,8 @@
 # Text Classification
 
-This is an example of how to perform a hyperparameter sweep and comparison of text classification models using the [HuggingFace Transformers](https://huggingface.co/transformers/) library.
+This is an example of how to perform a hyperparameter sweep and comparison of
+text classification models using the
+[HuggingFace Transformers](https://huggingface.co/transformers/) library.
 
 ## Install Requirements
 
