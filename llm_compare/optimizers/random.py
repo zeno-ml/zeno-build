@@ -5,6 +5,7 @@ import logging
 import os
 import random
 from collections.abc import Callable
+from dataclasses import asdict
 from typing import Any, TypeVar
 
 from llm_compare import search_space
@@ -95,5 +96,5 @@ class RandomOptimizer(Optimizer):
                 if not os.path.exists(results_dir):
                     os.makedirs(results_dir)
                 with open(os.path.join(results_dir, f"run{i:04d}.json"), "w") as f:
-                    json.dump(current_run, f)
+                    json.dump(asdict(current_run), f)
         return experiment_runs

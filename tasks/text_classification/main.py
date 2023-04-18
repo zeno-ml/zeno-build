@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+from dataclasses import asdict
 
 from llm_compare import search_space
 from llm_compare.evaluators import accuracy
@@ -58,8 +59,9 @@ def text_classification_main(
     )
 
     # Print out results
+    serialized_results = [asdict(x) for x in result]
     with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-        json.dump(result, f)
+        json.dump(serialized_results, f)
 
     # Print the best result
     raise NotImplementedError("Perform analysis/visualization on the results.")
