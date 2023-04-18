@@ -24,6 +24,14 @@ repos:
           - --select=D
         entry: flake8
         files: '\.py$'
+      - id: flake8
+        name: future-import
+        additional_dependencies:
+          - flake8-future-import
+        args:
+          - --select=FI
+        entry: flake8
+        files: '\.py$'
   - repo: https://github.com/pycqa/isort.git
     rev: 5.12.0
     hooks:
