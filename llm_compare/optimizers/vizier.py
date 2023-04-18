@@ -102,10 +102,11 @@ class VizierOptimizer(Optimizer):
                 results = function(**params, **constants)
                 objective = evaluator.evaluate(results)
                 suggestion.complete(vz.Measurement({evaluator.name(): objective}))
-                experiment_runs.append(ExperimentRun(params, results, objective))
+                current_run = ExperimentRun(params, results, objective)
+                experiment_runs.append(current_run)
                 if results_dir is not None:
                     if not os.path.exists(results_dir):
                         os.makedirs(results_dir)
-                    with open(os.path.join(results_dir, f"{i:04d}.json"), "w") as f:
-                        json.dump(experiment_runs, f)
+                    with open(os.path.join(results_dir, f"run{i:04d}.json"), "w") as f:
+                        json.dump(current_run, f)
         return experiment_runs
