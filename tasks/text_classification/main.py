@@ -18,7 +18,6 @@ def text_classification_main(
     # Make results dir if it doesn't exist
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
-    results_file = os.path.join(results_dir, "results.json")
 
     # Define the space of hyperparameters to search over
     space = {
@@ -44,8 +43,10 @@ def text_classification_main(
         constants["test_dataset"], constants["test_split"]
     )
     evaluator = accuracy.AccuracyEvaluator(references)
+    with open(os.path.join(results_dir, "references.json"), "w") as f:
+        json.dump(references, f)
 
-    # Run the hyperparameter sweep
+    # Run the hyperparameter sweep and print out results
     optimizer = standard.StandardOptimizer()
     result = optimizer.run_sweep(
         function=modeling.train_and_predict,
@@ -53,11 +54,11 @@ def text_classification_main(
         constants=constants,
         evaluator=evaluator,
         num_trials=10,
-        results_file=results_file,
+        results_dir=results_dir,
     )
 
     # Print out results
-    with open(results_file, "w") as f:
+    with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
         json.dump(result, f)
 
     # Print the best result

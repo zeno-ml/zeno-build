@@ -1,6 +1,7 @@
 """An optimizer using the Vizier toolkit."""
 
 import json
+import os
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -42,7 +43,7 @@ class VizierOptimizer(Optimizer):
         constants: dict[str, Any],
         evaluator: Evaluator,
         num_trials: int | None,
-        results_file: str | None = None,
+        results_dir: str | None = None,
     ) -> list[ExperimentRun]:
         """Run a hyperparameter sweep with Vizier.
 
@@ -94,7 +95,7 @@ class VizierOptimizer(Optimizer):
             study_config, owner=self.owner, study_id=self.study_id
         )
         experiment_runs: list[ExperimentRun] = []
-        for _ in range(num_trials):
+        for i in range(num_trials):
             suggestions = study.suggest(count=1)
             for suggestion in suggestions:
                 params = suggestion.parameters
@@ -102,7 +103,9 @@ class VizierOptimizer(Optimizer):
                 objective = evaluator.evaluate(results)
                 suggestion.complete(vz.Measurement({evaluator.name(): objective}))
                 experiment_runs.append(ExperimentRun(params, results, objective))
-                if results_file is not None:
-                    with open(results_file, "w") as f:
+                if results_dir is not None:
+                    if not os.path.exists(results_dir):
+                        os.makedirs(results_dir)
+                    with open(os.path.join(results_dir, f"{i:04d}.json"), "w") as f:
                         json.dump(experiment_runs, f)
         return experiment_runs

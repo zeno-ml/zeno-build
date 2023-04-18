@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import random
 from collections.abc import Callable
 from typing import Any, TypeVar
@@ -61,7 +62,7 @@ class RandomOptimizer(Optimizer):
         constants: dict[str, Any],
         evaluator: Evaluator,
         num_trials: int | None,
-        results_file: str | None = None,
+        results_dir: str | None = None,
     ) -> list[ExperimentRun]:
         """Run a hyperparameter sweep with Random search.
 
@@ -71,7 +72,7 @@ class RandomOptimizer(Optimizer):
             constants: Any constants that are fed into the function.
             evaluator: The function used to evaluate the results of a run.
             num_trials: The number of trials to run.
-            results_file: The file to save the results to.
+            results_dir: The to save the results to.
 
         Returns:
             A list of runs.
@@ -83,13 +84,15 @@ class RandomOptimizer(Optimizer):
             )
 
         experiment_runs: list[ExperimentRun] = []
-        for _ in range(num_trials):
+        for i in range(num_trials):
             params = self.randomize_params(space)
             logging.getLogger(__name__).info(f"Running with params: {params}")
             results = function(**params, **constants)
             objective = evaluator.evaluate(results)
             experiment_runs.append(ExperimentRun(params, results, objective))
-            if results_file is not None:
-                with open(results_file, "w") as f:
+            if results_dir is not None:
+                if not os.path.exists(results_dir):
+                    os.makedirs(results_dir)
+                with open(os.path.join(results_dir, f"{i:04d}.json"), "w") as f:
                     json.dump(experiment_runs, f)
         return experiment_runs
