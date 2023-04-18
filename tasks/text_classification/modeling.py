@@ -8,6 +8,23 @@ import transformers
 
 from llm_compare.cache_utils import get_cache_path
 
+DATASET_MAPPING = {
+    "rotten_tomatoes": {
+        "label_mapping": {
+            0: "negative",
+            1: "positive",
+        },
+        "input": "text",
+    },
+    "sst2": {
+        "label_mapping": {
+            0: "negative",
+            1: "positive",
+        },
+        "input": "sentence",
+    },
+}
+
 
 def train_model(
     training_dataset: str,
@@ -16,7 +33,6 @@ def train_model(
     num_train_epochs: int = 3,
     weight_decay: float = 0.01,
     training_split: str = "train",
-    validation_split: str = "validation",
 ) -> tuple[transformers.PreTrainedModel, transformers.PreTrainedTokenizer]:
     """Train a model on a text classification task.
 
@@ -48,8 +64,14 @@ def train_model(
     dataset = datasets.load_dataset(training_dataset)
 
     # Tokenize data
+    input_name = (
+        DATASET_MAPPING[training_dataset]["input"]
+        if training_dataset in DATASET_MAPPING
+        else "text"
+    )
+
     def tokenize_function(examples):
-        return tokenizer(examples["text"], padding="max_length", truncation=True)
+        return tokenizer(examples[input_name], padding="max_length", truncation=True)
 
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
@@ -69,7 +91,6 @@ def train_model(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets[training_split],
-        eval_dataset=tokenized_datasets[validation_split],
     )
     trainer.train()
 
@@ -103,8 +124,14 @@ def make_predictions(
     dataset = datasets.load_dataset(test_dataset, split=test_split)
 
     # Tokenize data
+    input_name = (
+        DATASET_MAPPING[test_dataset]["input"]
+        if test_dataset in DATASET_MAPPING
+        else "text"
+    )
+
     def tokenize_function(examples):
-        return tokenizer(examples["text"], padding="max_length", truncation=True)
+        return tokenizer(examples[input_name], padding="max_length", truncation=True)
 
     tokenized_datasets = dataset.map(tokenize_function, batched=True)
 
@@ -113,7 +140,11 @@ def make_predictions(
     predictions = trainer.predict(tokenized_datasets[test_split])
 
     # Convert predictions to labels
-    labels = dataset.features["label"].names
+    labels = (
+        DATASET_MAPPING[test_dataset]["label_mapping"]
+        if test_dataset in DATASET_MAPPING
+        else dataset.features["label"].names
+    )
     predictions.predictions[:, 0] += bias
     return [
         labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
@@ -134,7 +165,11 @@ def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
     dataset = datasets.load_dataset(test_dataset, split=test_split)
 
     # Convert labels to strings
-    labels = dataset.features["label"].names
+    labels = (
+        DATASET_MAPPING[test_dataset]["label_mapping"]
+        if test_dataset in DATASET_MAPPING
+        else dataset.features["label"].names
+    )
     return [labels[label] for label in dataset["label"]]
 
 
@@ -147,7 +182,6 @@ def train_and_predict(
     weight_decay: float = 0.01,
     bias: float = 0.0,
     training_split: str = "train",
-    validation_split: str = "validation",
     test_split: str = "test",
 ) -> list[str]:
     """Train and make predictions."""
@@ -167,7 +201,6 @@ def train_and_predict(
         num_train_epochs,
         weight_decay,
         training_split,
-        validation_split,
     )
 
     # Make predictions

@@ -27,7 +27,7 @@ def text_classification_main(
     """Run the text classification experiment."""
     # Define the space of hyperparameters to search over
     space = {
-        "training_dataset": search_space.Categorical(["imdb", "rotten_tomatoes"]),
+        "training_dataset": search_space.Categorical(["imdb", "sst2"]),
         "base_model": search_space.Categorical(
             ["distilbert-base-uncased", "bert-base-uncased"]
         ),
@@ -41,7 +41,6 @@ def text_classification_main(
     constants = {
         "test_dataset": "imdb",
         "training_split": "train",
-        "validation_split": "validation",
         "test_split": "test",
     }
 
