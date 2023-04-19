@@ -45,7 +45,7 @@ def visualize(
     model_results = {}
     for res in results:
         # Hash model params to represent in Zeno. W&B uses random names.
-        name = str(hash("_".join([str(r) for r in res["parameters"].values()])))
+        name = str(hash("_".join([f"{k}={v}" for k,v in res["parameters"].items()])))
 
         # Prevent duplicate runs being added to Zeno
         if name not in model_names:
