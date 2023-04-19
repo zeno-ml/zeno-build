@@ -11,8 +11,11 @@ import modeling
 import openai
 
 from llm_compare import search_space
+from llm_compare.evaluation.text_features.length import input_length, output_length
+from llm_compare.evaluation.text_metrics.critique import avg_rouge, rouge
 from llm_compare.evaluators import critique
 from llm_compare.optimizers import standard
+from llm_compare.visualize import visualize
 
 
 def text_summarization_main(
@@ -64,24 +67,38 @@ def text_summarization_main(
     with open(os.path.join(results_dir, "references.json"), "w") as f:
         json.dump(references, f)
 
-    # Run the hyperparameter sweep and print out results
-    optimizer = standard.StandardOptimizer()
-    result = optimizer.run_sweep(
-        function=modeling.make_predictions,
-        space=space,
-        constants=constants,
-        evaluator=evaluator,
-        num_trials=10,
-        results_dir=results_dir,
+    if os.path.exists(os.path.join(results_dir, "all_runs.json")):
+        with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
+            serialized_results = json.load(f)
+    else:
+        # Run the hyperparameter sweep and print out results
+        optimizer = standard.StandardOptimizer()
+        result = optimizer.run_sweep(
+            function=modeling.make_predictions,
+            space=space,
+            constants=constants,
+            evaluator=evaluator,
+            num_trials=10,
+            results_dir=results_dir,
+        )
+
+        # Print out results
+        serialized_results = [asdict(x) for x in result]
+        with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
+            json.dump(serialized_results, f)
+
+    dataset = modeling.load_data(
+        constants["test_dataset"], constants["test_split"], constants["test_examples"]
+    ).to_pandas()
+
+    visualize(
+        dataset,
+        [r["source"] for r in references],
+        serialized_results,
+        "text-classification",
+        "article",
+        [output_length, input_length, rouge, avg_rouge],
     )
-
-    # Print out results
-    serialized_results = [asdict(x) for x in result]
-    with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-        json.dump(serialized_results, f)
-
-    # Print the best result
-    raise NotImplementedError("Perform analysis/visualization on the results.")
 
 
 if __name__ == "__main__":

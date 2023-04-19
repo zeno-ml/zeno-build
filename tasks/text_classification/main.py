@@ -8,6 +8,7 @@ from dataclasses import asdict
 import modeling
 
 from llm_compare import search_space
+from llm_compare.evaluation import classification_metrics
 from llm_compare.evaluators import accuracy
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
@@ -69,11 +70,16 @@ def text_classification_main(
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
-    dataset = modeling.get_dataset(
-        constants["test_dataset"], constants["test_split"]
-    ).to_pandas()
+    dataset = modeling.get_dataset(constants["test_dataset"], constants["test_split"])
 
-    visualize(dataset, references, serialized_results, "text-classification", "text")
+    visualize(
+        dataset,
+        references,
+        serialized_results,
+        "text-classification",
+        "text",
+        [classification_metrics.accuracy],
+    )
 
 
 if __name__ == "__main__":

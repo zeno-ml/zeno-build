@@ -133,3 +133,5 @@ dmypy.json
 
 # Experimental results
 results/
+results*/
+.zeno_cache/
