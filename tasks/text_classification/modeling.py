@@ -151,7 +151,7 @@ def make_predictions(
 
 
 def get_dataset(test_dataset: str, test_split: str) -> pd.DataFrame:
-    """Get the full dataset for task
+    """Get the full dataset for task.
 
     Args:
         test_dataset: The path to the test dataset.
