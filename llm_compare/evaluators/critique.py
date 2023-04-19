@@ -1,5 +1,7 @@
 """An evaluator that computes the accuracy of a run using the critique service."""
 
+from __future__ import annotations
+
 import json
 from typing import Any, TypeVar
 
