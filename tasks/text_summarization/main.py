@@ -6,14 +6,13 @@ import os
 from dataclasses import asdict
 from typing import Any
 
-import openai
 import cohere
+import modeling
+import openai
 
 from llm_compare import search_space
 from llm_compare.evaluators import critique
 from llm_compare.optimizers import standard
-
-from . import modeling
 
 
 def text_summarization_main(
@@ -33,29 +32,34 @@ def text_summarization_main(
     # Note that "prompt_preset" and "model_preset" are in prompt_configs.py
     # and model_configs.py respectively.
     space = {
-        "prompt_preset": search_space.Categorical(["standard", "tldr", "concise", "complete"]),
-        "model_preset": search_space.Categorical(["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]),
+        "prompt_preset": search_space.Categorical(
+            ["standard", "tldr", "concise", "complete"]
+        ),
+        "model_preset": search_space.Categorical(
+            ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
+        ),
         "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
     }
 
     # Any constants that are fed into the function
     constants: dict[str, Any] = {
-        "test_dataset": "cnn_dailymail",
+        "test_dataset": ("cnn_dailymail", "3.0.0"),
         "test_split": "test",
-        "test_examples": 3,
+        "test_examples": 100,
         "max_tokens": 100,
         "top_p": 1.0,
     }
 
     # Get the reference answers and create an evaluator for accuracy
     references = modeling.get_references(
-        constants["test_dataset"], constants["test_split"], test_examples=constants["test_examples"]
+        constants["test_dataset"],
+        constants["test_split"],
+        test_examples=constants["test_examples"],
     )
     evaluator = critique.CritiqueEvaluator(
-        api_key=os.environ["CRITIQUE_API_KEY"],
+        api_key=inspiredco_api_key,
         dataset=references,
-        preset="ROUGE-1",
-
+        preset="ChrF",
     )
     with open(os.path.join(results_dir, "references.json"), "w") as f:
         json.dump(references, f)

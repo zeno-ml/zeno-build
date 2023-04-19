@@ -1,11 +1,12 @@
 """An evaluator that computes the accuracy of a run using the critique service."""
 
+import json
 from typing import Any, TypeVar
+
 from inspiredco import critique
 
-from llm_compare.evaluators.base import Evaluator
 from llm_compare.evaluators import critique_presets
-
+from llm_compare.evaluators.base import Evaluator
 
 T = TypeVar("T")
 
@@ -25,8 +26,9 @@ class CritiqueEvaluator(Evaluator):
 
         Args:
             api_key: The API key for the critique service.
-            dataset: The dataset to evaluate on, other than the generated outputs. It can be
-                set to None if the metric doesn't require anything but the generated outputs.
+            dataset: The dataset to evaluate on, other than the generated outputs. It
+                can be set to None if the metric doesn't require anything but the
+                generated outputs.
             preset: The preset to use. If set, metric and config must not be set.
             metric: The metric to use. Required if "preset" is not set.
             config: The configuration for the metric.
@@ -35,9 +37,7 @@ class CritiqueEvaluator(Evaluator):
         self._dataset = dataset
         if preset is not None:
             if metric is not None or config is not None:
-                raise ValueError(
-                    "If preset is set, metric and config must not be set."
-                )
+                raise ValueError("If preset is set, metric and config must not be set.")
             self._name = preset
             self._metric = critique_presets.critique_presets[preset]["metric"]
             self._config = critique_presets.critique_presets[preset]["config"]
@@ -69,6 +69,10 @@ class CritiqueEvaluator(Evaluator):
             dataset = [{"target": p} for p in predictions]
         else:
             dataset = [{"target": p, **d} for p, d in zip(predictions, self._dataset)]
+        with open("critique_input.json", "w") as f:
+            json.dump(
+                {"metric": self._metric, "config": self._config, "dataset": dataset}, f
+            )
         response = self._client.evaluate(
             metric=self._metric, config=self._config, dataset=dataset
         )

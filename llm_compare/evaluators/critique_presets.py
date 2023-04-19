@@ -1,6 +1,14 @@
 """Presets for Critique."""
 
 critique_presets = {
+    "ChrF": {
+        "metric": "chrf",
+        "config": {},
+    },
+    "SentenceBLEU": {
+        "metric": "bleu",
+        "config": {"smooth": "add_k", "smooth_value": 1.0},
+    },
     "ROUGE-1": {
         "metric": "rouge",
         "config": {"variety": "rouge_1"},
@@ -35,7 +43,10 @@ critique_presets = {
     },
     "BartScore (Coverage)": {
         "metric": "bart_score",
-        "config": {"model": "facebook/bart-large-cnn", "variety": "reference_target_bidirectional"},
+        "config": {
+            "model": "facebook/bart-large-cnn",
+            "variety": "reference_target_bidirectional",
+        },
     },
     "Length Ratio": {
         "metric": "length_ratio",

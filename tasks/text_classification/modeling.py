@@ -1,8 +1,7 @@
 """A simple text classification pipeline in HuggingFace Transformers."""
-
 import json
 import os
-from typing import Sequence
+from collections.abc import Sequence
 
 import datasets
 import transformers
@@ -127,7 +126,9 @@ def make_predictions(
     predictions = trainer.predict(tokenized_datasets)
 
     # Convert predictions to labels
-    labels: Sequence[str] = mapping.get("label_mapping", dataset.features["label"].names)
+    labels: Sequence[str] = mapping.get(
+        "label_mapping", dataset.features["label"].names
+    )
     predictions.predictions[:, 0] += bias
     return [
         labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
@@ -149,7 +150,9 @@ def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
     mapping = DATASET_MAPPING.get(test_dataset, {})
 
     # Convert labels to strings
-    labels: Sequence[str] = mapping.get("label_mapping", dataset.features["label"].names)
+    labels: Sequence[str] = mapping.get(
+        "label_mapping", dataset.features["label"].names
+    )
     return [labels[label] for label in dataset["label"]]
 
 

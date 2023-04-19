@@ -40,5 +40,7 @@ class AccuracyEvaluator(Evaluator):
                 f"Number of references ({len(self.references)}) does not match "
                 f"number of predictions ({len(predictions)})."
             )
-        examp_acc = [1.0 if r == p else 0.0 for r, p in zip(self.references, predictions)]
+        examp_acc = [
+            1.0 if r == p else 0.0 for r, p in zip(self.references, predictions)
+        ]
         return sum(examp_acc) / len(examp_acc), examp_acc
