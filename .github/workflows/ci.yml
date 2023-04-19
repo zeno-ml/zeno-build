@@ -47,7 +47,7 @@ jobs:
       - name: isort
         uses: pre-commit/action@v3.0.0
         with:
-          extra_args: isort --all-files --profile black
+          extra_args: isort --all-files
   lint:
     runs-on: ubuntu-latest
     steps:
