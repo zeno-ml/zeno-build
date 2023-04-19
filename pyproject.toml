@@ -18,7 +18,10 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["zenoml>=0.4.10"]
+dependencies = [
+    "inspiredco>=0.0.2",
+    "zenoml>=0.4.10"
+]
 dynamic = ["version"]
 
 [project.optional-dependencies]

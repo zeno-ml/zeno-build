@@ -5,7 +5,7 @@ text classification models using the
 [HuggingFace Transformers](https://huggingface.co/transformers/) library.
 
 Specifically, it trains models for sentiment classification on the `imdb`
-dataset, with various hyperparameters for:
+dataset, with various hyperparameters.
 
 ## Install Requirements
 

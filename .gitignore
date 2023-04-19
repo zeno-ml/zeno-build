@@ -130,3 +130,6 @@ dmypy.json
 
 # IDE stuff
 .vscode/
+
+# Experimental results
+results/

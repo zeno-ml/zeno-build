@@ -91,8 +91,8 @@ class RandomOptimizer(Optimizer):
             params = self.randomize_params(space)
             logging.getLogger(__name__).info(f"Running with params: {params}")
             results = function(**params, **constants)
-            objective = evaluator.evaluate(results)
-            current_run = ExperimentRun(params, results, objective)
+            overall_result, _ = evaluator.evaluate(results)
+            current_run = ExperimentRun(params, results, overall_result)
             experiment_runs.append(current_run)
             if results_dir is not None:
                 if not os.path.exists(results_dir):

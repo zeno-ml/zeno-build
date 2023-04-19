@@ -26,20 +26,21 @@ class AccuracyEvaluator(Evaluator):
         """
         return "accuracy"
 
-    def evaluate(self, predictions: list[T]) -> float:
+    def evaluate(self, predictions: list[T]) -> tuple[float, list[float]]:
         """Evaluate the results of a run.
 
         Args:
             predictions: The predicted outputs.
 
         Returns:
-            The accuracy of the run.
+            The accuracy of the dataset, and the examples.
         """
         if len(self.references) != len(predictions):
             raise ValueError(
                 f"Number of references ({len(self.references)}) does not match "
                 f"number of predictions ({len(predictions)})."
             )
-        return sum(
-            1 if r == p else 0 for r, p in zip(self.references, predictions)
-        ) / len(self.references)
+        examp_acc = [
+            1.0 if r == p else 0.0 for r, p in zip(self.references, predictions)
+        ]
+        return sum(examp_acc) / len(examp_acc), examp_acc

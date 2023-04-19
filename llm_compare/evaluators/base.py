@@ -18,12 +18,13 @@ class Evaluator:
         """
 
     @abstractmethod
-    def evaluate(self, predictions: list[T]) -> float:
+    def evaluate(self, predictions: list[T]) -> tuple[float, list[float]]:
         """Evaluate the results of a run.
 
         Args:
             predictions: The predicted outputs.
 
         Returns:
-            The metric value for the run.
+            - The metric value for the entire input.
+            - The metric value for each example in the input.
         """

@@ -103,9 +103,11 @@ class VizierOptimizer(Optimizer):
             for suggestion in suggestions:
                 params = suggestion.parameters
                 results = function(**params, **constants)
-                objective = evaluator.evaluate(results)
-                suggestion.complete(vz.Measurement({evaluator.name(): objective}))
-                current_run = ExperimentRun(params, results, objective)
+                overall_objective, _ = evaluator.evaluate(results)
+                suggestion.complete(
+                    vz.Measurement({evaluator.name(): overall_objective})
+                )
+                current_run = ExperimentRun(params, results, overall_objective)
                 experiment_runs.append(current_run)
                 if results_dir is not None:
                     if not os.path.exists(results_dir):
