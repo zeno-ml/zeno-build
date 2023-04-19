@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
+    "inspiredco>=0.0.2",
 ]
 dynamic = ["version"]
 

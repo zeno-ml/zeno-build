@@ -2,6 +2,7 @@
 
 import json
 import os
+from typing import Sequence
 
 import datasets
 import transformers
@@ -10,17 +11,11 @@ from llm_compare.cache_utils import get_cache_path
 
 DATASET_MAPPING = {
     "imdb": {
-        "label_mapping": {
-            0: "negative",
-            1: "positive",
-        },
+        "label_mapping": ["negative", "positive"],
         "input": "text",
     },
     "sst2": {
-        "label_mapping": {
-            0: "negative",
-            1: "positive",
-        },
+        "label_mapping": ["negative", "positive"],
         "input": "sentence",
     },
 }
@@ -62,13 +57,10 @@ def train_model(
 
     # Load dataset
     dataset = datasets.load_dataset(training_dataset, split=training_split)
+    mapping = DATASET_MAPPING.get(training_dataset, {})
 
     # Tokenize data
-    input_name = (
-        DATASET_MAPPING[training_dataset]["input"]
-        if training_dataset in DATASET_MAPPING
-        else "text"
-    )
+    input_name = mapping.get("input", "text")
 
     def tokenize_function(examples):
         return tokenizer(examples[input_name], padding="max_length", truncation=True)
@@ -120,13 +112,10 @@ def make_predictions(
     """
     # Load dataset
     dataset = datasets.load_dataset(test_dataset, split=test_split)
+    mapping = DATASET_MAPPING.get(test_dataset, {})
 
     # Tokenize data
-    input_name = (
-        DATASET_MAPPING[test_dataset]["input"]
-        if test_dataset in DATASET_MAPPING
-        else "text"
-    )
+    input_name = mapping.get("input", "text")
 
     def tokenize_function(examples):
         return tokenizer(examples[input_name], padding="max_length", truncation=True)
@@ -138,11 +127,7 @@ def make_predictions(
     predictions = trainer.predict(tokenized_datasets)
 
     # Convert predictions to labels
-    labels = (
-        DATASET_MAPPING[test_dataset]["label_mapping"]
-        if test_dataset in DATASET_MAPPING
-        else dataset.features["label"].names
-    )
+    labels: Sequence[str] = mapping.get("label_mapping", dataset.features["label"].names)
     predictions.predictions[:, 0] += bias
     return [
         labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
@@ -161,13 +146,10 @@ def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
     """
     # Load dataset
     dataset = datasets.load_dataset(test_dataset, split=test_split)
+    mapping = DATASET_MAPPING.get(test_dataset, {})
 
     # Convert labels to strings
-    labels = (
-        DATASET_MAPPING[test_dataset]["label_mapping"]
-        if test_dataset in DATASET_MAPPING
-        else dataset.features["label"].names
-    )
+    labels: Sequence[str] = mapping.get("label_mapping", dataset.features["label"].names)
     return [labels[label] for label in dataset["label"]]
 
 

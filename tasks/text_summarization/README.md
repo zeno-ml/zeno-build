@@ -1,11 +1,15 @@
-# Text Classification
+# Text Summarization
 
-This is an example of how to perform a hyperparameter sweep and comparison of
-text classification models using the
-[HuggingFace Transformers](https://huggingface.co/transformers/) library.
-
-Specifically, it trains models for sentiment classification on the `imdb`
-dataset, with various hyperparameters.
+In the example here we test two different companies' text generation models, 
+[OpenAI's GPT-3](https://openai.com/blog/gpt-3-apps/), and
+[Cohere's text generation models](https://cohere.ai/generate). Evaluation of
+the models is done with the
+[Inspired Cognition Critique](https://docs.inspiredco.ai/critique/)
+tool for text generation evaluation. We demonstrate the case for text summarization
+on 100 examples from the
+[CNN-DailyMail dataset](https://huggingface.co/datasets/cnn_dailymail). But you can
+swap in whatever models, prompts, metrics, and data that you would like to try on
+other tasks too!
 
 ## Install Requirements
 
@@ -32,8 +36,7 @@ python main.py
 
 This will run ten training runs with various hyperparameters for:
 
-* `training_dataset`: "imdb" or "sst2",
-* `base_model`: "distilbert-base-uncased", "bert-base-uncased"
+* `model`: 
 * `learning_rate`: between 1e-5 and 1e-3,
 * `num_train_epochs`: between 1 and 4,
 * `weight_decay`: between 0.0 and 0.01,
