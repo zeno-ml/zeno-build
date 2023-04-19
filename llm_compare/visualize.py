@@ -41,7 +41,6 @@ def visualize(
         view (str): The Zeno view to use for the data
         data_column (str): The column in the DataFrame with the data
     """
-
     model_names = []
     model_results = {}
     for res in results:
