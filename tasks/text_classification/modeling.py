@@ -149,6 +149,10 @@ def make_predictions(
     ]
 
 
+def get_dataset(test_dataset, test_split):
+    return datasets.load_dataset(test_dataset, split=test_split)
+
+
 def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
     """Get the reference answers for a particular dataset.
 

@@ -8,8 +8,9 @@ from dataclasses import asdict
 from llm_compare import search_space
 from llm_compare.evaluators import accuracy
 from llm_compare.optimizers import standard
+from llm_compare.visualize import visualize
 
-from . import modeling
+import modeling
 
 
 def text_classification_main(
@@ -43,28 +44,36 @@ def text_classification_main(
     references = modeling.get_references(
         constants["test_dataset"], constants["test_split"]
     )
-    evaluator = accuracy.AccuracyEvaluator(references)
-    with open(os.path.join(results_dir, "references.json"), "w") as f:
-        json.dump(references, f)
 
-    # Run the hyperparameter sweep and print out results
-    optimizer = standard.StandardOptimizer()
-    result = optimizer.run_sweep(
-        function=modeling.train_and_predict,
-        space=space,
-        constants=constants,
-        evaluator=evaluator,
-        num_trials=10,
-        results_dir=results_dir,
-    )
+    if os.path.exists(os.path.join(results_dir, "all_runs.json")):
+        with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
+            serialized_results = json.load(f)
+    else:
+        evaluator = accuracy.AccuracyEvaluator(references)
+        with open(os.path.join(results_dir, "references.json"), "w") as f:
+            json.dump(references, f)
 
-    # Print out results
-    serialized_results = [asdict(x) for x in result]
-    with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-        json.dump(serialized_results, f)
+        # Run the hyperparameter sweep and print out results
+        optimizer = standard.StandardOptimizer()
+        result = optimizer.run_sweep(
+            function=modeling.train_and_predict,
+            space=space,
+            constants=constants,
+            evaluator=evaluator,
+            num_trials=10,
+            results_dir=results_dir,
+        )
 
-    # Print the best result
-    raise NotImplementedError("Perform analysis/visualization on the results.")
+        # Print out results
+        serialized_results = [asdict(x) for x in result]
+        with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
+            json.dump(serialized_results, f)
+
+    dataset = modeling.get_dataset(
+        constants["test_dataset"], constants["test_split"]
+    ).to_pandas()
+
+    visualize(dataset, references, serialized_results, "text-classification", "text")
 
 
 if __name__ == "__main__":
