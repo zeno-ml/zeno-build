@@ -5,12 +5,12 @@ import json
 import os
 from dataclasses import asdict
 
+import modeling
+
 from llm_compare import search_space
 from llm_compare.evaluators import accuracy
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
-
-import modeling
 
 
 def text_classification_main(

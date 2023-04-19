@@ -4,6 +4,7 @@ import json
 import os
 
 import datasets
+import pandas as pd
 import transformers
 
 from llm_compare.cache_utils import get_cache_path
@@ -149,8 +150,17 @@ def make_predictions(
     ]
 
 
-def get_dataset(test_dataset, test_split):
-    return datasets.load_dataset(test_dataset, split=test_split)
+def get_dataset(test_dataset: str, test_split: str) -> pd.DataFrame:
+    """Get the full dataset for task
+
+    Args:
+        test_dataset: The path to the test dataset.
+        test_split: The split of the test dataset to use.
+
+    Returns:
+        pd.DataFrame: Full DataFrame
+    """
+    return datasets.load_dataset(test_dataset, split=test_split).to_pandas()
 
 
 def get_references(test_dataset: str, test_split: str = "test") -> list[str]:

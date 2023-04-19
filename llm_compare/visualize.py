@@ -1,3 +1,4 @@
+"""Run Zeno to visualize the results of a parameter search run."""
 from operator import itemgetter
 
 import pandas as pd
@@ -13,7 +14,16 @@ from zeno import (
 
 
 @metric
-def accuracy(df, ops: ZenoOptions):
+def accuracy(df: pd.DataFrame, ops: ZenoOptions):
+    """Calculate the accuracy of a model.
+
+    Args:
+        df (pd.DataFrame): DataFrame from Zeno
+        ops (ZenoOptions): Options from Zeno
+
+    Returns:
+        MetricReturn: accuracy value
+    """
     if len(df) == 0:
         return MetricReturn(metric=0.0)
     return MetricReturn(metric=(df[ops.label_column] == df[ops.output_column]).mean())
