@@ -29,13 +29,15 @@ repos:
     hooks:
       - id: isort
         files: '\.py$'
+        args:
+          - --profile=black
   - repo: https://github.com/sondrelg/pep585-upgrade
     rev: v1.0.1
     hooks:
       - id: upgrade-type-hints
         files: '\.py$'
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.981'
+    rev: "v0.981"
     hooks:
       - id: mypy
         additional_dependencies:
@@ -44,5 +46,5 @@ repos:
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.5.1
     hooks:
-    - id: markdownlint-cli2
-    - id: markdownlint-cli2-fix
+      - id: markdownlint-cli2
+      - id: markdownlint-cli2-fix
