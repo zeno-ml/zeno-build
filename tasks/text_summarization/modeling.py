@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from typing import Any
@@ -9,7 +10,6 @@ from typing import Any
 import cohere
 import datasets
 import openai
-import tqdm
 
 from llm_compare.cache_utils import get_cache_path
 from tasks.text_summarization import model_configs, prompt_configs
@@ -52,15 +52,15 @@ def load_data(
     return loaded_data
 
 
-def generate_one(
-    source: str,
+async def generate(
+    sources: list[str],
     prompt_template: str,
     provider: str,
     model: str,
     temperature: float,
     max_tokens: int,
     top_p: float,
-) -> str:
+) -> list[str]:
     """Generate a single example.
 
     Args:
@@ -75,42 +75,59 @@ def generate_one(
     Returns:
         The generated text.
     """
-    prompt = prompt_template.replace("[X]", source)
+    print(
+        f"Generating with {prompt_template=}, {model=}, "
+        f"{temperature=}, {max_tokens=}, {top_p=}..."
+    )
     if provider == "openai":
-        response = openai.Completion.create(
-            engine=model,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
-        return response["choices"][0]["text"]
-    elif provider == "openai_chat":
-        response = openai.ChatCompletion.create(
-            model=model,
-            messages=[
-                {"role": "user", "content": prompt},
-            ],
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
-        return response["choices"][0]["message"]["content"]
-    elif provider == "cohere":
-        try:
-            assert cohere_client is not None
-            response = cohere_client.generate(
-                model=model,
-                prompt=prompt,
+        async_responses = [
+            openai.Completion.acreate(
+                engine=model,
+                prompt=prompt_template.replace("[X]", x),
                 temperature=temperature,
                 max_tokens=max_tokens,
-                p=top_p,
+                top_p=top_p,
             )
-            return response.generations[0].text
-        except Exception:
-            # Cohere API sometimes rejects queries, if so output a blank line
-            print(f"Warning! Cohere API rejected query for {prompt=}")
-            return ""
+            for x in sources
+        ]
+        responses = await asyncio.gather(*async_responses)
+        return [x["choices"][0]["text"] for x in responses]
+    elif provider == "openai_chat":
+        async_responses = [
+            openai.ChatCompletion.acreate(
+                model=model,
+                messages=[
+                    {"role": "user", "content": prompt_template.replace("[X]", x)},
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+            )
+            for x in sources
+        ]
+        responses = await asyncio.gather(*async_responses)
+        return [x["choices"][0]["message"]["content"] for x in responses]
+    elif provider == "cohere":
+        results = []
+        for x in sources:
+            try:
+                prompt = prompt_template.replace("[X]", x)
+                assert cohere_client is not None
+                response = asyncio.run(
+                    cohere_client.generate(
+                        model=model,
+                        prompt=prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        p=top_p,
+                    )
+                )
+                results.append(response.generations[0].text)
+            except Exception:
+                # Cohere API sometimes rejects queries, if so output a blank line
+                print(f"Warning! Cohere API rejected query for {prompt=}")
+                results.append("")
+        return results
     else:
         raise ValueError("Unknown provider, but you can add your own!")
 
@@ -161,12 +178,11 @@ def make_predictions(
     model = model_configs.model_configs[model_preset]["model"]
 
     # Make predictions
-    predictions = [
-        generate_one(
-            x, prompt_template, provider, model, temperature, max_tokens, top_p
+    predictions = asyncio.run(
+        generate(
+            inputs, prompt_template, provider, model, temperature, max_tokens, top_p
         )
-        for x in tqdm.tqdm(inputs, "Generating predictions")
-    ]
+    )
     with open(cache_path, "w") as f:
         json.dump(predictions, f)
     return predictions
