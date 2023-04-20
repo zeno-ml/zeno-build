@@ -69,9 +69,7 @@ def text_classification_main(
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
-    dataset = modeling.get_dataset(
-        constants["test_dataset"], constants["test_split"]
-    ).to_pandas()
+    dataset = modeling.get_dataset(constants["test_dataset"], constants["test_split"])
 
     visualize(dataset, references, serialized_results, "text-classification", "text")
 
