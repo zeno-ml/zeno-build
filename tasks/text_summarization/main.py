@@ -14,6 +14,7 @@ from llm_compare import search_space
 from llm_compare.evaluation.text_features.length import input_length, output_length
 from llm_compare.evaluation.text_metrics.critique import avg_rouge, rouge
 from llm_compare.evaluators import critique
+from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
 
@@ -70,10 +71,11 @@ def text_summarization_main(
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
             serialized_results = json.load(f)
+        results = [ExperimentRun(**x) for x in serialized_results]
     else:
         # Run the hyperparameter sweep and print out results
         optimizer = standard.StandardOptimizer()
-        result = optimizer.run_sweep(
+        results = optimizer.run_sweep(
             function=modeling.make_predictions,
             space=space,
             constants=constants,
@@ -83,7 +85,7 @@ def text_summarization_main(
         )
 
         # Print out results
-        serialized_results = [asdict(x) for x in result]
+        serialized_results = [asdict(x) for x in results]
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
@@ -94,7 +96,7 @@ def text_summarization_main(
     visualize(
         dataset,
         [r["source"] for r in references],
-        serialized_results,
+        results,
         "text-classification",
         "article",
         [output_length, input_length, rouge, avg_rouge],
