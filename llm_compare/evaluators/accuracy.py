@@ -10,13 +10,13 @@ T = TypeVar("T")
 class AccuracyEvaluator(Evaluator):
     """An evaluator that computes the accuracy of a run."""
 
-    def __init__(self, references: list[T]):
+    def __init__(self, labels: list[T]):
         """Initialize the evaluator.
 
         Args:
-            references: The reference outputs.
+            labels: The gold-standard outputs.
         """
-        self.references = references
+        self.labels = labels
 
     def name(self) -> str:
         """Get the name of the evaluator.
@@ -35,12 +35,10 @@ class AccuracyEvaluator(Evaluator):
         Returns:
             The accuracy of the dataset, and the examples.
         """
-        if len(self.references) != len(predictions):
+        if len(self.labels) != len(predictions):
             raise ValueError(
-                f"Number of references ({len(self.references)}) does not match "
+                f"Number of labels ({len(self.labels)}) does not match "
                 f"number of predictions ({len(predictions)})."
             )
-        examp_acc = [
-            1.0 if r == p else 0.0 for r, p in zip(self.references, predictions)
-        ]
+        examp_acc = [1.0 if r == p else 0.0 for r, p in zip(self.labels, predictions)]
         return sum(examp_acc) / len(examp_acc), examp_acc

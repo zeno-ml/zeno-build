@@ -149,15 +149,15 @@ def get_dataset(test_dataset: str, test_split: str) -> pd.DataFrame:
     return datasets.load_dataset(test_dataset, split=test_split).to_pandas()
 
 
-def get_references(test_dataset: str, test_split: str = "test") -> list[str]:
-    """Get the reference answers for a particular dataset.
+def get_labels(test_dataset: str, test_split: str = "test") -> list[str]:
+    """Get the labels for a particular dataset.
 
     Args:
         test_dataset: The path to the test dataset.
         test_split: The split of the test dataset to use.
 
     Returns:
-        The references in string format.
+        The labels in string format.
     """
     # Load dataset
     dataset = datasets.load_dataset(test_dataset, split=test_split)

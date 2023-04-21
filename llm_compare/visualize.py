@@ -11,7 +11,7 @@ from llm_compare.experiment_run import ExperimentRun
 
 def visualize(
     df: pd.DataFrame,
-    references: list[Any],
+    labels: list[Any],
     results: list[ExperimentRun],
     view: str,
     data_column: str,
@@ -21,7 +21,7 @@ def visualize(
 
     Args:
         df: DataFrame with the data to visualize
-        references: List of ground truth labels
+        labels: List of ground truth labels
         results: List of dictionaries with model outputs
         view: The Zeno view to use for the data
         data_column: The column in the DataFrame with the data
@@ -49,7 +49,7 @@ def visualize(
     for name in model_results:
         print(name, model_results[name].parameters)
 
-    df["label"] = references
+    df["label"] = labels
     config = ZenoParameters(
         metadata=df,
         view=view,

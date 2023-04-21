@@ -16,8 +16,8 @@ from tasks.text_summarization import model_configs, prompt_configs
 
 DATASET_MAPPING: dict[str | tuple[str, str], Any] = {
     ("cnn_dailymail", "3.0.0"): {
-        "input": "article",
-        "output": "highlights",
+        "data_column": "article",
+        "label_column": "highlights",
     },
 }
 
@@ -188,12 +188,12 @@ def make_predictions(
     return predictions
 
 
-def get_references(
+def get_data_label_pairs(
     test_dataset: str | tuple[str, str],
     test_split: str = "test",
     test_examples: int | None = None,
-) -> list[dict[str, Any]]:
-    """Get the reference answers for a particular dataset.
+) -> list[tuple[str, str]]:
+    """Get the labels for a particular dataset.
 
     Args:
         test_dataset: The path to the test dataset.
@@ -201,14 +201,11 @@ def get_references(
         test_examples: The number of examples to use from the test dataset.
 
     Returns:
-        The references in string format.
+        The input data and output label.
     """
     # Load dataset
     mapping = DATASET_MAPPING.get(test_dataset, {})
-    output_name = mapping.get("output", "text")
-    input_name = mapping.get("output", "summary")
+    data_column = mapping.get("data_column", "text")
+    label_column = mapping.get("label_column", "summary")
     dataset = load_data(test_dataset, test_split, test_examples)
-    return [
-        {"source": example[input_name], "references": [example[output_name]]}
-        for example in dataset
-    ]
+    return [(example[data_column], example[label_column]) for example in dataset]

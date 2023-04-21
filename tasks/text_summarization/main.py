@@ -54,19 +54,19 @@ def text_summarization_main(
         "top_p": 1.0,
     }
 
-    # Get the reference answers and create an evaluator for accuracy
-    references = modeling.get_references(
+    # Get the label answers and create an evaluator for accuracy
+    labels = modeling.get_labels(
         constants["test_dataset"],
         constants["test_split"],
         test_examples=constants["test_examples"],
     )
     evaluator = critique.CritiqueEvaluator(
         api_key=inspiredco_api_key,
-        dataset=references,
+        dataset=labels,
         preset="ChrF",
     )
-    with open(os.path.join(results_dir, "references.json"), "w") as f:
-        json.dump(references, f)
+    with open(os.path.join(results_dir, "labels.json"), "w") as f:
+        json.dump(labels, f)
 
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
@@ -95,7 +95,7 @@ def text_summarization_main(
 
     visualize(
         dataset,
-        [r["source"] for r in references],
+        [r["source"] for r in labels],
         results,
         "text-classification",
         "article",

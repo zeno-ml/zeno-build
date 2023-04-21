@@ -32,6 +32,17 @@ We'd recommend the first two to increase the chances of your PR being accepted,
 but if you're confident in your contribution, you can go ahead and send a PR
 directly.
 
+### Glossary
+
+In order to make our codebase more consistent, we use the following terms:
+
+* `data`: This is the data for a particular instance. It usually includes the
+    input to the machine learning model.
+* `label`: This is the label for a particular instance. It usually includes the
+    ground truth that we'd like the output to match.
+* `output`: This is the output/prediction of a machine learning model that we'd
+    like to evaluate and analyze.
+
 ## Making a Release
 
 If you are an admin of the repository, you can make a new release of the library.
