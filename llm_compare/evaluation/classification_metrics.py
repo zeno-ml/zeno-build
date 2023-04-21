@@ -5,12 +5,12 @@ from zeno import MetricReturn, ZenoOptions, metric
 
 
 @metric
-def accuracy(df: DataFrame, ops: ZenoOptions):
+def accuracy(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Calculate the accuracy of a model.
 
     Args:
-        df (pd.DataFrame): DataFrame from Zeno
-        ops (ZenoOptions): Options from Zeno
+        df: DataFrame from Zeno
+        ops: Options from Zeno
 
     Returns:
         MetricReturn: accuracy value

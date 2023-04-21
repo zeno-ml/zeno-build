@@ -9,12 +9,12 @@ client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
 
 
 @distill
-def bert_score(df, ops):
+def bert_score(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """BERT score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: BERT scores
@@ -34,12 +34,12 @@ def bert_score(df, ops):
 
 
 @distill
-def bleu(df, ops):
+def bleu(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """BLEU score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: BLEU scores
@@ -61,12 +61,12 @@ def bleu(df, ops):
 
 
 @distill
-def chrf(df, ops):
+def chrf(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """CHRF score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: CHRF scores
@@ -88,12 +88,12 @@ def chrf(df, ops):
 
 
 @distill
-def length_ratio(df, ops):
+def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """Length ratio.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: Length ratios
@@ -115,12 +115,12 @@ def length_ratio(df, ops):
 
 
 @distill
-def rouge(df: DataFrame, ops: ZenoOptions):
+def rouge(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """ROUGE score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: ROUGE scores
@@ -142,12 +142,12 @@ def rouge(df: DataFrame, ops: ZenoOptions):
 
 
 @metric
-def avg_bert_score(df, ops: ZenoOptions):
+def avg_bert_score(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average BERT score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         MetricReturn: Average BERT score
@@ -158,12 +158,12 @@ def avg_bert_score(df, ops: ZenoOptions):
 
 
 @metric
-def avg_bleu(df, ops: ZenoOptions):
+def avg_bleu(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average BLEU score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         MetricReturn: Average BLEU score
@@ -174,12 +174,12 @@ def avg_bleu(df, ops: ZenoOptions):
 
 
 @metric
-def avg_chrf(df, ops: ZenoOptions):
+def avg_chrf(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average CHRF score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         MetricReturn: Average CHRF score
@@ -190,12 +190,12 @@ def avg_chrf(df, ops: ZenoOptions):
 
 
 @metric
-def avg_length_ratio(df, ops: ZenoOptions):
+def avg_length_ratio(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average length ratio.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         MetricReturn: Average length ratio
@@ -206,12 +206,12 @@ def avg_length_ratio(df, ops: ZenoOptions):
 
 
 @metric
-def avg_rouge(df, ops: ZenoOptions):
+def avg_rouge(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average ROUGE score.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         MetricReturn: Average ROUGE score

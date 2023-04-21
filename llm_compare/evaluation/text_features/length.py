@@ -8,8 +8,8 @@ def output_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """Length of model output.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: Lengths of outputs
@@ -18,12 +18,12 @@ def output_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
 
 
 @distill
-def input_length(df: DataFrame, ops: ZenoOptions) -> DataFrame:
+def input_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """Length of model input.
 
     Args:
-        df (DataFrame): Zeno DataFrame
-        ops (ZenoOptions): Zeno options
+        df: Zeno DataFrame
+        ops: Zeno options
 
     Returns:
         DistillReturn: Lengths of inputs
