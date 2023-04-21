@@ -10,6 +10,7 @@ from typing import Any
 import cohere
 import datasets
 import openai
+import tqdm
 
 from llm_compare.cache_utils import get_cache_path
 from tasks.text_summarization import model_configs, prompt_configs
@@ -109,23 +110,21 @@ async def generate(
         return [x["choices"][0]["message"]["content"] for x in responses]
     elif provider == "cohere":
         results = []
-        for x in sources:
+        for x in tqdm.tqdm(sources, "Generating synchronously from Cohere"):
             try:
                 prompt = prompt_template.replace("[X]", x)
                 assert cohere_client is not None
-                response = asyncio.run(
-                    cohere_client.generate(
-                        model=model,
-                        prompt=prompt,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        p=top_p,
-                    )
+                response = cohere_client.generate(
+                    model=model,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    p=top_p,
                 )
                 results.append(response.generations[0].text)
-            except Exception:
+            except cohere.CohereAPIError as e:
                 # Cohere API sometimes rejects queries, if so output a blank line
-                print(f"Warning! Cohere API rejected query for {prompt=}")
+                print(f"Warning! Cohere API rejected query for {prompt=}: {e.message}")
                 results.append("")
         return results
     else:
@@ -169,9 +168,9 @@ def make_predictions(
 
     # Load dataset
     mapping = DATASET_MAPPING.get(test_dataset, {})
-    input_name = mapping.get("input", "text")
+    data_column = mapping.get("data_column", "text")
     dataset = load_data(test_dataset, test_split, test_examples)
-    inputs = [example[input_name] for example in dataset]
+    inputs = [example[data_column] for example in dataset]
 
     prompt_template = prompt_configs.prompt_configs[prompt_preset]
     provider = model_configs.model_configs[model_preset]["provider"]
@@ -188,12 +187,12 @@ def make_predictions(
     return predictions
 
 
-def get_data_label_pairs(
+def get_data_and_labels(
     test_dataset: str | tuple[str, str],
     test_split: str = "test",
     test_examples: int | None = None,
-) -> list[tuple[str, str]]:
-    """Get the labels for a particular dataset.
+) -> tuple[list[str], list[str]]:
+    """Get the data and labels for a particular dataset.
 
     Args:
         test_dataset: The path to the test dataset.
@@ -201,11 +200,15 @@ def get_data_label_pairs(
         test_examples: The number of examples to use from the test dataset.
 
     Returns:
-        The input data and output label.
+        - A list of input data.
+        - A list of output labels.
     """
     # Load dataset
     mapping = DATASET_MAPPING.get(test_dataset, {})
     data_column = mapping.get("data_column", "text")
     label_column = mapping.get("label_column", "summary")
     dataset = load_data(test_dataset, test_split, test_examples)
-    return [(example[data_column], example[label_column]) for example in dataset]
+    return (
+        [example[data_column] for example in dataset],
+        [example[label_column] for example in dataset],
+    )

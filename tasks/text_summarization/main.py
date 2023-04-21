@@ -55,18 +55,19 @@ def text_summarization_main(
     }
 
     # Get the label answers and create an evaluator for accuracy
-    labels = modeling.get_labels(
+    data, labels = modeling.get_data_and_labels(
         constants["test_dataset"],
         constants["test_split"],
         test_examples=constants["test_examples"],
     )
     evaluator = critique.CritiqueEvaluator(
         api_key=inspiredco_api_key,
-        dataset=labels,
+        data=data,
+        labels=labels,
         preset="ChrF",
     )
-    with open(os.path.join(results_dir, "labels.json"), "w") as f:
-        json.dump(labels, f)
+    with open(os.path.join(results_dir, "dataset.json"), "w") as f:
+        json.dump({"data": data, "labels": labels}, f)
 
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
@@ -95,7 +96,7 @@ def text_summarization_main(
 
     visualize(
         dataset,
-        [r["source"] for r in labels],
+        labels,
         results,
         "text-classification",
         "article",

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from inspiredco import critique
 
@@ -19,7 +19,8 @@ class CritiqueEvaluator(Evaluator):
     def __init__(
         self,
         api_key: str,
-        dataset: list[dict[str, Any]] | None,
+        data: list[str] | None = None,
+        labels: list[str] | None = None,
         preset: str | None = None,
         metric: str | None = None,
         config: dict[str, Any] | None = None,
@@ -28,15 +29,32 @@ class CritiqueEvaluator(Evaluator):
 
         Args:
             api_key: The API key for the critique service.
-            dataset: The dataset to evaluate on, other than the generated outputs. It
-                can be set to None if the metric doesn't require anything but the
-                generated outputs.
+            data: The input data to evaluate on.
+            labels: The gold-standard outputs.
             preset: The preset to use. If set, metric and config must not be set.
             metric: The metric to use. Required if "preset" is not set.
             config: The configuration for the metric.
         """
         self._client = critique.Critique(api_key)
-        self._dataset = dataset
+
+        # Create and validate dataset for passing to Critique
+        self._dataset: list[dict[str, Any]] | None = None
+        if data is not None and labels is not None:
+            if len(data) != len(labels):
+                raise ValueError(
+                    f"Number of data ({len(data)}) does not match "
+                    f"number of labels ({len(labels)})."
+                )
+            self._dataset = [
+                {"source": datum, "references": [label]}
+                for datum, label in zip(data, labels)
+            ]
+        elif data is not None:
+            self._dataset = [{"source": datum} for datum in data]
+        elif labels is not None:
+            self._dataset = [{"references": [label]} for label in labels]
+
+        # Load in preset
         if preset is not None:
             if metric is not None or config is not None:
                 raise ValueError("If preset is set, metric and config must not be set.")
@@ -58,19 +76,21 @@ class CritiqueEvaluator(Evaluator):
         """
         return self._name
 
-    def evaluate(self, predictions: list[T]) -> tuple[float, list[float]]:
+    def evaluate(self, outputs: list[T]) -> tuple[float, list[float]]:
         """Evaluate the results of a run.
 
         Args:
-            predictions: The predicted outputs.
+            outputs: The predicted outputs.
 
         Returns:
             The accuracy of the run.
         """
         if not self._dataset:
-            dataset = [{"target": p} for p in predictions]
+            dataset = [{"target": cast(str, p)} for p in outputs]
         else:
-            dataset = [{"target": p, **d} for p, d in zip(predictions, self._dataset)]
+            dataset = [
+                {**d, "target": cast(str, p)} for p, d in zip(outputs, self._dataset)
+            ]
         with open("critique_input.json", "w") as f:
             json.dump(
                 {"metric": self._metric, "config": self._config, "dataset": dataset}, f
