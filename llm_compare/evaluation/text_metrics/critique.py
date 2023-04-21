@@ -161,20 +161,6 @@ def rouge_1(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         DistillReturn: ROUGE-1 scores
     """
     return call_critique(df, ops, "rouge", {"variety": "rouge_1"})
-    # eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
-    # for d in eval_dict:
-    #     d["references"] = [d.pop(ops.label_column)]
-    #     d["target"] = d.pop(ops.output_column)
-
-    # result = client.evaluate(
-    #     metric="rouge",
-    #     config={"variety": "rouge_1"},
-    #     dataset=eval_dict,
-    # )
-
-    # return DistillReturn(
-    #     distill_output=[round(r["value"], 6) for r in result["examples"]]
-    # )
 
 
 @metric
