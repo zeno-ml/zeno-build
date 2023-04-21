@@ -8,6 +8,39 @@ from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
 
 
+def call_critique(
+    df: DataFrame,
+    ops: ZenoOptions,
+    metric_name: str,
+    config: dict = None,
+) -> MetricReturn:
+    """Call Critique.
+
+    Args:
+        metric_name: Name of the metric
+        df: Zeno DataFrame
+        ops: Zeno options
+        config: Metric configuration
+
+    Returns:
+        MetricReturn: Metric results
+    """
+    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
+    for d in eval_dict:
+        d["references"] = [d.pop(ops.label_column)]
+        d["target"] = d.pop(ops.output_column)
+
+    result = client.evaluate(
+        metric=metric_name,
+        config=config,
+        dataset=eval_dict,
+    )
+
+    return DistillReturn(
+        distill_output=[round(r["value"], 6) for r in result["examples"]]
+    )
+
+
 @distill
 def bert_score(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """BERT score.
@@ -117,30 +150,31 @@ def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
 
 
 @distill
-def rouge(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
-    """ROUGE score.
+def rouge_1(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """ROUGE-1 score.
 
     Args:
         df: Zeno DataFrame
         ops: Zeno options
 
     Returns:
-        DistillReturn: ROUGE scores
+        DistillReturn: ROUGE-1 scores
     """
-    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
-    for d in eval_dict:
-        d["references"] = [d.pop(ops.label_column)]
-        d["target"] = d.pop(ops.output_column)
+    return call_critique(df, ops, "rouge", {"variety": "rouge_1"})
+    # eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
+    # for d in eval_dict:
+    #     d["references"] = [d.pop(ops.label_column)]
+    #     d["target"] = d.pop(ops.output_column)
 
-    result = client.evaluate(
-        metric="rouge",
-        config={"variety": "rouge_1"},
-        dataset=eval_dict,
-    )
+    # result = client.evaluate(
+    #     metric="rouge",
+    #     config={"variety": "rouge_1"},
+    #     dataset=eval_dict,
+    # )
 
-    return DistillReturn(
-        distill_output=[round(r["value"], 6) for r in result["examples"]]
-    )
+    # return DistillReturn(
+    #     distill_output=[round(r["value"], 6) for r in result["examples"]]
+    # )
 
 
 @metric
@@ -208,7 +242,7 @@ def avg_length_ratio(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
 
 
 @metric
-def avg_rouge(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+def avg_rouge_1(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average ROUGE score.
 
     Args:
@@ -220,4 +254,4 @@ def avg_rouge(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """
     if len(df) == 0:
         return MetricReturn(metric=0)
-    return MetricReturn(metric=df[ops.distill_columns["rouge"]].fillna(0).mean())
+    return MetricReturn(metric=df[ops.distill_columns["rouge_1"]].fillna(0).mean())
