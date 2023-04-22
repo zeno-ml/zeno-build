@@ -160,7 +160,44 @@ def rouge_1(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     Returns:
         DistillReturn: ROUGE-1 scores
     """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
     return call_critique(df, ops, "rouge", {"variety": "rouge_1"})
+
+
+@distill
+def rouge_2(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """ROUGE-2 score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: ROUGE-2 scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(df, ops, "rouge", {"variety": "rouge_2"})
+
+
+@distill
+def rouge_l(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """ROUGE-L score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: ROUGE-L scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(df, ops, "rouge", {"variety": "rouge_l"})
 
 
 @metric
@@ -229,15 +266,47 @@ def avg_length_ratio(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
 
 @metric
 def avg_rouge_1(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
-    """Average ROUGE score.
+    """Average ROUGE-1 score.
 
     Args:
         df: Zeno DataFrame
         ops: Zeno options
 
     Returns:
-        MetricReturn: Average ROUGE score
+        MetricReturn: Average ROUGE-1 score
     """
     if len(df) == 0:
         return MetricReturn(metric=0)
     return MetricReturn(metric=df[ops.distill_columns["rouge_1"]].fillna(0).mean())
+
+
+@metric
+def avg_rouge_2(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average ROUGE-2 score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average ROUGE-2 score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["rouge_2"]].fillna(0).mean())
+
+
+@metric
+def avg_rouge_l(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average ROUGE-L score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average ROUGE-L score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["rouge_l"]].fillna(0).mean())

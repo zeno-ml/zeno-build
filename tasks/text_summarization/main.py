@@ -12,7 +12,14 @@ import openai
 
 from llm_compare import search_space
 from llm_compare.evaluation.text_features.length import input_length, output_length
-from llm_compare.evaluation.text_metrics.critique import avg_rouge_1, rouge_1
+from llm_compare.evaluation.text_metrics.critique import (
+    avg_rouge_1,
+    avg_rouge_2,
+    avg_rouge_l,
+    rouge_1,
+    rouge_2,
+    rouge_l,
+)
 from llm_compare.evaluators import critique
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers import standard
@@ -100,7 +107,16 @@ def text_summarization_main(
         results,
         "text-classification",
         "article",
-        [output_length, input_length, rouge_1, avg_rouge_1],
+        [
+            output_length,
+            input_length,
+            rouge_1,
+            avg_rouge_1,
+            rouge_2,
+            avg_rouge_2,
+            rouge_l,
+            avg_rouge_l,
+        ],
     )
 
 
