@@ -6,12 +6,14 @@ import json
 import logging
 import os
 import random
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from typing import Any, TypeVar
 
+from pandas import DataFrame
+from zeno import DistillReturn, MetricReturn, ZenoOptions
+
 from llm_compare import search_space
-from llm_compare.evaluators.base import Evaluator
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers.base import Optimizer
 
@@ -63,7 +65,10 @@ class RandomOptimizer(Optimizer):
         function: Callable[..., list[T]],
         space: dict[str, search_space.SearchDimension],
         constants: dict[str, Any],
-        evaluator: Evaluator,
+        data: Sequence[Any] | None,
+        labels: Sequence[Any] | None,
+        distill_functions: list[Callable[[DataFrame, ZenoOptions], DistillReturn]],
+        metric: Callable[[DataFrame, ZenoOptions], MetricReturn],
         num_trials: int | None,
         results_dir: str | None = None,
     ) -> list[ExperimentRun]:
@@ -73,7 +78,10 @@ class RandomOptimizer(Optimizer):
             function: The function to optimize.
             space: The space of hyperparameters to search over.
             constants: Any constants that are fed into the function.
-            evaluator: The function used to evaluate the results of a run.
+            data: The data corresponding to the corpus inputs.
+            labels: The labels corresponding to the gold-standard outputs.
+            distill_functions: Distill functions to run to calculate the metric.
+            metric: The metric to use for evaluation.
             num_trials: The number of trials to run.
             results_dir: The to save the results to.
 
@@ -86,13 +94,26 @@ class RandomOptimizer(Optimizer):
                 "an integer value or use ExhaustiveOptimizer."
             )
 
+        ops = ZenoOptions(
+            data_column="data",
+            label_column="labels",
+            output_column="outputs",
+            id_column="data",
+            distill_columns={x.__name__: x.__name__ for x in distill_functions},
+            data_path="",
+            label_path="",
+            output_path="",
+        )
         experiment_runs: list[ExperimentRun] = []
         for i in range(num_trials):
             params = self.randomize_params(space)
             logging.getLogger(__name__).info(f"Running with params: {params}")
-            results = function(**params, **constants)
-            overall_result, _ = evaluator.evaluate(results)
-            current_run = ExperimentRun(params, results, overall_result)
+            outputs = function(**params, **constants)
+            df = DataFrame({"data": data, "labels": labels, "outputs": outputs})
+            for distill_function in distill_functions:
+                df[distill_function.__name__] = distill_function(df, ops).distill_output
+            overall_result = metric(df, ops).metric
+            current_run = ExperimentRun(params, outputs, overall_result)
             experiment_runs.append(current_run)
             if results_dir is not None:
                 if not os.path.exists(results_dir):
