@@ -19,9 +19,11 @@ def bert_score(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     Returns:
         DistillReturn: BERT scores
     """
-    eval_dict = df[["source", ops.output_column, "reference"]].to_dict("records")
+    eval_dict = df[[ops.data_column, ops.output_column, ops.label_column]].to_dict(
+        "records"
+    )
     for d in eval_dict:
-        d["references"] = [d.pop("reference")]
+        d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
 
     result = client.evaluate(
@@ -44,9 +46,9 @@ def bleu(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     Returns:
         DistillReturn: BLEU scores
     """
-    eval_dict = df[[ops.output_column, "reference"]].to_dict("records")
+    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
     for d in eval_dict:
-        d["references"] = [d.pop("reference")]
+        d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
 
     result = client.evaluate(
@@ -71,9 +73,9 @@ def chrf(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     Returns:
         DistillReturn: CHRF scores
     """
-    eval_dict = df[[ops.output_column, "reference"]].to_dict("records")
+    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
     for d in eval_dict:
-        d["references"] = [d.pop("reference")]
+        d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
 
     result = client.evaluate(
@@ -98,9 +100,9 @@ def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     Returns:
         DistillReturn: Length ratios
     """
-    eval_dict = df[[ops.output_column, "reference"]].to_dict("records")
+    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
     for d in eval_dict:
-        d["references"] = [d.pop("reference")]
+        d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
 
     result = client.evaluate(

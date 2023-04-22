@@ -42,19 +42,17 @@ def text_classification_main(
         "test_split": "test",
     }
 
-    # Get the reference answers and create an evaluator for accuracy
-    references = modeling.get_references(
-        constants["test_dataset"], constants["test_split"]
-    )
+    # Get the labels and create an evaluator for accuracy
+    labels = modeling.get_labels(constants["test_dataset"], constants["test_split"])
 
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        evaluator = accuracy.AccuracyEvaluator(references)
-        with open(os.path.join(results_dir, "references.json"), "w") as f:
-            json.dump(references, f)
+        evaluator = accuracy.AccuracyEvaluator(labels)
+        with open(os.path.join(results_dir, "labels.json"), "w") as f:
+            json.dump(labels, f)
 
         # Run the hyperparameter sweep and print out results
         optimizer = standard.StandardOptimizer()
@@ -76,7 +74,7 @@ def text_classification_main(
 
     visualize(
         dataset,
-        references,
+        labels,
         results,
         "text-classification",
         "text",
