@@ -70,7 +70,6 @@ def text_summarization_main(
         constants["test_split"],
         test_examples=constants["test_examples"],
     )
-
     with open(os.path.join(results_dir, "dataset.json"), "w") as f:
         json.dump({"data": data, "labels": labels}, f)
 
