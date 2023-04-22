@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import json
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from typing import Any, TypeVar
 
+from pandas import DataFrame
 from vizier.service import clients
 from vizier.service import pyvizier as vz
+from zeno import DistillReturn, MetricReturn, ZenoOptions
 
 from llm_compare import search_space
-from llm_compare.evaluators.base import Evaluator
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers.base import Optimizer
 
@@ -44,7 +45,10 @@ class VizierOptimizer(Optimizer):
         function: Callable[..., list[T]],
         space: dict[str, search_space.SearchDimension],
         constants: dict[str, Any],
-        evaluator: Evaluator,
+        data: Sequence[Any] | None,
+        labels: Sequence[Any] | None,
+        distill_functions: list[Callable[[DataFrame, ZenoOptions], DistillReturn]],
+        metric: Callable[[DataFrame, ZenoOptions], MetricReturn],
         num_trials: int | None,
         results_dir: str | None = None,
     ) -> list[ExperimentRun]:
@@ -54,9 +58,12 @@ class VizierOptimizer(Optimizer):
             function: The function to optimize.
             space: The space of hyperparameters to search over.
             constants: Any constants that are fed into the function.
-            evaluator: The function used to evaluate the results of a run.
+            data: The data corresponding to the corpus inputs.
+            labels: The labels corresponding to the gold-standard outputs.
+            distill_functions: Distill functions to run to calculate the metric.
+            metric: The metric to use for evaluation.
             num_trials: The number of trials to run.
-            results_file: The file to save the results to.
+            results_dir: The to save the results to.
 
         Returns:
             A list of runs.
@@ -89,7 +96,7 @@ class VizierOptimizer(Optimizer):
             else:
                 raise ValueError(f"Unknown search space dimension: {dimension}")
         study_config.metric_information.append(
-            vz.MetricInformation(evaluator.name(), goal=vz.ObjectiveMetricGoal.MAXIMIZE)
+            vz.MetricInformation(metric.__name__, goal=vz.ObjectiveMetricGoal.MAXIMIZE)
         )
 
         # Setup client and begin optimization. Vizier Service will be implicitly
@@ -97,17 +104,32 @@ class VizierOptimizer(Optimizer):
         study = clients.Study.from_study_config(
             study_config, owner=self.owner, study_id=self.study_id
         )
+        ops = ZenoOptions(
+            data_column="data",
+            label_column="labels",
+            output_column="outputs",
+            id_column="data",
+            distill_columns={x.__name__: x.__name__ for x in distill_functions},
+            data_path="",
+            label_path="",
+            output_path="",
+        )
         experiment_runs: list[ExperimentRun] = []
         for i in range(num_trials):
             suggestions = study.suggest(count=1)
             for suggestion in suggestions:
                 params = suggestion.parameters
-                results = function(**params, **constants)
-                overall_objective, _ = evaluator.evaluate(results)
+                outputs = function(**params, **constants)
+                df = DataFrame({"data": data, "labels": labels, "outputs": outputs})
+                for distill_function in distill_functions:
+                    df[distill_function.__name__] = distill_function(
+                        df, ops
+                    ).distill_output
+                overall_objective = metric(df, ops).metric
                 suggestion.complete(
-                    vz.Measurement({evaluator.name(): overall_objective})
+                    vz.Measurement({metric.__name__: overall_objective})
                 )
-                current_run = ExperimentRun(params, results, overall_objective)
+                current_run = ExperimentRun(params, outputs, overall_objective)
                 experiment_runs.append(current_run)
                 if results_dir is not None:
                     if not os.path.exists(results_dir):

@@ -24,7 +24,6 @@ from llm_compare.evaluation.text_metrics.critique import (
     rouge_2,
     rouge_l,
 )
-from llm_compare.evaluators import critique
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
@@ -37,7 +36,6 @@ def text_summarization_main(
     # Set all API keys
     openai.api_key = os.environ["OPENAI_API_KEY"]
     modeling.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-    inspiredco_api_key = os.environ["INSPIREDCO_API_KEY"]
 
     # Make results dir if it doesn't exist
     if not os.path.exists(results_dir):
@@ -51,7 +49,8 @@ def text_summarization_main(
             ["standard", "tldr", "concise", "complete"]
         ),
         "model_preset": search_space.Categorical(
-            ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
+            # ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
+            ["openai_davinci_003", "openai_gpt_3.5_turbo"]
         ),
         "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
     }
@@ -60,7 +59,7 @@ def text_summarization_main(
     constants: dict[str, Any] = {
         "test_dataset": ("cnn_dailymail", "3.0.0"),
         "test_split": "test",
-        "test_examples": 100,
+        "test_examples": 3,
         "max_tokens": 100,
         "top_p": 1.0,
     }
@@ -70,12 +69,6 @@ def text_summarization_main(
         constants["test_dataset"],
         constants["test_split"],
         test_examples=constants["test_examples"],
-    )
-    evaluator = critique.CritiqueEvaluator(
-        api_key=inspiredco_api_key,
-        data=data,
-        labels=labels,
-        preset="ChrF",
     )
     with open(os.path.join(results_dir, "dataset.json"), "w") as f:
         json.dump({"data": data, "labels": labels}, f)
@@ -91,7 +84,10 @@ def text_summarization_main(
             function=modeling.make_predictions,
             space=space,
             constants=constants,
-            evaluator=evaluator,
+            data=data,
+            labels=labels,
+            distill_functions=[chrf],
+            metric=avg_chrf,
             num_trials=10,
             results_dir=results_dir,
         )
