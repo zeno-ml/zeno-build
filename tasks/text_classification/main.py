@@ -9,7 +9,6 @@ import modeling
 
 from llm_compare import search_space
 from llm_compare.evaluation import classification_metrics
-from llm_compare.evaluators import accuracy
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
@@ -50,7 +49,6 @@ def text_classification_main(
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        evaluator = accuracy.AccuracyEvaluator(labels)
         with open(os.path.join(results_dir, "labels.json"), "w") as f:
             json.dump(labels, f)
 
@@ -60,7 +58,10 @@ def text_classification_main(
             function=modeling.train_and_predict,
             space=space,
             constants=constants,
-            evaluator=evaluator,
+            data=None,
+            labels=labels,
+            distill_functions=[],
+            metric=classification_metrics.accuracy,
             num_trials=10,
             results_dir=results_dir,
         )
