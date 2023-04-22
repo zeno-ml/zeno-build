@@ -130,6 +130,10 @@ dmypy.json
 
 # IDE stuff
 .vscode/
+*.swp
+
+# Apple stuff
+.DS_Store
 
 # Experimental results
 results*/

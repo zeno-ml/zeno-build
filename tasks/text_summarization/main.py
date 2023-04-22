@@ -13,9 +13,13 @@ import openai
 from llm_compare import search_space
 from llm_compare.evaluation.text_features.length import input_length, output_length
 from llm_compare.evaluation.text_metrics.critique import (
+    avg_chrf,
+    avg_length_ratio,
     avg_rouge_1,
     avg_rouge_2,
     avg_rouge_l,
+    chrf,
+    length_ratio,
     rouge_1,
     rouge_2,
     rouge_l,
@@ -116,6 +120,10 @@ def text_summarization_main(
             avg_rouge_2,
             rouge_l,
             avg_rouge_l,
+            avg_chrf,
+            chrf,
+            avg_length_ratio,
+            length_ratio,
         ],
     )
 
