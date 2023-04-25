@@ -1,11 +1,12 @@
 """Chatbots using API-based services."""
-
 from __future__ import annotations
 
 import asyncio
-from dataclasses import asdict, dataclass
+import itertools
 import json
 import os
+from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import Any
 
 import cohere
@@ -28,24 +29,36 @@ cohere_client: cohere.Client | None = None
 
 @dataclass(frozen=True)
 class DialogExample:
-    context: str | None
+    """A single dialog example.
+
+    Args:
+        source: The source utterance by the user.
+        context: The utterance preceding the source utterance (by the system).
+        reference: A reference utterance demonstrating a "good" response.
+    """
+
     source: str
-    references: str | None
+    context: str | None
+    reference: str | None
 
 
-def build_examples_from_sequence(seq: list[list[str]]) -> list[DialogExample]:
+def _build_examples_from_sequence(seq: list[str]) -> Iterable[DialogExample]:
+    """Convert a datapoint into dialog examples."""
     for i in range(2, len(seq)):
         yield DialogExample(
-            context=seq[i-1],
+            context=seq[i - 1],
             source=seq[i],
-            references=seq[i+1] if i+1 < len(seq) else None
+            reference=seq[i + 1] if i + 1 < len(seq) else None,
         )
+
 
 def load_data(
     dataset: str | tuple[str, str],
     split: str,
     examples: int | None,
-) -> datasets.Dataset:
+    data_format: str = "sequence",
+    data_column: str = "dialog",
+) -> list[DialogExample]:
     """Load data from the huggingface library.
 
     Args:
@@ -57,7 +70,7 @@ def load_data(
         examples: The number of examples to load. If None, load all examples.
 
     Returns:
-        The loaded dataset.
+        The loaded dataset as dialog examples of context, source, and reference.
     """
     if isinstance(dataset, tuple):
         dname, subdname = dataset
@@ -66,12 +79,20 @@ def load_data(
         loaded_data = datasets.load_dataset(dataset, split=split)
     if examples is not None:
         loaded_data = loaded_data.select(range(examples))
-    return loaded_data
+    match data_format:
+        case "sequence":
+            return list(
+                itertools.chain.from_iterable(
+                    _build_examples_from_sequence(x[data_column]) for x in loaded_data
+                )
+            )
+        case _:
+            raise ValueError(f"Unknown data format {data_format}")
 
 
 async def generate(
     sources: list[str],
-    contexts: list[str],
+    contexts: list[str | None],
     prompt_template: prompt_configs.ChatMessages,
     provider: str,
     model: str,
@@ -94,7 +115,10 @@ async def generate(
         The generated text.
     """
     if len(sources) != len(contexts):
-        raise ValueError(f"Length of sources and contexts not equal: {len(sources)} != {len(contexts)}")
+        raise ValueError(
+            f"Length of sources and contexts not equal: "
+            f"{len(sources)} != {len(contexts)}"
+        )
     print(
         f"Generating with {prompt_template=}, {model=}, "
         f"{temperature=}, {max_tokens=}, {top_p=}..."
@@ -116,7 +140,9 @@ async def generate(
         async_responses = [
             openai.ChatCompletion.acreate(
                 model=model,
-                messages=prompt_template.to_openai_chat_completion_messages(source, context),
+                messages=prompt_template.to_openai_chat_completion_messages(
+                    source, context
+                ),
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,
@@ -127,7 +153,9 @@ async def generate(
         return [x["choices"][0]["message"]["content"] for x in responses]
     elif provider == "cohere":
         results = []
-        for source, context in tqdm.tqdm(zip(sources, contexts), "Generating synchronously from Cohere"):
+        for source, context in tqdm.tqdm(
+            zip(sources, contexts), "Generating synchronously from Cohere"
+        ):
             try:
                 assert cohere_client is not None
                 prompt = prompt_template.to_text_prompt(source, context)
@@ -178,37 +206,36 @@ def make_predictions(
     # If we've already used these parameters, load from cache
     parameters = dict(locals())
     parameters["__name__"] = make_predictions.__name__
-    cache_path = get_cache_path("chatbot", parameters)
+    cache_path = get_cache_path("chatbot", parameters, ".json")
     if os.path.exists(cache_path):
-        with open(os.path.join(cache_path, "predictions.json"), "r") as f:
+        with open(cache_path, "r") as f:
             return json.load(f)
 
     # Load dataset
     mapping = DATASET_MAPPING.get(test_dataset, {})
-    data_column = mapping.get("data_column", "dialog")
-    dataset = load_data(test_dataset, test_split, test_examples)
     data_format = mapping.get("data_format", "sequence")
-    match data_format:
-        case "sequence":
-            examples: list[DialogExample] = build_examples_from_sequence(example[data_column] for example in dataset)
-        case _:
-            raise ValueError(f"Unknown data format {data_format}")
-    with open(os.path.join(cache_path, "examples.json"), "w") as f:
-        json.dump([asdict(x) for x in examples], f)
+    data_column = mapping.get("data_column", "dialog")
+    dataset = load_data(
+        test_dataset, test_split, test_examples, data_format, data_column
+    )
 
     prompt_template = prompt_configs.prompt_messages[prompt_preset]
     provider = model_configs.model_configs[model_preset]["provider"]
     model = model_configs.model_configs[model_preset]["model"]
 
     # Make predictions
-    sources = [x.source for x in examples]
-    contexts = [x.context for x in examples]
     predictions = asyncio.run(
         generate(
-            sources, contexts, prompt_template, provider, model, temperature, max_tokens, top_p
+            [x.source for x in dataset],
+            [x.context for x in dataset],
+            prompt_template,
+            provider,
+            model,
+            temperature,
+            max_tokens,
+            top_p,
         )
     )
-    with open(os.path.join(cache_path, "predictions.json"), "w") as f:
+    with open(cache_path, "w") as f:
         json.dump(predictions, f)
     return predictions
-

@@ -14,8 +14,8 @@ from llm_compare import search_space
 from llm_compare.evaluation.text_features.length import input_length, output_length
 from llm_compare.evaluation.text_metrics.critique import (
     avg_chrf,
-    chrf,
     avg_length_ratio,
+    chrf,
     length_ratio,
 )
 from llm_compare.experiment_run import ExperimentRun
@@ -26,7 +26,7 @@ from llm_compare.visualize import visualize
 def chatbot_main(
     results_dir: str,
 ):
-    """Run the text summarization experiment."""
+    """Run the chatbot experiment."""
     # Set all API keys
     openai.api_key = os.environ["OPENAI_API_KEY"]
     modeling.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
@@ -40,32 +40,33 @@ def chatbot_main(
     # and model_configs.py respectively.
     space = {
         "prompt_preset": search_space.Categorical(
-            ["standard", "tldr", "concise", "complete"]
+            ["standard", "friendly", "polite", "cynical"]
         ),
         "model_preset": search_space.Categorical(
-            # ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
-            ["openai_davinci_003", "openai_gpt_3.5_turbo"]
+            ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
         ),
         "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
     }
 
     # Any constants that are fed into the function
     constants: dict[str, Any] = {
-        "test_dataset": ("cnn_dailymail", "3.0.0"),
+        "test_dataset": "daily_dialog",
         "test_split": "test",
         "test_examples": 3,
         "max_tokens": 100,
         "top_p": 1.0,
     }
 
-    # Get the label answers and create an evaluator for accuracy
-    data, labels = modeling.get_data_and_labels(
+    # Get the necessary data
+    data = modeling.load_data(
         constants["test_dataset"],
         constants["test_split"],
         test_examples=constants["test_examples"],
     )
-    with open(os.path.join(results_dir, "dataset.json"), "w") as f:
-        json.dump({"data": data, "labels": labels}, f)
+    serialized_data = [asdict(x) for x in data]
+    with open(os.path.join(results_dir, "examples.json"), "w") as f:
+        json.dump(serialized_data, f)
+    labels = [x.references for x in data]
 
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
