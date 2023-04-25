@@ -4,122 +4,80 @@ import argparse
 import json
 import os
 from dataclasses import asdict
-from typing import Any
 
 import cohere
 import modeling
 import openai
 import pandas as pd
 
-from llm_compare import search_space
-from llm_compare.evaluation.text_features.length import input_length, output_length
-from llm_compare.evaluation.text_metrics.critique import (
-    avg_chrf,
-    avg_length_ratio,
-    avg_toxicity,
-    chrf,
-    length_ratio,
-    toxicity,
-)
 from llm_compare.experiment_run import ExperimentRun
+from llm_compare.models import global_models
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
+from tasks.chatbot import config as chatbot_config
+from tasks.chatbot.modeling import ChatExample
 
 
 def chatbot_main(
     results_dir: str,
+    cached_data: str | None = None,
+    cached_runs: str | None = None,
 ):
     """Run the chatbot experiment."""
     # Set all API keys
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    modeling.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+    global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
     # Make results dir if it doesn't exist
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
 
-    # Define the space of hyperparameters to search over.
-    # Note that "prompt_preset" and "model_preset" are in prompt_configs.py
-    # and model_configs.py respectively.
-    space = {
-        "prompt_preset": search_space.Categorical(
-            ["standard", "friendly", "polite", "cynical"]
-        ),
-        "model_preset": search_space.Categorical(
-            ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
-        ),
-        "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-    }
-
-    # Any constants that are fed into the function
-    constants: dict[str, Any] = {
-        "test_dataset": "daily_dialog",
-        "test_split": "test",
-        "test_examples": 40,
-        "max_tokens": 100,
-        "top_p": 1.0,
-    }
-
-    # Get the necessary data
-    data = modeling.load_data(
-        constants["test_dataset"],
-        constants["test_split"],
-        examples=constants["test_examples"],
-    )
-    serialized_data = [asdict(x) for x in data]
-    with open(os.path.join(results_dir, "examples.json"), "w") as f:
-        json.dump(serialized_data, f)
+    # Load the necessary data, either from HuggingFace or a cached file
+    if cached_data is None:
+        data = modeling.load_data(
+            chatbot_config.constants.pop("test_dataset"),
+            chatbot_config.constants.pop("test_split"),
+            examples=chatbot_config.constants.pop("test_examples"),
+        )
+        with open(os.path.join(results_dir, "examples.json"), "w") as f:
+            json.dump([asdict(x) for x in data], f)
+    else:
+        with open(cached_data, "r") as f:
+            data = [ChatExample(**x) for x in json.load(f)]
     labels = [x.reference for x in data]
+    df = pd.DataFrame({"source": [x.source for x in data]})
 
-    if os.path.exists(os.path.join(results_dir, "all_runs.json")):
-        with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
+    # Run the hyperparameter sweep and print out results
+    if cached_runs is not None:
+        with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        # Run the hyperparameter sweep and print out results
         optimizer = standard.StandardOptimizer()
         results = optimizer.run_sweep(
             function=modeling.make_predictions,
-            space=space,
-            constants=constants,
+            space=chatbot_config.space,
+            constants=chatbot_config.constants,
             data=data,
             labels=labels,
-            distill_functions=[chrf],
-            metric=avg_chrf,
-            num_trials=10,
+            distill_functions=chatbot_config.sweep_distill_functions,
+            metric=chatbot_config.sweep_metric_function,
+            num_trials=chatbot_config.num_trials,
             results_dir=results_dir,
         )
 
-        # Print out results
         serialized_results = [asdict(x) for x in results]
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
-    dataset = modeling.load_data(
-        constants["test_dataset"], constants["test_split"], constants["test_examples"]
-    )
-    dataframe = pd.DataFrame(
-        {
-            "source": [x.source for x in dataset],
-        }
-    )
-
+    # Perform the visualization
     visualize(
-        dataframe,
+        df,
         labels,
         results,
         "text-classification",
         "source",
-        [
-            output_length,
-            input_length,
-            avg_chrf,
-            chrf,
-            avg_length_ratio,
-            length_ratio,
-            avg_toxicity,
-            toxicity,
-        ],
+        chatbot_config.zeno_distill_and_metric_functions,
     )
 
 
@@ -132,8 +90,22 @@ if __name__ == "__main__":
         default="results",
         help="The directory to store the results in.",
     )
+    parser.add_argument(
+        "--cached_data",
+        type=str,
+        default=None,
+        help="A path to a json file with the cached data.",
+    )
+    parser.add_argument(
+        "--cached_runs",
+        type=str,
+        default=None,
+        help="A path to a json file with cached runs.",
+    )
     args = parser.parse_args()
 
     chatbot_main(
         results_dir=args.results_dir,
+        cached_data=args.cached_data,
+        cached_runs=args.cached_runs,
     )
