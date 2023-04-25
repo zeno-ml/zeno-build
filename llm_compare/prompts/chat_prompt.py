@@ -5,12 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-
-def _replace_variables(s: str, variables: dict[str, str]) -> str:
-    """Replace variables in a string."""
-    for k, v in variables.items():
-        s = s.replace("{{" + k + "}}", v)
-    return s
+from llm_compare.prompts.prompt_utils import replace_variables
 
 
 @dataclass
@@ -51,7 +46,7 @@ class ChatMessages:
         return [
             {
                 "role": x.role,
-                "content": _replace_variables(x.content, variables),
+                "content": replace_variables(x.content, variables),
             }
             for x in self.messages
         ]
@@ -77,7 +72,7 @@ class ChatMessages:
                 [
                     system_name
                     if x.role == "system"
-                    else user_name + ": " + _replace_variables(x.content, variables)
+                    else user_name + ": " + replace_variables(x.content, variables)
                     for x in self.messages
                 ]
             )

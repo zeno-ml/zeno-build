@@ -36,13 +36,13 @@ space = {
 constants: dict[str, Any] = {
     "test_dataset": "daily_dialog",
     "test_split": "validation",
-    "test_examples": 2,
+    "test_examples": 40,
     "max_tokens": 100,
     "top_p": 1.0,
 }
 
 # The number of trials to run
-num_trials = 2
+num_trials = 10
 
 # The details of each model
 model_configs = {
