@@ -17,7 +17,7 @@ def load_data(
     dataset: str | tuple[str, str],
     split: str,
     examples: int | None,
-) -> datasets.Dataset:
+) -> list[dict[str, str]]:
     """Load data from the huggingface library.
 
     Args:
@@ -38,7 +38,10 @@ def load_data(
         loaded_data = datasets.load_dataset(dataset, split=split)
     if examples is not None:
         loaded_data = loaded_data.select(range(examples))
-    return loaded_data
+    mapping = summarization_config.dataset_mapping.get(dataset, {})
+    data_column = mapping.get("data_column", "text")
+    label_column = mapping.get("label_column", "summary")
+    return [{"data": x[data_column], "label": x[label_column]} for x in loaded_data]
 
 
 def make_predictions(
@@ -74,7 +77,7 @@ def make_predictions(
         with open(cache_path, "r") as f:
             return json.load(f)
 
-    prompt_template = summarization_config.prompt_configs[prompt_preset]
+    prompt_template = summarization_config.prompt_text[prompt_preset]
     model_config = summarization_config.model_configs[model_preset]
 
     # Make predictions
@@ -91,30 +94,3 @@ def make_predictions(
     with open(cache_path, "w") as f:
         json.dump(predictions, f)
     return predictions
-
-
-def get_data_and_labels(
-    test_dataset: str | tuple[str, str],
-    test_split: str = "test",
-    test_examples: int | None = None,
-) -> tuple[list[str], list[str]]:
-    """Get the data and labels for a particular dataset.
-
-    Args:
-        test_dataset: The path to the test dataset.
-        test_split: The split of the test dataset to use.
-        test_examples: The number of examples to use from the test dataset.
-
-    Returns:
-        - A list of input data.
-        - A list of output labels.
-    """
-    # Load dataset
-    mapping = summarization_config.dataset_mapping.get(test_dataset, {})
-    data_column = mapping.get("data_column", "text")
-    label_column = mapping.get("label_column", "summary")
-    dataset = load_data(test_dataset, test_split, test_examples)
-    return (
-        [example[data_column] for example in dataset],
-        [example[label_column] for example in dataset],
-    )

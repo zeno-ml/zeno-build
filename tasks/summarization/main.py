@@ -11,6 +11,7 @@ import openai
 import pandas as pd
 
 from llm_compare.experiment_run import ExperimentRun
+from llm_compare.models import global_models
 from llm_compare.optimizers import standard
 from llm_compare.visualize import visualize
 from tasks.summarization import config as summarization_config
@@ -24,7 +25,7 @@ def summarization_main(
     """Run the summarization experiment."""
     # Set all API keys
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    modeling.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+    global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
 
     # Make results dir if it doesn't exist
     if not os.path.exists(results_dir):
@@ -32,18 +33,19 @@ def summarization_main(
 
     # Load the necessary data, either from HuggingFace or a cached file
     if cached_data is None:
-        data = modeling.load_data(
+        data_and_labels = modeling.load_data(
             summarization_config.constants.pop("test_dataset"),
             summarization_config.constants.pop("test_split"),
             examples=summarization_config.constants.pop("test_examples"),
         )
         with open(os.path.join(results_dir, "examples.json"), "w") as f:
-            json.dump([asdict(x) for x in data], f)
+            json.dump(data_and_labels, f)
     else:
         with open(cached_data, "r") as f:
-            data = json.load(f)
-    labels = [x["reference"] for x in data]
-    df = pd.DataFrame({"source": [x["source"] for x in data]})
+            data_and_labels = json.load(f)
+    data = [x["data"] for x in data_and_labels]
+    labels = [x["label"] for x in data_and_labels]
+    df = pd.DataFrame({"source": data})
 
     # Run the hyperparameter sweep and print out results
     if cached_runs is not None:
@@ -73,7 +75,7 @@ def summarization_main(
         labels,
         results,
         "text-classification",
-        "article",
+        "source",
         summarization_config.zeno_distill_and_metric_functions,
     )
 
