@@ -80,15 +80,14 @@ def load_data(
         loaded_data = datasets.load_dataset(dataset, split=split)
     if examples is not None:
         loaded_data = loaded_data.select(range(examples))
-    match data_format:
-        case "sequence":
-            return list(
-                itertools.chain.from_iterable(
-                    _build_examples_from_sequence(x[data_column]) for x in loaded_data
-                )
+    if data_format == "sequence":
+        return list(
+            itertools.chain.from_iterable(
+                _build_examples_from_sequence(x[data_column]) for x in loaded_data
             )
-        case _:
-            raise ValueError(f"Unknown data format {data_format}")
+        )
+    else:
+        raise ValueError(f"Unknown data format {data_format}")
 
 
 async def generate(
