@@ -38,17 +38,18 @@ class DialogExample:
     """
 
     source: str
+    reference: str
     context: str | None
-    reference: str | None
 
 
 def _build_examples_from_sequence(seq: list[str]) -> Iterable[DialogExample]:
     """Convert a datapoint into dialog examples."""
-    for i in range(2, len(seq)):
+    stripped_seq = [x.strip() for x in seq]
+    for i in range(1, len(stripped_seq)):
         yield DialogExample(
-            context=seq[i - 1],
-            source=seq[i],
-            reference=seq[i + 1] if i + 1 < len(seq) else None,
+            context=stripped_seq[i - 2] if i > 1 else None,
+            source=stripped_seq[i - 1],
+            reference=stripped_seq[i],
         )
 
 

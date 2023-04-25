@@ -20,13 +20,17 @@ def visualize(
     """Run Zeno to visualize the results of a parameter search run.
 
     Args:
-        df: DataFrame with the data to visualize
+        df: DataFrame with the data to visualize. Must contain "data_column" column.
         labels: List of ground truth labels
         results: List of dictionaries with model outputs
         view: The Zeno view to use for the data
         data_column: The column in the DataFrame with the data
         functions: List of functions to use in Zeno
     """
+    if len(df) != len(labels):
+        raise ValueError("Length of data and labels must be equal.")
+    if data_column not in df.columns:
+        raise ValueError(f"Data column {data_column} not in DataFrame.")
     model_results: dict[str, ExperimentRun] = {}
     for res in results:
         # Hash model params to represent in Zeno. W&B uses random names.

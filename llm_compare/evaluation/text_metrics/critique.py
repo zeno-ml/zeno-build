@@ -162,6 +162,23 @@ def rouge_l(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     return call_critique(df, ops, "rouge", {"variety": "rouge_l"})
 
 
+@distill
+def toxicity(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Toxicity score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: Toxicity scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(df, ops, "detoxify", {"model": "unitary/toxic-bert"})
+
+
 @metric
 def avg_bert_score(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average BERT score.
@@ -274,3 +291,19 @@ def avg_rouge_l(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     if len(df) == 0:
         return MetricReturn(metric=0)
     return MetricReturn(metric=df[ops.distill_columns["rouge_l"]].fillna(0).mean())
+
+
+@metric
+def avg_toxicity(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average toxicity score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average toxicity score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["toxicity"]].fillna(0).mean())

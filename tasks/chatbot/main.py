@@ -9,14 +9,17 @@ from typing import Any
 import cohere
 import modeling
 import openai
+import pandas as pd
 
 from llm_compare import search_space
 from llm_compare.evaluation.text_features.length import input_length, output_length
 from llm_compare.evaluation.text_metrics.critique import (
     avg_chrf,
     avg_length_ratio,
+    avg_toxicity,
     chrf,
     length_ratio,
+    toxicity,
 )
 from llm_compare.experiment_run import ExperimentRun
 from llm_compare.optimizers import standard
@@ -52,7 +55,7 @@ def chatbot_main(
     constants: dict[str, Any] = {
         "test_dataset": "daily_dialog",
         "test_split": "test",
-        "test_examples": 3,
+        "test_examples": 40,
         "max_tokens": 100,
         "top_p": 1.0,
     }
@@ -61,12 +64,12 @@ def chatbot_main(
     data = modeling.load_data(
         constants["test_dataset"],
         constants["test_split"],
-        test_examples=constants["test_examples"],
+        examples=constants["test_examples"],
     )
     serialized_data = [asdict(x) for x in data]
     with open(os.path.join(results_dir, "examples.json"), "w") as f:
         json.dump(serialized_data, f)
-    labels = [x.references for x in data]
+    labels = [x.reference for x in data]
 
     if os.path.exists(os.path.join(results_dir, "all_runs.json")):
         with open(os.path.join(results_dir, "all_runs.json"), "r") as f:
@@ -94,14 +97,19 @@ def chatbot_main(
 
     dataset = modeling.load_data(
         constants["test_dataset"], constants["test_split"], constants["test_examples"]
-    ).to_pandas()
+    )
+    dataframe = pd.DataFrame(
+        {
+            "source": [x.source for x in dataset],
+        }
+    )
 
     visualize(
-        dataset,
+        dataframe,
         labels,
         results,
         "text-classification",
-        "article",
+        "source",
         [
             output_length,
             input_length,
@@ -109,6 +117,8 @@ def chatbot_main(
             chrf,
             avg_length_ratio,
             length_ratio,
+            avg_toxicity,
+            toxicity,
         ],
     )
 
