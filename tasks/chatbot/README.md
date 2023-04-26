@@ -64,10 +64,9 @@ comparison will be displayed using [Zeno](https://zenoml.com/).
 
 ## Modification
 
-You may want to modify the example for your own purposes. For
-instance:
+If you want to make modifications to the example, there are two main ways:
 
-1. In `main.py` you can modify `space` variable, which defines the training data,
-   base model, and hyperparameters to search over.
-2. In `prompt_configs.py` you can modify the prompts.
-3. In `modeling.py` you can modify the model configurations.
+1. All of the hyperparameters are included in `config.py`, you can modify this
+   file directly to run different experiments or comparisons.
+2. You can also feel free to modify the `modeling.py` file to implement different
+   modeling strategies.

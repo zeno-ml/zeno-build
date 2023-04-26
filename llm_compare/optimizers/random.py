@@ -108,7 +108,7 @@ class RandomOptimizer(Optimizer):
         for i in range(num_trials):
             params = self.randomize_params(space)
             logging.getLogger(__name__).info(f"Running with params: {params}")
-            outputs = function(**params, **constants)
+            outputs = function(data=data, **params, **constants)
             df = DataFrame({"data": data, "labels": labels, "outputs": outputs})
             for distill_function in distill_functions:
                 df[distill_function.__name__] = distill_function(df, ops).distill_output
