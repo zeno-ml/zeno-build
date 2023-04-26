@@ -1,5 +1,7 @@
 """The main entry point for performing comparison on chatbots."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os

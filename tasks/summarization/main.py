@@ -1,5 +1,7 @@
 """The main entry point for performing comparison on text summarization."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os

@@ -4,6 +4,8 @@ This file is intended to be modified. You can go in and change any
 of the variables to run different experiments.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 from llm_compare import search_space
