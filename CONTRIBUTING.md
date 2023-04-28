@@ -1,6 +1,6 @@
-# Contributing to llm-compare
+# Contributing to zeno-build
 
-If you're reading this, you're probably interested in contributing to llm-compare.
+If you're reading this, you're probably interested in contributing to zeno-build.
 Thank you for your interest!
 
 ## Developer Installation

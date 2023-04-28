@@ -9,8 +9,8 @@ from typing import Any, TypeVar
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
-from llm_compare import search_space
-from llm_compare.optimizers.base import Optimizer
+from zeno_build import search_space
+from zeno_build.optimizers.base import Optimizer
 
 T = TypeVar("T")
 

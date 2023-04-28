@@ -10,8 +10,8 @@ from vizier.service import clients
 from vizier.service import pyvizier as vz
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
-from llm_compare import search_space
-from llm_compare.optimizers.base import Optimizer
+from zeno_build import search_space
+from zeno_build.optimizers.base import Optimizer
 
 T = TypeVar("T")
 
@@ -26,8 +26,8 @@ class VizierOptimizer(Optimizer):
         distill_functions: list[Callable[[DataFrame, ZenoOptions], DistillReturn]],
         metric: Callable[[DataFrame, ZenoOptions], MetricReturn],
         algorithm: str = "RANDOM_SEARCH",
-        owner: str = "llm-compare",
-        study_id: str = "llm-compare",
+        owner: str = "zeno-build",
+        study_id: str = "zeno-build",
     ):
         """Initialize a Vizier optimizer.
 

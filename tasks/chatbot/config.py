@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from llm_compare import search_space
-from llm_compare.evaluation.text_features.length import input_length, output_length
-from llm_compare.evaluation.text_metrics.critique import (
+from zeno_build import search_space
+from zeno_build.evaluation.text_features.length import input_length, output_length
+from zeno_build.evaluation.text_metrics.critique import (
     avg_chrf,
     avg_length_ratio,
     avg_toxicity,
@@ -18,8 +18,8 @@ from llm_compare.evaluation.text_metrics.critique import (
     length_ratio,
     toxicity,
 )
-from llm_compare.models.api_based_model import ApiBasedModelConfig
-from llm_compare.prompts.chat_prompt import ChatMessages, ChatTurn
+from zeno_build.models.api_based_model import ApiBasedModelConfig
+from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
 # Define the space of hyperparameters to search over.
 space = {

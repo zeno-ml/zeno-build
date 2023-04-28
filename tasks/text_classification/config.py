@@ -6,9 +6,9 @@ of the variables to run different experiments.
 
 from __future__ import annotations
 
-from llm_compare import search_space
-from llm_compare.evaluation.classification_metrics import accuracy
-from llm_compare.evaluation.text_features.length import input_length, output_length
+from zeno_build import search_space
+from zeno_build.evaluation.classification_metrics import accuracy
+from zeno_build.evaluation.text_features.length import input_length, output_length
 
 # Define the space of hyperparameters to search over
 space = {

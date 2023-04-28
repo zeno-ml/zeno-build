@@ -9,8 +9,8 @@ from collections.abc import Sequence
 import datasets
 import transformers
 
-from llm_compare.cache_utils import get_cache_path
 from tasks.text_classification import config as classification_config
+from zeno_build.cache_utils import get_cache_path
 
 
 def train_model(

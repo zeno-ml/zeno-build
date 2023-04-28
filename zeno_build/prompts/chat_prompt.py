@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from llm_compare.prompts.prompt_utils import replace_variables
+from zeno_build.prompts.prompt_utils import replace_variables
 
 
 @dataclass

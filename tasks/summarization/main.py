@@ -12,11 +12,11 @@ import modeling
 import openai
 import pandas as pd
 
-from llm_compare.experiment_run import ExperimentRun
-from llm_compare.models import global_models
-from llm_compare.optimizers import standard
-from llm_compare.visualize import visualize
 from tasks.summarization import config as summarization_config
+from zeno_build.experiment_run import ExperimentRun
+from zeno_build.models import global_models
+from zeno_build.optimizers import standard
+from zeno_build.visualize import visualize
 
 
 def summarization_main(
