@@ -4,21 +4,10 @@ import os
 from collections.abc import Sequence
 
 import datasets
-import pandas as pd
 import transformers
 
 from llm_compare.cache_utils import get_cache_path
-
-DATASET_MAPPING = {
-    "imdb": {
-        "label_mapping": ["negative", "positive"],
-        "input": "text",
-    },
-    "sst2": {
-        "label_mapping": ["negative", "positive"],
-        "input": "sentence",
-    },
-}
+from tasks.text_classification import config as classification_config
 
 
 def train_model(
@@ -57,7 +46,7 @@ def train_model(
 
     # Load dataset
     dataset = datasets.load_dataset(training_dataset, split=training_split)
-    mapping = DATASET_MAPPING.get(training_dataset, {})
+    mapping = classification_config.dataset_mapping.get(training_dataset, {})
 
     # Tokenize data
     input_name = mapping.get("input", "text")
@@ -112,7 +101,7 @@ def make_predictions(
     """
     # Load dataset
     dataset = datasets.load_dataset(test_dataset, split=test_split)
-    mapping = DATASET_MAPPING.get(test_dataset, {})
+    mapping = classification_config.dataset_mapping.get(test_dataset, {})
 
     # Tokenize data
     input_name = mapping.get("input", "text")
@@ -136,38 +125,47 @@ def make_predictions(
     ]
 
 
-def get_dataset(test_dataset: str, test_split: str) -> pd.DataFrame:
+def load_data(
+    dataset: str, split: str, examples: int | None = None
+) -> datasets.Dataset:
     """Get the full dataset for task.
 
     Args:
-        test_dataset: The path to the test dataset.
-        test_split: The split of the test dataset to use.
+        dataset: The path to the test dataset.
+        split: The split of the test dataset to use.
+        examples: The number of examples to use.
 
     Returns:
-        pd.DataFrame: Full DataFrame
+        The dataset.
     """
-    return datasets.load_dataset(test_dataset, split=test_split).to_pandas()
+    if isinstance(dataset, tuple):
+        dname, subdname = dataset
+        loaded_data = datasets.load_dataset(dname, subdname, split=split)
+    else:
+        loaded_data = datasets.load_dataset(dataset, split=split)
+    if examples is not None:
+        loaded_data = loaded_data.select(range(examples))
+    return loaded_data
 
 
-def get_labels(test_dataset: str, test_split: str = "test") -> list[str]:
+def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
     """Get the labels for a particular dataset.
 
     Args:
-        test_dataset: The path to the test dataset.
-        test_split: The split of the test dataset to use.
+        dataset: The dataset to get the labels for.
+        dataset_name: The dataset to get the labels for.
 
     Returns:
         The labels in string format.
     """
     # Load dataset
-    dataset = datasets.load_dataset(test_dataset, split=test_split)
-    mapping = DATASET_MAPPING.get(test_dataset, {})
+    mapping = classification_config.dataset_mapping.get(dataset_name, {})
 
     # Convert labels to strings
-    labels: Sequence[str] = mapping.get(
+    label_mapping: Sequence[str] = mapping.get(
         "label_mapping", dataset.features["label"].names
     )
-    return [labels[label] for label in dataset["label"]]
+    return [label_mapping[x["label"]] for x in dataset]
 
 
 def train_and_predict(
