@@ -25,34 +25,51 @@ def text_classification_main(
         os.makedirs(results_dir)
 
     # Load the necessary data, either from HuggingFace or a cached file
-    test_dataset_name = classification_config.constants["test_dataset"]
-    test_dataset = modeling.load_data(
-        test_dataset_name,
+    test_dataset = classification_config.constants["test_dataset"]
+    data = modeling.load_data(
+        test_dataset,
         classification_config.constants.pop("test_split"),
         examples=classification_config.constants.pop("test_examples"),
     )
     with open(os.path.join(results_dir, "examples.json"), "w") as f:
-        json.dump(list(test_dataset), f)
-    labels = modeling.get_labels(test_dataset, test_dataset_name)
+        json.dump(list(data), f)
+    labels = modeling.get_labels(data, test_dataset)
 
     # Run the hyperparameter sweep and print out results
+    results: list[ExperimentRun] = []
     if cached_runs is not None:
         with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        optimizer = standard.StandardOptimizer()
-        results = optimizer.run_sweep(
-            function=modeling.train_and_predict,
+        # Perform the hyperparameter sweep
+        optimizer = standard.StandardOptimizer(
             space=classification_config.space,
             constants=classification_config.constants,
-            data=test_dataset,
-            labels=labels,
-            distill_functions=[],
+            distill_functions=classification_config.sweep_distill_functions,
             metric=classification_config.sweep_metric_function,
-            num_trials=classification_config.num_trials,
-            results_dir=results_dir,
         )
+        for _ in range(classification_config.num_trials):
+            parameters = optimizer.get_parameters()
+            predictions = modeling.train_and_predict(
+                data=data,
+                test_dataset=test_dataset,
+                training_dataset=parameters["training_dataset"],
+                base_model=parameters["base_model"],
+                learning_rate=parameters["learning_rate"],
+                num_train_epochs=parameters["num_train_epochs"],
+                weight_decay=parameters["weight_decay"],
+                bias=parameters["bias"],
+                training_split=parameters["training_split"],
+                training_examples=parameters["training_examples"],
+            )
+            eval_result = optimizer.calculate_metric(test_dataset, labels, predictions)
+            run = ExperimentRun(
+                parameters=parameters,
+                predictions=predictions,
+                eval_result=eval_result,
+            )
+            results.append(run)
 
         # Print out results
         serialized_results = [asdict(x) for x in results]
