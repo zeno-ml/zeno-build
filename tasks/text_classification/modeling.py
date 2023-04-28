@@ -1,4 +1,7 @@
 """A simple text classification pipeline in HuggingFace Transformers."""
+
+from __future__ import annotations
+
 import json
 import os
 from collections.abc import Sequence
