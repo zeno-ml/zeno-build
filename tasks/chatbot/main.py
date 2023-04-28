@@ -50,23 +50,36 @@ def chatbot_main(
     df = pd.DataFrame({"source": [x.source for x in data]})
 
     # Run the hyperparameter sweep and print out results
+    results: list[ExperimentRun] = []
     if cached_runs is not None:
         with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        optimizer = standard.StandardOptimizer()
-        results = optimizer.run_sweep(
-            function=modeling.make_predictions,
+        # Perform the hyperparameter sweep
+        optimizer = standard.StandardOptimizer(
             space=chatbot_config.space,
             constants=chatbot_config.constants,
-            data=data,
-            labels=labels,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
-            num_trials=chatbot_config.num_trials,
-            results_dir=results_dir,
         )
+        for _ in range(chatbot_config.num_trials):
+            parameters = optimizer.get_parameters()
+            predictions = modeling.make_predictions(
+                data=data,
+                prompt_preset=parameters["prompt_preset"],
+                model_preset=parameters["model_preset"],
+                temperature=parameters["temperature"],
+                max_tokens=parameters["max_tokens"],
+                top_p=parameters["top_p"],
+            )
+            eval_result = optimizer.calculate_metric(data, labels, predictions)
+            run = ExperimentRun(
+                parameters=parameters,
+                predictions=predictions,
+                eval_result=eval_result,
+            )
+            results.append(run)
 
         serialized_results = [asdict(x) for x in results]
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
