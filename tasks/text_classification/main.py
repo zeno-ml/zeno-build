@@ -77,7 +77,7 @@ def text_classification_main(
             json.dump(serialized_results, f)
 
     visualize(
-        test_dataset.to_pandas(),
+        data.to_pandas(),
         labels,
         results,
         "text-classification",
