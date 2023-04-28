@@ -46,7 +46,7 @@ def text_classification_main(
         optimizer = standard.StandardOptimizer(
             space=classification_config.space,
             constants=classification_config.constants,
-            distill_functions=classification_config.sweep_distill_functions,
+            distill_functions=[],
             metric=classification_config.sweep_metric_function,
         )
         for _ in range(classification_config.num_trials):

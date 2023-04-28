@@ -48,7 +48,7 @@ class RandomOptimizer(Optimizer):
         Returns:
             A dictionary of randomized parameters.
         """
-        params = {}
+        params = dict(self.constants)
         for name, dimension in self.space.items():
             if isinstance(dimension, search_space.Categorical) or isinstance(
                 dimension, search_space.Discrete
