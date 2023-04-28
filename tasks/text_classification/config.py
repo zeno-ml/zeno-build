@@ -24,9 +24,11 @@ space = {
 
 # Any constants that are fed into the function
 constants = {
-    "test_dataset": "imdb",
     "training_split": "train",
+    "training_examples": 50,
+    "test_dataset": "imdb",
     "test_split": "test",
+    "test_examples": 50,
 }
 
 # The number of trials to run

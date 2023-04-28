@@ -23,15 +23,15 @@ def text_classification_main(
         os.makedirs(results_dir)
 
     # Load the necessary data, either from HuggingFace or a cached file
-    test_dataset = (classification_config.constants.pop("test_dataset"),)
-    dataset = modeling.load_data(
-        test_dataset,
+    test_dataset_name = classification_config.constants["test_dataset"]
+    test_dataset = modeling.load_data(
+        test_dataset_name,
         classification_config.constants.pop("test_split"),
         examples=classification_config.constants.pop("test_examples"),
     )
     with open(os.path.join(results_dir, "examples.json"), "w") as f:
-        json.dump([asdict(x) for x in dataset], f)
-    labels = modeling.get_labels(test_dataset, dataset)
+        json.dump(list(test_dataset), f)
+    labels = modeling.get_labels(test_dataset, test_dataset_name)
 
     # Run the hyperparameter sweep and print out results
     if cached_runs is not None:
@@ -44,7 +44,7 @@ def text_classification_main(
             function=modeling.train_and_predict,
             space=classification_config.space,
             constants=classification_config.constants,
-            data=None,
+            data=test_dataset,
             labels=labels,
             distill_functions=[],
             metric=classification_config.sweep_metric_function,
@@ -58,7 +58,7 @@ def text_classification_main(
             json.dump(serialized_results, f)
 
     visualize(
-        dataset,
+        test_dataset.to_pandas(),
         labels,
         results,
         "text-classification",
