@@ -32,9 +32,9 @@ def visualize(
     if data_column not in df.columns:
         raise ValueError(f"Data column {data_column} not in DataFrame.")
     model_results: dict[str, ExperimentRun] = {}
-    for res in results:
-        # Hash model params to represent in Zeno. W&B uses random names.
-        name = str(hash("_".join([f"{k}={v}" for k, v in res.parameters.items()])))
+    for i, res in enumerate(results):
+        # TODO(alex): think about how to represent hyperparameter-based model names.
+        name = "model" + str(i)
 
         # Prevent duplicate runs being added to Zeno
         if name not in model_results:
