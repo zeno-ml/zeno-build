@@ -55,7 +55,7 @@ python main.py
 
 This will run ten training runs with various hyperparameters for:
 
-* `prompt`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
+* `prompt`: four different prompts (found in [config.py](config.py))
 * `model`: openai davinci-003 and gpt-3.5-turbo, and cohere command-xlarge
 * `temperature`: between 0.2, 0.3, or 0.4
 
