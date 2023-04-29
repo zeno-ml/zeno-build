@@ -10,8 +10,10 @@ TODO headline figure.
 It provides:
 
 * **Simple examples** of code to build LLM-based apps. The examples are
-  architecture agnostic, we don't care if you are using [OpenAI](TODO),
-  [LangChain](TODO), or [HuggingFace](TODO).
+  architecture agnostic, we don't care if you are using
+  [OpenAI](https://openai.com/),
+  [LangChain](https://github.com/hwchase17/langchain), or
+  [Hugging Face](https://huggingface.co).
 * **Experiment management** and **hyperparameter optimization** code, so you
   can quickly kick off experiments using a bunch of different settings and
   compare the results.
@@ -40,9 +42,9 @@ models for different tasks, such as [chatbots](tasks/chatbot/),
 
 Each of the examples include code for running experiments, performing
 evaluation, and analyzing the results. The result of running an experiment
-will be a comprehensive report created using the [Zeno](TODO) analysis
-platform. To give you a flavor of what these reports will look like, check
-out a few of our pre-made reports below:
+will be a comprehensive report created using the [Zeno](https://zenoml.com/)
+ML analysis platform. To give you a flavor of what these reports will look
+like, check out a few of our pre-made reports below:
 
 * [The Zeno Chatbot Report](TODO): A comprehensive report comparing different
   methods for creating chatbots, including API-based models such as ChatGPT,
@@ -70,6 +72,7 @@ doc to learn more.
 ## Get in Touch
 
 If you have any questions, feature requests, bug reports, etc., we recommend
-getting in touch via the github [issues page](TODO), where the community can
-discuss and/or implement your suggestions!
+getting in touch via the github
+[issues page](https://github.com/zeno-ml/zeno-build/issues), where the
+community can discuss and/or implement your suggestions!
 Alternatively, you can [email us](TODO), where we'll also be happy to follow up.

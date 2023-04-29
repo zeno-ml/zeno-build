@@ -6,20 +6,21 @@ for modifying or implementing new [tasks](/tasks/README.md).
 ## Test and Training Sets
 
 In Zeno Build, you need to have a test set to evaluate your system. This is
-usually loaded from [huggingface datasets](TODO).
+usually loaded from [Hugging Face datasets](https://huggingface.co/datasets).
 
 In addition, if you're performing model training (e.g. with
-[Huggingface](TODO)), you will
+[Hugging Face](https://huggingface.co/)), you will
 need to load a training set that can be done in a similar way. Alternatively,
-if the example just uses an API-based model such as [OpenAI](TODO), you may not
-need a training set. See some examples below:
+if the example just uses an API-based model such as
+[OpenAI](https://openai.com/), you may not need a training set. See some
+examples below:
 
 * **Training-free**: [chatbots](chatbot/) and [summarization](summarization/)
 * **Using training**: [text classification](text_classification/)
 
 ## Data, Label, and Output
 
-Zeno Build (and [Zeno](TODO)) defines the following for each example:
+Zeno Build (and [Zeno](https://zenoml.com)) defines the following for each example:
 
 * `data`: This is the data for a particular instance. It usually includes the
     input to the machine learning model.
@@ -70,7 +71,8 @@ for you. In doing so it will appropriately optimize your hyperparameters using
 a number of different strategies.
 
 * **Random Search**: It will randomly pick configurations and test them out.
-* **Google Vizier**: This uses [Google Vizier](TODO) to perform intelligent
+* **Google Vizier**: This uses
+  [Google Vizier](https://github.com/google/vizier) to perform intelligent
   hyperparameter search more efficiently.
 
 All available optimizers can be found in the
@@ -101,9 +103,9 @@ All evaluation methods can be found in the
 ## Visualization
 
 Finally, Zeno Build allows you to build reports to better understand your
-output quality using the [Zeno](TODO) visualization toolkit. This is called by
-using the `visualize()` function at the end of the training run, which takes
-in the various metrics.
+output quality using the [Zeno](https://zenoml.com) visualization toolkit.
+This is called by using the `visualize()` function at the end of the
+training run, which takes in the various metrics.
 
 Generally when Zeno Build finishes, you can click over to
 [http://localhost:8000](http://localhost:8000) to view the visualizations on

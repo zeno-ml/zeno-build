@@ -7,7 +7,7 @@ Here, you can find all of the tasks supported by Zeno Build.
 These include:
 
 * [Chatbots](chatbot/) that chat with users and return appropriate responses.
-* [Summarization](summarization.) systems that take longer articles and reduce
+* [Summarization](summarization/) systems that take longer articles and reduce
   them in length.
 * [Text Classification](text_classification/) systems that detect the sentiment
   or topic of text.
