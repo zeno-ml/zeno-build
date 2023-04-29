@@ -8,7 +8,7 @@
 **Zeno Build** is a tool for developers who want to quickly build, compare, and
 iterate on applications using large language models.
 
-TODO headline figure.
+![Zeno Build Overview](/docs/images/zeno-build-overview.png)
 
 It provides:
 

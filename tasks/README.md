@@ -22,8 +22,6 @@ Zeno Build is designed to make it easy for you to build your own new tasks and
 applications. To do so, we recommend that you first take a look at the existing
 tasks. Most of them consist of four main files:
 
-TODO: workflow diagram.
-
 * `README.md` describing the features of the tasks, models, and hyperparameters.
 * `modeling.py` implementing the core modeling strategy for the task. You can
   change this file to implement new modeling strategies.
