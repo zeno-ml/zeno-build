@@ -3,7 +3,9 @@
 import asyncio
 
 import openai
+import torch
 import tqdm
+import transformers
 
 from zeno_build.models import api_based_model, global_models
 from zeno_build.prompts import chat_prompt
@@ -81,5 +83,32 @@ async def generate_from_chat_prompt(
                 print(f"Warning! Cohere API rejected query for {prompt=}: {e.message}")
                 results.append("")
         return results
+    elif model_config.provider == "huggingface":
+        model: transformers.PreTrainedModel = transformers.AutoModel.from_pretrained(
+            model_config.model
+        )
+        if not model.can_generate():
+            raise ValueError(f"Model {model_config} cannot generate.")
+        tokenizer: transformers.PreTrainedTokenizer = (
+            transformers.AutoTokenizer.from_pretrained(model_config.model)
+        )
+        filled_prompts: list[str] = [
+            prompt_template.to_text_prompt(vars) for vars in variables
+        ]
+        model_input: torch.Tensor = tokenizer(filled_prompts, return_tensors="pt")
+        gen_config = transformers.GenerationConfig(
+            do_sample=True,
+            temperature=temperature,
+            max_new_tokens=max_tokens,
+            top_p=top_p,
+        )
+        outputs = model.generate(model_input, generation_config=gen_config).sequences
+        output_strs = [
+            tokenizer.decode(
+                g, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )
+            for g in outputs
+        ]
+        return output_strs
     else:
         raise ValueError("Unknown provider, but you can add your own!")

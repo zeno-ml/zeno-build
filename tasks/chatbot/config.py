@@ -55,6 +55,7 @@ model_configs = {
     "cohere_command_xlarge": ApiBasedModelConfig(
         provider="cohere", model="command-xlarge-nightly"
     ),
+    "vicuna": ApiBasedModelConfig(provider="huggingface", model="vicuna"),
 }
 
 # The details of the prompts
