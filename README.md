@@ -76,6 +76,6 @@ doc to learn more.
 
 If you have any questions, feature requests, bug reports, etc., we recommend
 getting in touch via the github
-[issues page](https://github.com/zeno-ml/zeno-build/issues), where the
+[issues page](https://github.com/zeno-ml/zeno-build/issues) or
+[discord](https://discord.gg/km62pDKAkE), where the
 community can discuss and/or implement your suggestions!
-Alternatively, you can [email us](TODO), where we'll also be happy to follow up.
