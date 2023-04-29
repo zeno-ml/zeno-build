@@ -72,6 +72,7 @@ def summarization_main(
                 temperature=parameters["temperature"],
                 max_tokens=parameters["max_tokens"],
                 top_p=parameters["top_p"],
+                cache_root=os.path.join(results_dir, "cache"),
             )
             eval_result = optimizer.calculate_metric(data, labels, predictions)
             run = ExperimentRun(
