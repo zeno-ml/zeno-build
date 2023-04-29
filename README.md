@@ -1,8 +1,11 @@
 # Zeno Build
 
-TODO: Any code quality tags.
+[![PyPI version](https://badge.fury.io/py/zeno-build.svg)](https://badge.fury.io/py/zeno-build)
+![Github Actions CI tests](https://github.com/zeno-ml/zeno-build/actions/workflows/ci.yml/badge.svg)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
+[![Discord](https://img.shields.io/discord/1086004954872950834)](https://discord.gg/km62pDKAkE)
 
-Zeno Build is a tool for developers who want to quickly build, compare, and
+**Zeno Build** is a tool for developers who want to quickly build, compare, and
 iterate on applications using large language models.
 
 TODO headline figure.
