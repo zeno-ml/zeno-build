@@ -62,6 +62,7 @@ def text_classification_main(
                 bias=parameters["bias"],
                 training_split=parameters["training_split"],
                 training_examples=parameters["training_examples"],
+                cache_root=os.path.join(results_dir, "cache"),
             )
             eval_result = optimizer.calculate_metric(test_dataset, labels, predictions)
             run = ExperimentRun(
