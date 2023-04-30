@@ -13,12 +13,12 @@ from typing import Any
 def get_cache_root():
     """Get the cache root directory.
 
-    Uses LLM_COMPARE_CACHE environment variable if set, and
-    ~/.cache/llm_compare otherwise.
+    Uses zeno_build_CACHE environment variable if set, and
+    ~/.cache/zeno_build otherwise.
     """
     return os.environ.get(
-        "LLM_COMPARE_CACHE",
-        os.path.join(os.path.expanduser("~"), ".cache", "llm_compare"),
+        "zeno_build_CACHE",
+        os.path.join(os.path.expanduser("~"), ".cache", "zeno_build"),
     )
 
 

@@ -12,11 +12,11 @@ import modeling
 import openai
 import pandas as pd
 
-from llm_compare.experiment_run import ExperimentRun
-from llm_compare.models import global_models
-from llm_compare.optimizers import standard
-from llm_compare.visualize import visualize
 from tasks.summarization import config as summarization_config
+from zeno_build.experiment_run import ExperimentRun
+from zeno_build.models import global_models
+from zeno_build.optimizers import standard
+from zeno_build.visualize import visualize
 
 
 def summarization_main(
@@ -50,23 +50,36 @@ def summarization_main(
     df = pd.DataFrame({"source": data})
 
     # Run the hyperparameter sweep and print out results
+    results: list[ExperimentRun] = []
     if cached_runs is not None:
         with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
-        optimizer = standard.StandardOptimizer()
-        results = optimizer.run_sweep(
-            function=modeling.make_predictions,
+        # Perform the hyperparameter sweep
+        optimizer = standard.StandardOptimizer(
             space=summarization_config.space,
             constants=summarization_config.constants,
-            data=data,
-            labels=labels,
             distill_functions=summarization_config.sweep_distill_functions,
             metric=summarization_config.sweep_metric_function,
-            num_trials=summarization_config.num_trials,
-            results_dir=results_dir,
         )
+        for i in range(summarization_config.num_trials):
+            parameters = optimizer.get_parameters()
+            predictions = modeling.make_predictions(
+                data=data,
+                prompt_preset=parameters["prompt_preset"],
+                model_preset=parameters["model_preset"],
+                temperature=parameters["temperature"],
+                max_tokens=parameters["max_tokens"],
+                top_p=parameters["top_p"],
+            )
+            eval_result = optimizer.calculate_metric(data, labels, predictions)
+            run = ExperimentRun(
+                parameters=parameters,
+                predictions=predictions,
+                eval_result=eval_result,
+            )
+            results.append(run)
 
         serialized_results = [asdict(x) for x in results]
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:

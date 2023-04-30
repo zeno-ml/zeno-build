@@ -14,10 +14,10 @@ other tasks too!
 ## Setup
 
 To run this example, you'll need to install the requirements.
-First install the `llm-compare` package:
+First install the `zeno-build` package:
 
 ```bash
-pip install llm-compare
+pip install zeno-build
 ```
 
 Then install the requirements for this example:
@@ -55,7 +55,7 @@ python main.py
 
 This will run ten training runs with various hyperparameters for:
 
-* `prompt`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
+* `prompt`: four different prompts (found in [config.py](config.py))
 * `model`: openai davinci-003 and gpt-3.5-turbo, and cohere command-xlarge
 * `temperature`: between 0.2, 0.3, or 0.4
 

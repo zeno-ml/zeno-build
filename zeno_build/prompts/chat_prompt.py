@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from llm_compare.prompts.prompt_utils import replace_variables
+from zeno_build.prompts.prompt_utils import replace_variables
 
 
 @dataclass
@@ -67,14 +67,12 @@ class ChatMessages:
         Returns:
             str: _description_
         """
-        return (
-            "\n".join(
-                [
-                    system_name
-                    if x.role == "system"
-                    else user_name + ": " + replace_variables(x.content, variables)
-                    for x in self.messages
-                ]
-            )
-            + f"{system_name}: "
+        return "\n\n".join(
+            [
+                (system_name if x.role == "system" else user_name)
+                + ": "
+                + replace_variables(x.content, variables)
+                for x in self.messages
+            ]
+            + [f"{system_name}: "]
         )

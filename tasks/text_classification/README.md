@@ -10,10 +10,10 @@ dataset, with various hyperparameters.
 ## Install Requirements
 
 To run this example, you'll need to install the requirements.
-First install the `llm-compare` package:
+First install the `zeno-build` package:
 
 ```bash
-pip install llm-compare
+pip install zeno-build
 ```
 
 Then install the requirements for this example:

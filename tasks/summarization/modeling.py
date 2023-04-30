@@ -8,9 +8,9 @@ import os
 
 import datasets
 
-from llm_compare.cache_utils import get_cache_path
-from llm_compare.prompts.text_generate import generate_from_text_prompt
 from tasks.summarization import config as summarization_config
+from zeno_build.cache_utils import get_cache_path
+from zeno_build.prompts.text_generate import generate_from_text_prompt
 
 
 def load_data(

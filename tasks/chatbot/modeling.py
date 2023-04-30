@@ -10,9 +10,9 @@ from dataclasses import dataclass
 
 import datasets
 
-from llm_compare.cache_utils import get_cache_path
-from llm_compare.prompts.chat_generate import generate_from_chat_prompt
 from tasks.chatbot import config as chatbot_config
+from zeno_build.cache_utils import get_cache_path
+from zeno_build.prompts.chat_generate import generate_from_chat_prompt
 
 
 @dataclass(frozen=True)
