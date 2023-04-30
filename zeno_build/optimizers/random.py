@@ -36,8 +36,11 @@ class RandomOptimizer(Optimizer):
             seed: The random seed to use.
         """
         super().__init__(space, constants, distill_functions, metric)
-        if seed is not None:
-            random.seed(seed)
+        # Set state without side-effects (for single thread)
+        saved_state = random.getstate()
+        random.seed(seed)
+        self._state = random.getstate()
+        random.setstate(saved_state)
 
     def get_parameters(self) -> dict[str, Any]:
         """Randomize the parameters in a space.
@@ -48,6 +51,8 @@ class RandomOptimizer(Optimizer):
         Returns:
             A dictionary of randomized parameters.
         """
+        saved_state = random.getstate()
+        random.setstate(self._state)
         params = dict(self.constants)
         for name, dimension in self.space.items():
             if isinstance(dimension, search_space.Categorical) or isinstance(
@@ -60,4 +65,6 @@ class RandomOptimizer(Optimizer):
                 params[name] = random.randint(dimension.lower, dimension.upper)
             else:
                 raise ValueError(f"Unknown search dimension: {dimension}")
+        self._state = random.getstate()
+        random.setstate(saved_state)
         return params

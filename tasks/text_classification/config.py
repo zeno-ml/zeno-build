@@ -32,7 +32,7 @@ constants = {
 }
 
 # The number of trials to run
-num_trials = 2
+num_trials = 10
 
 # The functions to use to calculate scores for the hyperparameter sweep
 sweep_metric_function = accuracy
