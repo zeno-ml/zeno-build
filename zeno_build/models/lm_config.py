@@ -1,4 +1,4 @@
-"""Config for API-based models."""
+"""Config for language models."""
 
 from __future__ import annotations
 
