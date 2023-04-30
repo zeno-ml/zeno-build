@@ -5,14 +5,14 @@ import asyncio
 import openai
 import tqdm
 
-from zeno_build.models import api_based_model, global_models
+from zeno_build.models import global_models, lm_config
 from zeno_build.prompts.prompt_utils import replace_variables
 
 
 async def generate_from_text_prompt(
     variables: list[dict[str, str]],
     prompt_template: str,
-    model_config: api_based_model.ApiBasedModelConfig,
+    model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,

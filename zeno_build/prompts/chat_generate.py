@@ -7,14 +7,14 @@ import torch
 import tqdm
 import transformers
 
-from zeno_build.models import api_based_model, global_models
+from zeno_build.models import global_models, lm_config
 from zeno_build.prompts import chat_prompt
 
 
 async def generate_from_chat_prompt(
     variables: list[dict[str, str]],
     prompt_template: chat_prompt.ChatMessages,
-    model_config: api_based_model.ApiBasedModelConfig,
+    model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
@@ -65,7 +65,7 @@ async def generate_from_chat_prompt(
     elif model_config.provider == "cohere":
         import cohere
 
-        results = []
+        results: list[str] = []
         for vars in tqdm.tqdm(variables, "Generating synchronously from Cohere"):
             try:
                 assert global_models.cohere_client is not None
@@ -84,7 +84,12 @@ async def generate_from_chat_prompt(
                 results.append("")
         return results
     elif model_config.provider == "huggingface":
-        model: transformers.PreTrainedModel = transformers.AutoModel.from_pretrained(
+        # Prepare settings
+        # Load model
+        model_class = (
+            model_config.cls if model_config.cls is not None else transformers.AutoModel
+        )
+        model: transformers.PreTrainedModel = model_class.from_pretrained(
             model_config.model
         )
         if not model.can_generate():
@@ -92,23 +97,35 @@ async def generate_from_chat_prompt(
         tokenizer: transformers.PreTrainedTokenizer = (
             transformers.AutoTokenizer.from_pretrained(model_config.model)
         )
-        filled_prompts: list[str] = [
-            prompt_template.to_text_prompt(vars) for vars in variables
-        ]
-        model_input: torch.Tensor = tokenizer(filled_prompts, return_tensors="pt")
+        tokenizer.padding_side = "left"
+        if not tokenizer.pad_token:
+            tokenizer.pad_token = tokenizer.eos_token
         gen_config = transformers.GenerationConfig(
             do_sample=True,
             temperature=temperature,
             max_new_tokens=max_tokens,
             top_p=top_p,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
         )
-        outputs = model.generate(model_input, generation_config=gen_config).sequences
-        output_strs = [
-            tokenizer.decode(
-                g, skip_special_tokens=True, clean_up_tokenization_spaces=False
-            )
-            for g in outputs
+        # Create the prompts
+        filled_prompts: list[str] = [
+            prompt_template.to_text_prompt(vars) for vars in variables
         ]
-        return output_strs
+        # Process in batches
+        results = []
+        batch_size = 8
+        for i in tqdm.trange(0, len(filled_prompts), batch_size):
+            batch_prompts = filled_prompts[i : i + batch_size]
+            encoded_prompts = tokenizer(
+                batch_prompts, padding=True, return_tensors="pt"
+            )
+
+            with torch.no_grad():
+                outputs = model.generate(
+                    **encoded_prompts, generation_config=gen_config
+                )
+            results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+        return results
     else:
         raise ValueError("Unknown provider, but you can add your own!")

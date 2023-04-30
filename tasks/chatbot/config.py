@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import transformers
+
 from zeno_build import search_space
 from zeno_build.evaluation.text_features.length import input_length, output_length
 from zeno_build.evaluation.text_metrics.critique import (
@@ -18,7 +20,7 @@ from zeno_build.evaluation.text_metrics.critique import (
     length_ratio,
     toxicity,
 )
-from zeno_build.models.api_based_model import ApiBasedModelConfig
+from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
 # Define the space of hyperparameters to search over.
@@ -27,7 +29,8 @@ space = {
         ["standard", "friendly", "polite", "cynical"]
     ),
     "model_preset": search_space.Categorical(
-        ["openai_davinci_003", "openai_gpt_3.5_turbo", "cohere_command_xlarge"]
+        # ["text-davinci-003", "gpt-3.5-turbo", "cohere-command-xlarge"]
+        ["gpt2"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }
@@ -46,16 +49,16 @@ num_trials = 10
 
 # The details of each model
 model_configs = {
-    "openai_davinci_003": ApiBasedModelConfig(
-        provider="openai", model="text-davinci-003"
-    ),
-    "openai_gpt_3.5_turbo": ApiBasedModelConfig(
-        provider="openai_chat", model="gpt-3.5-turbo"
-    ),
-    "cohere_command_xlarge": ApiBasedModelConfig(
+    "text-davinci-003": LMConfig(provider="openai", model="text-davinci-003"),
+    "gpt-3.5-turbo": LMConfig(provider="openai_chat", model="gpt-3.5-turbo"),
+    "cohere-command-xlarge": LMConfig(
         provider="cohere", model="command-xlarge-nightly"
     ),
-    "vicuna": ApiBasedModelConfig(provider="huggingface", model="vicuna"),
+    "gpt2": LMConfig(
+        provider="huggingface",
+        model="gpt2",
+        cls=transformers.GPT2LMHeadModel,
+    ),
 }
 
 # The details of the prompts
