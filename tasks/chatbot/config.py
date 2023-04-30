@@ -22,8 +22,6 @@ from llm_compare.models.api_based_model import ApiBasedModelConfig
 from llm_compare.prompts.chat_prompt import ChatMessages, ChatTurn
 
 # Define the space of hyperparameters to search over.
-# Note that "prompt_preset" and "model_preset" are in prompt_configs.py
-# and model_configs.py respectively.
 space = {
     "prompt_preset": search_space.Categorical(
         ["standard", "friendly", "polite", "cynical"]

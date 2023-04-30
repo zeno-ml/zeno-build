@@ -1,38 +1,31 @@
 """A simple text classification pipeline in HuggingFace Transformers."""
+
+from __future__ import annotations
+
 import json
 import os
 from collections.abc import Sequence
 
 import datasets
-import pandas as pd
 import transformers
 
 from llm_compare.cache_utils import get_cache_path
-
-DATASET_MAPPING = {
-    "imdb": {
-        "label_mapping": ["negative", "positive"],
-        "input": "text",
-    },
-    "sst2": {
-        "label_mapping": ["negative", "positive"],
-        "input": "sentence",
-    },
-}
+from tasks.text_classification import config as classification_config
 
 
 def train_model(
-    training_dataset: str,
+    training_dataset: str | tuple[str, str],
     base_model: str,
     learning_rate: float = 2e-5,
     num_train_epochs: int = 3,
     weight_decay: float = 0.01,
     training_split: str = "train",
+    training_examples: int | None = None,
 ) -> tuple[transformers.PreTrainedModel, transformers.PreTrainedTokenizer]:
     """Train a model on a text classification task.
 
     Args:
-        training_dataset: The path to the training dataset.
+        training_dataset: The path to the training dataset, either as string or tuple.
         base_model: The name of the base model to use.
 
     Returns:
@@ -56,8 +49,8 @@ def train_model(
     )
 
     # Load dataset
-    dataset = datasets.load_dataset(training_dataset, split=training_split)
-    mapping = DATASET_MAPPING.get(training_dataset, {})
+    dataset = load_data(training_dataset, training_split, examples=training_examples)
+    mapping = classification_config.dataset_mapping.get(training_dataset, {})
 
     # Tokenize data
     input_name = mapping.get("input", "text")
@@ -92,18 +85,19 @@ def train_model(
 
 
 def make_predictions(
+    data: datasets.Dataset,
+    test_dataset: str | tuple[str, str],
     model: transformers.PreTrainedModel,
     tokenizer: transformers.PreTrainedTokenizer,
-    test_dataset: str,
     bias: float = 0.0,
-    test_split: str = "test",
 ) -> list[str]:
     """Make predictions over a particular dataset.
 
     Args:
+        data: The data from the test dataset.
+        test_dataset: The path to the test dataset.
         model: The model to evaluate.
         tokenizer: The tokenizer to use.
-        test_dataset: The path to the test dataset.
         bias: The bias to apply to the first class.
         test_split: The split of the test dataset to use.
 
@@ -111,8 +105,7 @@ def make_predictions(
         The predictions in string format.
     """
     # Load dataset
-    dataset = datasets.load_dataset(test_dataset, split=test_split)
-    mapping = DATASET_MAPPING.get(test_dataset, {})
+    mapping = classification_config.dataset_mapping.get(test_dataset, {})
 
     # Tokenize data
     input_name = mapping.get("input", "text")
@@ -120,71 +113,98 @@ def make_predictions(
     def tokenize_function(examples):
         return tokenizer(examples[input_name], padding="max_length", truncation=True)
 
-    tokenized_datasets = dataset.map(tokenize_function, batched=True)
+    tokenized_datasets = data.map(tokenize_function, batched=True)
 
     # Make predictions
     trainer = transformers.Trainer(model=model)
     predictions = trainer.predict(tokenized_datasets)
 
     # Convert predictions to labels
-    labels: Sequence[str] = mapping.get(
-        "label_mapping", dataset.features["label"].names
-    )
+    labels: Sequence[str] = mapping.get("label_mapping", data.features["label"].names)
     predictions.predictions[:, 0] += bias
     return [
         labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
     ]
 
 
-def get_dataset(test_dataset: str, test_split: str) -> pd.DataFrame:
+def load_data(
+    dataset: str | tuple[str, str], split: str, examples: int | None = None
+) -> datasets.Dataset:
     """Get the full dataset for task.
 
     Args:
-        test_dataset: The path to the test dataset.
-        test_split: The split of the test dataset to use.
+        dataset: The path to the test dataset.
+        split: The split of the test dataset to use.
+        examples: The number of examples to use.
 
     Returns:
-        pd.DataFrame: Full DataFrame
+        The dataset.
     """
-    return datasets.load_dataset(test_dataset, split=test_split).to_pandas()
+    if isinstance(dataset, tuple):
+        dname, subdname = dataset
+        loaded_data = datasets.load_dataset(dname, subdname, split=split)
+    else:
+        loaded_data = datasets.load_dataset(dataset, split=split)
+    if examples is not None:
+        loaded_data = loaded_data.select(range(examples))
+    return loaded_data
 
 
-def get_labels(test_dataset: str, test_split: str = "test") -> list[str]:
+def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
     """Get the labels for a particular dataset.
 
     Args:
-        test_dataset: The path to the test dataset.
-        test_split: The split of the test dataset to use.
+        dataset: The dataset to get the labels for.
+        dataset_name: The dataset to get the labels for.
 
     Returns:
         The labels in string format.
     """
     # Load dataset
-    dataset = datasets.load_dataset(test_dataset, split=test_split)
-    mapping = DATASET_MAPPING.get(test_dataset, {})
+    mapping = classification_config.dataset_mapping.get(dataset_name, {})
 
     # Convert labels to strings
-    labels: Sequence[str] = mapping.get(
+    label_mapping: Sequence[str] = mapping.get(
         "label_mapping", dataset.features["label"].names
     )
-    return [labels[label] for label in dataset["label"]]
+    return [label_mapping[x["label"]] for x in dataset]
 
 
 def train_and_predict(
-    training_dataset: str,
+    data: datasets.Dataset,
     test_dataset: str,
+    training_dataset: str,
     base_model: str,
     learning_rate: float = 2e-5,
     num_train_epochs: int = 3,
     weight_decay: float = 0.01,
     bias: float = 0.0,
     training_split: str = "train",
-    test_split: str = "test",
+    training_examples: int | None = None,
 ) -> list[str]:
-    """Train and make predictions."""
+    """Train and make predictions.
+
+    Args:
+        data: The test data in huggingface dataset format.
+        test_dataset: The name of the testing dataset.
+        training_dataset: The name of the training dataset.
+        base_model: The name of the base model to use.
+        learning_rate: The learning rate to use.
+        num_train_epochs: The number of training epochs.
+        weight_decay: The weight decay to use.
+        bias: The bias to apply to the first class at inference time.
+        training_split: The split of the training dataset to use.
+        training_examples: The number of examples to use from the training dataset, or
+            None to use all of them.
+        test_split: The split of the test dataset to use.
+
+    Returns:
+        The predicted labels in string format.
+    """
     # If the experiment is already finished, recover it from the cache
     parameters = dict(locals())
-    parameters["__name__"] = train_model.__name__
+    parameters["__name__"] = train_and_predict.__name__
+    parameters.pop("data")  # We assume that knowing the name `test_dataset` is enough
     result_file = get_cache_path("text_classification", parameters, extension="json")
     if os.path.exists(result_file):
         with open(result_file, "r") as f:
@@ -192,21 +212,22 @@ def train_and_predict(
 
     # Train the model
     model, tokenizer = train_model(
-        training_dataset,
-        base_model,
-        learning_rate,
-        num_train_epochs,
-        weight_decay,
-        training_split,
+        training_dataset=training_dataset,
+        base_model=base_model,
+        learning_rate=learning_rate,
+        num_train_epochs=num_train_epochs,
+        weight_decay=weight_decay,
+        training_split=training_split,
+        training_examples=training_examples,
     )
 
     # Make predictions
     predictions = make_predictions(
-        model,
-        tokenizer,
-        test_dataset,
-        bias,
-        test_split,
+        data=data,
+        model=model,
+        tokenizer=tokenizer,
+        test_dataset=test_dataset,
+        bias=bias,
     )
 
     # Save the results

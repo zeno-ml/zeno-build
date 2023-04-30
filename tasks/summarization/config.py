@@ -25,8 +25,6 @@ from llm_compare.evaluation.text_metrics.critique import (
 from llm_compare.models.api_based_model import ApiBasedModelConfig
 
 # Define the space of hyperparameters to search over.
-# Note that "prompt_preset" and "model_preset" are in prompt_configs.py
-# and model_configs.py respectively.
 space = {
     "prompt_preset": search_space.Categorical(
         ["standard", "tldr", "concise", "complete"]
