@@ -34,7 +34,7 @@ def test_text_prompt():
         "System: You are a chatbot.\n\n"
         "System: hello\n\n"
         "User: goodbye\n\n"
-        "System: "
+        "System:"
     )
     actual_text = example_prompt.to_text_prompt(
         {"context": "hello", "source": "goodbye"}
@@ -46,7 +46,7 @@ def test_text_prompt():
 def test_text_prompt_with_names():
     """Test generation of a regular textual format w/ names."""
     expected_text = (
-        "Me: You are a chatbot.\n\n" "Me: hello\n\n" "You: goodbye\n\n" "Me: "
+        "Me: You are a chatbot.\n\n" "Me: hello\n\n" "You: goodbye\n\n" "Me:"
     )
     actual_text = example_prompt.to_text_prompt(
         variables={"context": "hello", "source": "goodbye"},

@@ -74,5 +74,5 @@ class ChatMessages:
                 + replace_variables(x.content, variables)
                 for x in self.messages
             ]
-            + [f"{system_name}: "]
+            + [f"{system_name}:"]
         )
