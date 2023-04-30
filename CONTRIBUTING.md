@@ -8,7 +8,7 @@ Thank you for your interest!
 If you're a developer, you should also install pre-commit hooks before developing.
 
 ```bash
-pip install .[test]
+pip install .[dev]
 pre-commit install
 ```
 
@@ -19,6 +19,17 @@ You'll also want to run tests to make sure your code is working by running the f
 ```bash
 pytest
 ```
+
+## Types of Contributions
+
+We welcome:
+
+* **New tasks**, which you can create by navigating to the [tasks/] directory and
+  adding a new sub-directory implementing a new task (see the tasks directory for
+  details).
+* **New reports**, which you can create by modifying the configuration and/or
+  modeling files for new tasks and sending us the a link of the resulting report.
+* **New core functionality**, making Zeno Build more feature-rich or easier to use.
 
 ## Contribution Guide
 
@@ -31,17 +42,6 @@ If you want to make a contribution you can:
 We'd recommend the first two to increase the chances of your PR being accepted,
 but if you're confident in your contribution, you can go ahead and send a PR
 directly.
-
-### Glossary
-
-In order to make our codebase more consistent, we use the following terms:
-
-* `data`: This is the data for a particular instance. It usually includes the
-    input to the machine learning model.
-* `label`: This is the label for a particular instance. It usually includes the
-    ground truth that we'd like the output to match.
-* `output`: This is the output/prediction of a machine learning model that we'd
-    like to evaluate and analyze.
 
 ## Making a Release
 
