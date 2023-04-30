@@ -15,24 +15,24 @@ if the example just uses an API-based model such as
 [OpenAI](https://openai.com/), you may not need a training set. See some
 examples below:
 
-* **Training-free**: [chatbots](chatbot/) and [summarization](summarization/)
-* **Using training**: [text classification](text_classification/)
+- **Without training**: [chatbots](chatbot/) and [summarization](summarization/)
+- **With training**: [text classification](text_classification/)
 
 ## Data, Label, and Output
 
 Zeno Build (and [Zeno](https://zenoml.com)) defines the following for each example:
 
-* `data`: This is the data for a particular instance. It usually includes the
-    input to the machine learning model.
-* `label`: This is the label for a particular instance. It usually includes the
-    ground truth that we'd like the output to match.
-* `output`: This is the output/prediction of a machine learning model that we'd
-    like to evaluate and analyze.
+- `data`: This is the raw data for a particular instance. It is usually the
+  input to the machine learning model.
+- `label`: This is the label for a particular instance. It is typically the
+  ground truth that we'd like the output to match.
+- `output`: This is the output/prediction of a machine learning model that we'd
+  like to evaluate and analyze.
 
 ## Search Spaces and Constants
 
-When testing out models, you may want to both *search different parameters*,
-and *keep some parameters constant*. Zeno Build handles this by defining two
+When testing out models, you may want to both _search different parameters_,
+and _keep some parameters constant_. Zeno Build handles this by defining two
 variables `space` and `constant` in the `config.py` file. Some examples from
 the [chatbots](chatbot/) example are shown below:
 
@@ -70,8 +70,8 @@ Given this search space, Zeno Build can iteratively run multiple experiments
 for you. In doing so it will appropriately optimize your hyperparameters using
 a number of different strategies.
 
-* **Random Search**: It will randomly pick configurations and test them out.
-* **Google Vizier**: This uses
+- **Random Search**: It will randomly pick configurations and test them out.
+- **Google Vizier**: This uses
   [Google Vizier](https://github.com/google/vizier) to perform intelligent
   hyperparameter search more efficiently.
 
@@ -83,18 +83,18 @@ All available optimizers can be found in the
 Zeno Build implements a number of different methods that you can use to
 calculate features of your outputs. There are two important concepts:
 
-* **Distill Functions**: These calculate a feature for each example. These can
-  be used for either evaluating individual examples, or exploring data in the
+- **Distill Functions**: These calculate a feature for each example. These can
+  be used for evaluating individual examples or exploring data in the
   visualization interface described below.
-* **Metric Functions**: These calculate a single score for the entire test
+- **Metric Functions**: These calculate a single score for the entire test
   dataset, and are usually used for evaluating the quality of the system as a
   whole. They are often calculated by averaging the value of distill functions.
 
 Zeno Build implements these distill and metric functions for various quality
 measures. For instance, you can evaluate:
 
-* **Accuracy** for text classification tasks.
-* **Text generation quality metrics** such as fluency, factuality, toxicity,
+- **Accuracy** for text classification tasks.
+- **Text generation quality metrics** such as fluency, factuality, toxicity,
   etc. for text generation tasks.
 
 All evaluation methods can be found in the
@@ -111,4 +111,5 @@ Generally when Zeno Build finishes, you can click over to
 [http://localhost:8000](http://localhost:8000) to view the visualizations on
 your local machine and play around with them.
 
-Take a look at the Zeno documentation to see more details!
+Take a look at the [Zeno documentation](https://zenoml.com/docs/intro)
+to see more details!

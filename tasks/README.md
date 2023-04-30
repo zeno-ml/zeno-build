@@ -1,19 +1,19 @@
 # Zeno Build Tasks
 
-Here, you can find all of the tasks supported by Zeno Build.
+Here, you can find all of the tasks supported by `zeno-build`.
 
-## Existing Tasks
+## Tasks
 
-These include:
+The tasks supported by default are:
 
-* [Chatbots](chatbot/) that chat with users and return appropriate responses.
-* [Summarization](summarization/) systems that take longer articles and reduce
+- [Chatbots](chatbot/) that chat with users and return appropriate responses.
+- [Summarization](summarization/) systems that take longer articles and reduce
   them in length.
-* [Text Classification](text_classification/) systems that detect the sentiment
+- [Text Classification](text_classification/) systems that detect the sentiment
   or topic of text.
 
 If you want to jump in and run any of the tasks, click over to the appropriate
-directory, read the README to set up your environment appropriately, and get
+directory, read the README to set up your environment, and get
 started!
 
 ## Build Your Own Task
@@ -22,17 +22,17 @@ Zeno Build is designed to make it easy for you to build your own new tasks and
 applications. To do so, we recommend that you first take a look at the existing
 tasks. Most of them consist of four main files:
 
-* `README.md` describing the features of the tasks, models, and hyperparameters.
-* `modeling.py` implementing the core modeling strategy for the task. You can
+- `README.md` describing the features of the tasks, models, and hyperparameters.
+- `modeling.py` implementing the core modeling strategy for the task. You can
   change this file to implement new modeling strategies.
-* `config.py` describing the hyperparameters used in the experiments. You can
+- `config.py` describing the hyperparameters used in the experiments. You can
   modify this this file to change the hyperparameter settings that you want to
   experiment with.
-* `main.py` implementing the main experimental logic, including the entire flow
+- `main.py` implementing the main experimental logic, including the entire flow
   of initialization, experimental runs, and visualization.
 
-If you're looking to dive deeper, you should also click over to our
-[important concepts](concepts.md) doc, or take a look at the [API doc](TODO).
+If you're looking to dive deeper, you should also click over to our [important
+concepts](CONCEPTS.md) doc, or take a look at the [API doc](TODO).
 
 ## Contributing Back
 
