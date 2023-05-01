@@ -143,7 +143,6 @@ async def generate_from_chat_prompt(
                 return_tensors="pt",
                 return_token_type_ids=False,
             ).to(torch_device)
-            print(f"{encoded_prompts.keys()=}")
             with torch.no_grad():
                 outputs = model.generate(
                     **encoded_prompts, generation_config=gen_config
