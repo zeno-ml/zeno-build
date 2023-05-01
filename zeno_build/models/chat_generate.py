@@ -1,6 +1,7 @@
 """Tools to generate from prompts."""
 
 import asyncio
+import re
 
 import openai
 import torch
@@ -151,7 +152,10 @@ async def generate_from_chat_prompt(
             results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
         # Post-processing to get only the system utterance
         results = [
-            x.split(f"\n\n{model_config.user_name}:")[0].strip() for x in results
+            re.split(rf"\n\n({model_config.user_name}|{model_config.system_name}):", x)[
+                0
+            ].strip()
+            for x in results
         ]
         return results
     else:
