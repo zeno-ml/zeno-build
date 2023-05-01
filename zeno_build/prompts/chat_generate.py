@@ -95,7 +95,9 @@ async def generate_from_chat_prompt(
         # Load model
         torch_device = "cuda" if torch.cuda.is_available() else "cpu"
         model_class = (
-            model_config.cls if model_config.cls is not None else transformers.AutoModel
+            model_config.cls
+            if model_config.cls is not None
+            else transformers.AutoModelForCausalLM
         )
         model: transformers.PreTrainedModel = model_class.from_pretrained(
             model_config.model
