@@ -10,7 +10,7 @@ import datasets
 
 from tasks.summarization import config as summarization_config
 from zeno_build.cache_utils import get_cache_path
-from zeno_build.prompts.text_generate import generate_from_text_prompt
+from zeno_build.models.text_generate import generate_from_text_prompt
 
 
 def load_data(

@@ -29,8 +29,9 @@ space = {
         ["standard", "friendly", "polite", "cynical"]
     ),
     "model_preset": search_space.Categorical(
-        # ["text-davinci-003", "gpt-3.5-turbo", "cohere-command-xlarge", "gpt2"]
-        ["llama-7b", "alpaca-7b", "vicuna-7b"]
+        # ["gpt-3.5-turbo", "cohere-command-xlarge",
+        #  "gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
+        ["gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }

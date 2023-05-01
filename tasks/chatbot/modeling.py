@@ -12,7 +12,7 @@ import datasets
 
 from tasks.chatbot import config as chatbot_config
 from zeno_build.cache_utils import get_cache_path
-from zeno_build.prompts.chat_generate import generate_from_chat_prompt
+from zeno_build.models.chat_generate import generate_from_chat_prompt
 
 
 @dataclass(frozen=True)

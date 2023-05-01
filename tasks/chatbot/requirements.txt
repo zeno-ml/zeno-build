@@ -3,4 +3,4 @@ cohere
 datasets
 transformers
 sentencepiece
-protobuf
+protobuf==3.20.0
