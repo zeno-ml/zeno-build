@@ -93,12 +93,13 @@ async def generate_from_chat_prompt(
         return results
     elif model_config.provider == "huggingface":
         # Load model
+        torch_device = "cuda" if torch.cuda.is_available() else "cpu"
         model_class = (
             model_config.cls if model_config.cls is not None else transformers.AutoModel
         )
         model: transformers.PreTrainedModel = model_class.from_pretrained(
             model_config.model
-        )
+        ).to(torch_device)
         if not model.can_generate():
             raise ValueError(f"Model {model_config} cannot generate.")
         tokenizer: transformers.PreTrainedTokenizer = (
@@ -130,9 +131,11 @@ async def generate_from_chat_prompt(
         for i in tqdm.trange(0, len(filled_prompts), batch_size):
             batch_prompts = filled_prompts[i : i + batch_size]
             encoded_prompts = tokenizer(
-                batch_prompts, padding=True, return_tensors="pt"
+                batch_prompts,
+                padding=True,
+                return_tensors="pt",
+                torch_device=torch_device,
             )
-
             with torch.no_grad():
                 outputs = model.generate(
                     **encoded_prompts, generation_config=gen_config
