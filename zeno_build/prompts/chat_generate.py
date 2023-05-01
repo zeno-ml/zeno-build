@@ -113,6 +113,8 @@ async def generate_from_chat_prompt(
         tokenizer.padding_side = "left"
         if not tokenizer.pad_token:
             tokenizer.pad_token = tokenizer.eos_token
+            tokenizer.pad_token_id = tokenizer.eos_token_id
+            
         gen_config = transformers.GenerationConfig(
             do_sample=True,
             temperature=temperature,
@@ -139,7 +141,9 @@ async def generate_from_chat_prompt(
                 batch_prompts,
                 padding=True,
                 return_tensors="pt",
+                return_token_type_ids=False,
             ).to(torch_device)
+            print(f"{encoded_prompts.keys()=}")
             with torch.no_grad():
                 outputs = model.generate(
                     **encoded_prompts, generation_config=gen_config
