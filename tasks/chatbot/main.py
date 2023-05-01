@@ -123,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--skip_visualization",
         action="store_true",
-        type=bool,
+        help="Whether to skip the visualization step.",
     )
     args = parser.parse_args()
 
