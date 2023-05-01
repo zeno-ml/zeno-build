@@ -20,6 +20,7 @@ class LMConfig:
 
     provider: str
     model: str
-    cls: type | None = None
+    model_cls: type | None = None
+    tokenizer_cls: type | None = None
     system_name: str = "System"
     user_name: str = "User"

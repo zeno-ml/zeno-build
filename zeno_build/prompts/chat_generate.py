@@ -94,16 +94,21 @@ async def generate_from_chat_prompt(
     elif model_config.provider == "huggingface":
         # Load model
         torch_device = "cuda" if torch.cuda.is_available() else "cpu"
-        model_class = (
-            model_config.cls
-            if model_config.cls is not None
+        model_cls = (
+            model_config.model_cls
+            if model_config.model_cls is not None
             else transformers.AutoModelForCausalLM
         )
-        model: transformers.PreTrainedModel = model_class.from_pretrained(
+        tokenizer_cls = (
+            model_config.tokenizer_cls
+            if model_config.tokenizer_cls is not None
+            else transformers.AutoTokenizer
+        )
+        model: transformers.PreTrainedModel = model_cls.from_pretrained(
             model_config.model
         ).to(torch_device)
-        tokenizer: transformers.PreTrainedTokenizer = (
-            transformers.AutoTokenizer.from_pretrained(model_config.model)
+        tokenizer: transformers.PreTrainedTokenizer = tokenizer_cls.from_pretrained(
+            model_config.model
         )
         tokenizer.padding_side = "left"
         if not tokenizer.pad_token:

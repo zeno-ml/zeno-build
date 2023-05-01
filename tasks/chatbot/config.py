@@ -57,20 +57,22 @@ model_configs = {
     "gpt2": LMConfig(
         provider="huggingface",
         model="gpt2",
-        cls=transformers.GPT2LMHeadModel,
+        model_cls=transformers.GPT2LMHeadModel,
     ),
     "gpt2-xl": LMConfig(
         provider="huggingface",
         model="gpt2-xl",
-        cls=transformers.GPT2LMHeadModel,
+        model_cls=transformers.GPT2LMHeadModel,
     ),
     "llama-7b": LMConfig(
         provider="huggingface",
         model="decapoda-research/llama-7b-hf",
+        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "llama-13b": LMConfig(
         provider="huggingface",
         model="decapoda-research/llama-13b-hf",
+        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "alpaca-7b": LMConfig(
         provider="huggingface",
