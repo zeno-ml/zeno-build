@@ -134,8 +134,7 @@ async def generate_from_chat_prompt(
                 batch_prompts,
                 padding=True,
                 return_tensors="pt",
-                torch_device=torch_device,
-            )
+            ).to(torch_device)
             with torch.no_grad():
                 outputs = model.generate(
                     **encoded_prompts, generation_config=gen_config
