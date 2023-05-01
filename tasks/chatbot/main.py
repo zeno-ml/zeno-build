@@ -24,6 +24,7 @@ def chatbot_main(
     results_dir: str,
     cached_data: str | None = None,
     cached_runs: str | None = None,
+    do_visualization: bool = True,
 ):
     """Run the chatbot experiment."""
     # Set all API keys
@@ -87,14 +88,15 @@ def chatbot_main(
             json.dump(serialized_results, f)
 
     # Perform the visualization
-    visualize(
-        df,
-        labels,
-        results,
-        "text-classification",
-        "source",
-        chatbot_config.zeno_distill_and_metric_functions,
-    )
+    if do_visualization:
+        visualize(
+            df,
+            labels,
+            results,
+            "text-classification",
+            "source",
+            chatbot_config.zeno_distill_and_metric_functions,
+        )
 
 
 if __name__ == "__main__":
@@ -118,10 +120,16 @@ if __name__ == "__main__":
         default=None,
         help="A path to a json file with cached runs.",
     )
+    parser.add_argument(
+        "--skip_visualization",
+        action="store_true",
+        type=bool,
+    )
     args = parser.parse_args()
 
     chatbot_main(
         results_dir=args.results_dir,
         cached_data=args.cached_data,
         cached_runs=args.cached_runs,
+        do_visualization=not args.skip_visualization,
     )

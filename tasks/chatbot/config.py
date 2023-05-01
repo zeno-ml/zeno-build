@@ -40,7 +40,7 @@ space = {
 constants: dict[str, Any] = {
     "test_dataset": "daily_dialog",
     "test_split": "validation",
-    "test_examples": 40,
+    "test_examples": 1000,
     "max_tokens": 100,
     "top_p": 1.0,
 }
