@@ -114,7 +114,7 @@ async def generate_from_chat_prompt(
         if not tokenizer.pad_token:
             tokenizer.pad_token = tokenizer.eos_token
             tokenizer.pad_token_id = tokenizer.eos_token_id
-            
+
         gen_config = transformers.GenerationConfig(
             do_sample=True,
             temperature=temperature,
