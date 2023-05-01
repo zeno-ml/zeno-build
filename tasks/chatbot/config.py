@@ -12,13 +12,13 @@ import transformers
 
 from zeno_build import search_space
 from zeno_build.evaluation.text_features.length import input_length, output_length
-from zeno_build.evaluation.text_metrics.critique import (
+from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
+    avg_bert_score,
     avg_chrf,
     avg_length_ratio,
-    avg_toxicity,
+    bert_score,
     chrf,
     length_ratio,
-    toxicity,
 )
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
@@ -160,8 +160,8 @@ zeno_distill_and_metric_functions = [
     chrf,
     avg_length_ratio,
     length_ratio,
-    avg_toxicity,
-    toxicity,
+    avg_bert_score,
+    bert_score,
 ]
 
 # Some metadata to standardize huggingface datasets
