@@ -100,8 +100,6 @@ async def generate_from_chat_prompt(
         model: transformers.PreTrainedModel = model_class.from_pretrained(
             model_config.model
         ).to(torch_device)
-        if not model.can_generate():
-            raise ValueError(f"Model {model_config} cannot generate.")
         tokenizer: transformers.PreTrainedTokenizer = (
             transformers.AutoTokenizer.from_pretrained(model_config.model)
         )
