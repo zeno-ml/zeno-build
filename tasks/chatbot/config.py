@@ -30,7 +30,7 @@ space = {
     ),
     "model_preset": search_space.Categorical(
         # ["text-davinci-003", "gpt-3.5-turbo", "cohere-command-xlarge", "gpt2"]
-        ["gpt2"]
+        ["gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }
@@ -58,6 +58,39 @@ model_configs = {
         provider="huggingface",
         model="gpt2",
         cls=transformers.GPT2LMHeadModel,
+    ),
+    "gpt2-xl": LMConfig(
+        provider="huggingface",
+        model="gpt2-xl",
+        cls=transformers.GPT2LMHeadModel,
+    ),
+    "llama-7b": LMConfig(
+        provider="huggingface",
+        model="decapoda-research/llama-7b-hf",
+    ),
+    "llama-13b": LMConfig(
+        provider="huggingface",
+        model="decapoda-research/llama-13b-hf",
+    ),
+    "alpaca-7b": LMConfig(
+        provider="huggingface",
+        model="chavinlo/alpaca-native",
+    ),
+    "alpaca-13b": LMConfig(
+        provider="huggingface",
+        model="chavinlo/alpaca-13b",
+    ),
+    "vicuna-7b": LMConfig(
+        provider="huggingface",
+        model="eachadea/vicuna-7b-1.1",
+        user_name="HUMAN",
+        system_name="ASSISTANT",
+    ),
+    "vicuna-13b": LMConfig(
+        provider="huggingface",
+        model="eachadea/vicuna-7b-1.1",
+        user_name="HUMAN",
+        system_name="ASSISTANT",
     ),
 }
 

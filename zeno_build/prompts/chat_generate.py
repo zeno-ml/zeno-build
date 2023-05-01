@@ -36,14 +36,14 @@ async def generate_from_chat_prompt(
         f"Generating with {prompt_template=}, {model_config.model=}, "
         f"{temperature=}, {max_tokens=}, {top_p=}..."
     )
-    system_name = "System"
-    user_name = "User"
     if model_config.provider == "openai":
         async_responses = [
             openai.Completion.acreate(
                 engine=model_config.model,
                 prompt=prompt_template.to_text_prompt(
-                    vars, system_name=system_name, user_name=user_name
+                    vars,
+                    system_name=model_config.system_name,
+                    user_name=model_config.user_name,
                 ),
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -74,7 +74,9 @@ async def generate_from_chat_prompt(
             try:
                 assert global_models.cohere_client is not None
                 prompt = prompt_template.to_text_prompt(
-                    vars, system_name=system_name, user_name=user_name
+                    vars,
+                    system_name=model_config.system_name,
+                    user_name=model_config.user_name,
                 )
                 response = global_models.cohere_client.generate(
                     model=model_config.model,
@@ -116,7 +118,9 @@ async def generate_from_chat_prompt(
         # Create the prompts
         filled_prompts: list[str] = [
             prompt_template.to_text_prompt(
-                vars, system_name=system_name, user_name=user_name
+                vars,
+                system_name=model_config.system_name,
+                user_name=model_config.user_name,
             )
             for vars in variables
         ]
@@ -136,7 +140,9 @@ async def generate_from_chat_prompt(
             outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
             results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
         # Post-processing to get only the system utterance
-        results = [x.split(f"\n\n{user_name}:")[0].strip() for x in results]
+        results = [
+            x.split(f"\n\n{model_config.user_name}:")[0].strip() for x in results
+        ]
         return results
     else:
         raise ValueError("Unknown provider, but you can add your own!")
