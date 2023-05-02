@@ -31,7 +31,7 @@ space = {
     "model_preset": search_space.Categorical(
         # ["gpt-3.5-turbo", "cohere-command-xlarge"
         #  "gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
-        ["gpt-3.5-turbo"]
+        ["gpt-3.5-turbo", "cohere-command-xlarge"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }
@@ -40,13 +40,13 @@ space = {
 constants: dict[str, Any] = {
     "test_dataset": "daily_dialog",
     "test_split": "validation",
-    "test_examples": 30,
+    "test_examples": 1000,
     "max_tokens": 100,
     "top_p": 1.0,
 }
 
 # The number of trials to run
-num_trials = 1
+num_trials = 1000
 
 # The details of each model
 model_configs = {
