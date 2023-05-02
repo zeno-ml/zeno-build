@@ -10,9 +10,9 @@ from dataclasses import asdict
 import modeling
 
 from tasks.text_classification import config as classification_config
-from zeno_build.experiment_run import ExperimentRun
+from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
-from zeno_build.visualize import visualize
+from zeno_build.reporting.visualize import visualize
 
 
 def text_classification_main(

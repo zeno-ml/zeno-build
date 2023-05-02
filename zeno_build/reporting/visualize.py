@@ -6,7 +6,7 @@ from typing import Any
 import pandas as pd
 from zeno import ModelReturn, ZenoParameters, model, zeno
 
-from zeno_build.experiment_run import ExperimentRun
+from zeno_build.experiments.experiment_run import ExperimentRun
 
 
 def visualize(

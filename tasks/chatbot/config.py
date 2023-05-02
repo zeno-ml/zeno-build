@@ -10,7 +10,6 @@ from typing import Any
 
 import transformers
 
-from zeno_build import search_space
 from zeno_build.evaluation.text_features.length import input_length, output_length
 from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
     avg_bert_score,
@@ -20,6 +19,7 @@ from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxi
     chrf,
     length_ratio,
 )
+from zeno_build.experiments import search_space
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
@@ -29,9 +29,9 @@ space = {
         ["standard", "friendly", "polite", "cynical"]
     ),
     "model_preset": search_space.Categorical(
-        # ["gpt-3.5-turbo", "cohere-command-xlarge",
+        # ["gpt-3.5-turbo", "cohere-command-xlarge"
         #  "gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
-        ["gpt2", "gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b"]
+        ["gpt-3.5-turbo"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }
@@ -40,13 +40,13 @@ space = {
 constants: dict[str, Any] = {
     "test_dataset": "daily_dialog",
     "test_split": "validation",
-    "test_examples": 1000,
+    "test_examples": 30,
     "max_tokens": 100,
     "top_p": 1.0,
 }
 
 # The number of trials to run
-num_trials = 10
+num_trials = 1
 
 # The details of each model
 model_configs = {

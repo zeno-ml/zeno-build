@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from zeno_build import search_space
 from zeno_build.evaluation.text_features.length import input_length, output_length
 from zeno_build.evaluation.text_metrics.critique import (
     avg_chrf,
@@ -22,6 +21,7 @@ from zeno_build.evaluation.text_metrics.critique import (
     rouge_2,
     rouge_l,
 )
+from zeno_build.experiments import search_space
 from zeno_build.models.lm_config import LMConfig
 
 # Define the space of hyperparameters to search over.

@@ -14,10 +14,10 @@ import pandas as pd
 
 from tasks.chatbot import config as chatbot_config
 from tasks.chatbot.modeling import ChatExample
-from zeno_build.experiment_run import ExperimentRun
+from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
-from zeno_build.visualize import visualize
+from zeno_build.reporting.visualize import visualize
 
 
 def chatbot_main(
