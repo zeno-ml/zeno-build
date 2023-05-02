@@ -113,7 +113,7 @@ async def _throttled_cohere_acreate(
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
 ) -> str:
-    with await limiter:
+    async with limiter:
         assert global_models.cohere_client is not None
         try:
             response = global_models.cohere_client.generate(
