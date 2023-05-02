@@ -55,8 +55,8 @@ async def _generate_from_openai_chat_completion(
     for vars in tqdm.tqdm(variables, "dispatching openai requests"):
         async with limiter:
             response = await openai.ChatCompletion.acreate(
-                engine=model_config.model,
-                prompt=prompt_template.to_openai_chat_completion_messages(vars),
+                model=model_config.model,
+                messages=prompt_template.to_openai_chat_completion_messages(vars),
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,
