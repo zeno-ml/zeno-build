@@ -110,6 +110,8 @@ def make_predictions(
         parameters["data_hash"] = hashlib.sha256(
             json.dumps(parameters.pop("data"), default=str).encode("utf-8")
         ).hexdigest()
+        for k in ["cache_root", "cache_path"]:
+            parameters.pop(k)
         cache_path = get_cache_path(cache_root, parameters, "json")
         if os.path.exists(cache_path):
             with open(cache_path, "r") as f:
