@@ -53,7 +53,13 @@ def aggregate_results(
             predictions = json.load(f)
         with open(cache_file[:-5] + ".zbp", "r") as f:
             parameters = json.load(f)
-        all_results.append({"parameters": parameters, "predictions": predictions})
+        all_results.append(
+            {
+                "parameters": parameters,
+                "predictions": predictions,
+                "eval_result": 0.0,
+            }
+        )
 
     # Write the results
     with open(output_file, "w") as f:
