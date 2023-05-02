@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 
@@ -74,7 +75,9 @@ def make_predictions(
     if cache_root is not None:
         parameters = dict(locals())
         parameters["__name__"] = make_predictions.__name__
-        parameters["data_hash"] = hash(json.dumps(parameters.pop("data"), default=str))
+        parameters["data_hash"] = hashlib.sha256(
+            json.dumps(parameters.pop("data"), default=str).encode("utf-8")
+        )
         cache_path = get_cache_path(cache_root, parameters, "json")
         if os.path.exists(cache_path):
             with open(cache_path, "r") as f:
