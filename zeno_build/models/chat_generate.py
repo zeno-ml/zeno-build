@@ -1,8 +1,9 @@
 """Tools to generate from prompts."""
 
-import asyncio
+import logging
 import re
 
+import aiolimiter
 import openai
 import torch
 import tqdm
@@ -21,21 +22,22 @@ async def _generate_from_openai_completion(
     top_p: float,
     requests_per_minute: int = 300,
 ) -> list[str]:
-    async_responses = [
-        openai.Completion.acreate(
-            engine=model_config.model,
-            prompt=prompt_template.to_text_prompt(
-                vars,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
-            ),
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
-        for vars in variables
-    ]
-    responses = await asyncio.gather(*async_responses)
+    limiter = aiolimiter.AsyncLimiter(requests_per_minute)
+    responses = []
+    for vars in tqdm.tqdm(variables, "dispatching openai requests"):
+        async with limiter:
+            response = await openai.Completion.acreate(
+                engine=model_config.model,
+                prompt=prompt_template.to_text_prompt(
+                    vars,
+                    system_name=model_config.system_name,
+                    user_name=model_config.user_name,
+                ),
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+            )
+            responses.append(response)
     return [x["choices"][0]["text"] for x in responses]
 
 
@@ -48,52 +50,74 @@ async def _generate_from_openai_chat_completion(
     top_p: float,
     requests_per_minute: int = 300,
 ) -> list[str]:
-    async_responses = [
-        openai.ChatCompletion.acreate(
-            engine=model_config.model,
-            prompt=prompt_template.to_openai_chat_completion_messages(vars),
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
-        for vars in variables
-    ]
-    responses = await asyncio.gather(*async_responses)
+    limiter = aiolimiter.AsyncLimiter(requests_per_minute)
+    responses = []
+    for vars in tqdm.tqdm(variables, "dispatching openai requests"):
+        async with limiter:
+            response = await openai.ChatCompletion.acreate(
+                engine=model_config.model,
+                prompt=prompt_template.to_openai_chat_completion_messages(vars),
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+            )
+            responses.append(response)
     return [x["choices"][0]["message"]["content"] for x in responses]
 
 
-def _generate_from_cohere(
+async def _cohere_acreate(
+    model: str,
+    prompt: str,
+    temperature: float,
+    max_tokens: int,
+    top_p: float,
+) -> str:
+    import cohere
+
+    assert global_models.cohere_client is not None
+    try:
+        response = global_models.cohere_client.generate(
+            model=model,
+            prompt=prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            p=top_p,
+        )
+        return response.generations[0].text
+    except cohere.CohereAPIError as e:
+        # Cohere API sometimes rejects queries, if so output a blank line
+        logging.getLogger(__name__).warn(
+            f"Warning! Cohere API rejected query for {prompt=}: {e.message}"
+        )
+        return ""
+
+
+async def _generate_from_cohere(
     variables: list[dict[str, str]],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    requests_per_minute: int,
 ) -> list[str]:
-    import cohere
-
-    results: list[str] = []
-    for vars in tqdm.tqdm(variables, "Generating synchronously from Cohere"):
-        try:
-            assert global_models.cohere_client is not None
-            prompt = prompt_template.to_text_prompt(
-                vars,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
-            )
-            response = global_models.cohere_client.generate(
+    limiter = aiolimiter.AsyncLimiter(requests_per_minute)
+    responses = []
+    for vars in tqdm.tqdm(variables, "dispatching cohere requests"):
+        async with limiter:
+            response = await _cohere_acreate(
                 model=model_config.model,
-                prompt=prompt,
+                prompt=prompt_template.to_text_prompt(
+                    vars,
+                    system_name=model_config.system_name,
+                    user_name=model_config.user_name,
+                ),
                 temperature=temperature,
                 max_tokens=max_tokens,
-                p=top_p,
+                top_p=top_p,
             )
-            results.append(response.generations[0].text)
-        except cohere.CohereAPIError as e:
-            # Cohere API sometimes rejects queries, if so output a blank line
-            print(f"Warning! Cohere API rejected query for {prompt=}: {e.message}")
-            results.append("")
-    return results
+            responses.append(response)
+    return responses
 
 
 def _generate_from_huggingface(
@@ -176,7 +200,7 @@ async def generate_from_chat_prompt(
     temperature: float,
     max_tokens: int,
     top_p: float,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 50,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
 
@@ -217,13 +241,14 @@ async def generate_from_chat_prompt(
             requests_per_minute,
         )
     elif model_config.provider == "cohere":
-        return _generate_from_cohere(
+        return await _generate_from_cohere(
             variables,
             prompt_template,
             model_config,
             temperature,
             max_tokens,
             top_p,
+            requests_per_minute,
         )
     elif model_config.provider == "huggingface":
         return _generate_from_huggingface(
