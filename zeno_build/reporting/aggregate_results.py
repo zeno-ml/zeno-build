@@ -1,5 +1,7 @@
 """A program to aggregate results from a cache directory into a single json."""
 
+from __future__ import annotations
+
 import argparse
 import json
 import os
