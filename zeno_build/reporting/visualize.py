@@ -61,7 +61,7 @@ def visualize(
         functions=[get_model] + functions,
         data_column=data_column,
         label_column="label",
-        batch_size="25000",
+        batch_size=1000,
     )
 
     zeno(config)

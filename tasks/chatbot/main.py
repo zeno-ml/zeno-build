@@ -8,12 +8,11 @@ import os
 from dataclasses import asdict
 
 import cohere
-import modeling
 import openai
 import pandas as pd
 
 from tasks.chatbot import config as chatbot_config
-from tasks.chatbot.modeling import ChatExample
+from tasks.chatbot.modeling import ChatExample, load_data, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
@@ -37,7 +36,7 @@ def chatbot_main(
 
     # Load the necessary data, either from HuggingFace or a cached file
     if cached_data is None:
-        data = modeling.load_data(
+        data = load_data(
             chatbot_config.constants.pop("test_dataset"),
             chatbot_config.constants.pop("test_split"),
             examples=chatbot_config.constants.pop("test_examples"),
@@ -66,7 +65,7 @@ def chatbot_main(
         )
         for _ in range(chatbot_config.num_trials):
             parameters = optimizer.get_parameters()
-            predictions = modeling.make_predictions(
+            predictions = make_predictions(
                 data=data,
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
@@ -93,7 +92,7 @@ def chatbot_main(
             df,
             labels,
             results,
-            "text-classification",
+            "chatbot",
             "source",
             chatbot_config.zeno_distill_and_metric_functions,
         )
