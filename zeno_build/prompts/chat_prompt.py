@@ -67,14 +67,12 @@ class ChatMessages:
         Returns:
             str: _description_
         """
-        return (
-            "\n".join(
-                [
-                    system_name
-                    if x.role == "system"
-                    else user_name + ": " + replace_variables(x.content, variables)
-                    for x in self.messages
-                ]
-            )
-            + f"{system_name}: "
+        return "\n\n".join(
+            [
+                (system_name if x.role == "system" else user_name)
+                + ": "
+                + replace_variables(x.content, variables)
+                for x in self.messages
+            ]
+            + [f"{system_name}: "]
         )
