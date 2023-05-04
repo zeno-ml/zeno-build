@@ -43,13 +43,14 @@ class ChatMessages:
         Returns:
             A list of dictionaries that can be consumed by the OpenAI API.
         """
-        return [
+        messages = [
             {
                 "role": x.role,
                 "content": replace_variables(x.content, variables),
             }
             for x in self.messages
         ]
+        return [x for x in messages if x["content"].strip() != ""]
 
     def to_text_prompt(
         self,
@@ -67,12 +68,11 @@ class ChatMessages:
         Returns:
             str: _description_
         """
-        return "\n\n".join(
-            [
-                (system_name if x.role == "system" else user_name)
-                + ": "
-                + replace_variables(x.content, variables)
-                for x in self.messages
-            ]
-            + [f"{system_name}: "]
-        )
+        messages = []
+        for x in self.messages:
+            content = replace_variables(x.content, variables)
+            name = system_name if x.role == "system" else user_name
+            if content.strip() != "":
+                messages.append(f"{name}: {content}")
+        messages += [f"{system_name}:"]
+        return "\n\n".join(messages)

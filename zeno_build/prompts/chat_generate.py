@@ -3,16 +3,18 @@
 import asyncio
 
 import openai
+import torch
 import tqdm
+import transformers
 
-from zeno_build.models import api_based_model, global_models
+from zeno_build.models import global_models, lm_config
 from zeno_build.prompts import chat_prompt
 
 
 async def generate_from_chat_prompt(
     variables: list[dict[str, str]],
     prompt_template: chat_prompt.ChatMessages,
-    model_config: api_based_model.ApiBasedModelConfig,
+    model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
@@ -34,11 +36,15 @@ async def generate_from_chat_prompt(
         f"Generating with {prompt_template=}, {model_config.model=}, "
         f"{temperature=}, {max_tokens=}, {top_p=}..."
     )
+    system_name = "System"
+    user_name = "User"
     if model_config.provider == "openai":
         async_responses = [
             openai.Completion.acreate(
                 engine=model_config.model,
-                prompt=prompt_template.to_text_prompt(vars),
+                prompt=prompt_template.to_text_prompt(
+                    vars, system_name=system_name, user_name=user_name
+                ),
                 temperature=temperature,
                 max_tokens=max_tokens,
                 top_p=top_p,
@@ -63,11 +69,13 @@ async def generate_from_chat_prompt(
     elif model_config.provider == "cohere":
         import cohere
 
-        results = []
+        results: list[str] = []
         for vars in tqdm.tqdm(variables, "Generating synchronously from Cohere"):
             try:
                 assert global_models.cohere_client is not None
-                prompt = prompt_template.to_text_prompt(vars)
+                prompt = prompt_template.to_text_prompt(
+                    vars, system_name=system_name, user_name=user_name
+                )
                 response = global_models.cohere_client.generate(
                     model=model_config.model,
                     prompt=prompt,
@@ -80,6 +88,55 @@ async def generate_from_chat_prompt(
                 # Cohere API sometimes rejects queries, if so output a blank line
                 print(f"Warning! Cohere API rejected query for {prompt=}: {e.message}")
                 results.append("")
+        return results
+    elif model_config.provider == "huggingface":
+        # Load model
+        model_class = (
+            model_config.cls if model_config.cls is not None else transformers.AutoModel
+        )
+        model: transformers.PreTrainedModel = model_class.from_pretrained(
+            model_config.model
+        )
+        if not model.can_generate():
+            raise ValueError(f"Model {model_config} cannot generate.")
+        tokenizer: transformers.PreTrainedTokenizer = (
+            transformers.AutoTokenizer.from_pretrained(model_config.model)
+        )
+        tokenizer.padding_side = "left"
+        if not tokenizer.pad_token:
+            tokenizer.pad_token = tokenizer.eos_token
+        gen_config = transformers.GenerationConfig(
+            do_sample=True,
+            temperature=temperature,
+            max_new_tokens=max_tokens,
+            top_p=top_p,
+            eos_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
+        )
+        # Create the prompts
+        filled_prompts: list[str] = [
+            prompt_template.to_text_prompt(
+                vars, system_name=system_name, user_name=user_name
+            )
+            for vars in variables
+        ]
+        # Process in batches
+        results = []
+        batch_size = 8
+        for i in tqdm.trange(0, len(filled_prompts), batch_size):
+            batch_prompts = filled_prompts[i : i + batch_size]
+            encoded_prompts = tokenizer(
+                batch_prompts, padding=True, return_tensors="pt"
+            )
+
+            with torch.no_grad():
+                outputs = model.generate(
+                    **encoded_prompts, generation_config=gen_config
+                )
+            outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
+            results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+        # Post-processing to get only the system utterance
+        results = [x.split(f"\n\n{user_name}:")[0].strip() for x in results]
         return results
     else:
         raise ValueError("Unknown provider, but you can add your own!")

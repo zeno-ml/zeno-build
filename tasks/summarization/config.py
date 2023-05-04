@@ -22,7 +22,7 @@ from zeno_build.evaluation.text_metrics.critique import (
     rouge_2,
     rouge_l,
 )
-from zeno_build.models.api_based_model import ApiBasedModelConfig
+from zeno_build.models.lm_config import LMConfig
 
 # Define the space of hyperparameters to search over.
 space = {
@@ -49,13 +49,9 @@ num_trials = 2
 
 # The details of each model
 model_configs = {
-    "openai_davinci_003": ApiBasedModelConfig(
-        provider="openai", model="text-davinci-003"
-    ),
-    "openai_gpt_3.5_turbo": ApiBasedModelConfig(
-        provider="openai_chat", model="gpt-3.5-turbo"
-    ),
-    "cohere_command_xlarge": ApiBasedModelConfig(
+    "openai_davinci_003": LMConfig(provider="openai", model="text-davinci-003"),
+    "openai_gpt_3.5_turbo": LMConfig(provider="openai_chat", model="gpt-3.5-turbo"),
+    "cohere_command_xlarge": LMConfig(
         provider="cohere", model="command-xlarge-nightly"
     ),
 }
