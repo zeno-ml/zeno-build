@@ -21,26 +21,35 @@ def train_model(
     weight_decay: float = 0.01,
     training_split: str = "train",
     training_examples: int | None = None,
+    cache_root: str | None = None,
 ) -> tuple[transformers.PreTrainedModel, transformers.PreTrainedTokenizer]:
     """Train a model on a text classification task.
 
     Args:
         training_dataset: The path to the training dataset, either as string or tuple.
         base_model: The name of the base model to use.
+        learning_rate: The learning rate to use
+        num_train_epoch: The number of epochs to train for
+        weight_decay: The weight decay parameter to use
+        training_split: The training split to use
+        training_examples: The number of training examples to use
+        cache_root: The root of the cache directory, if any
 
     Returns:
         The trained model and tokenizer.
     """
-    # If the model is already trained, recover it from the cache
-    parameters = dict(locals())
-    parameters["__name__"] = train_model.__name__
-    model_dir = get_cache_path("text_classification", parameters)
-    if os.path.exists(model_dir):
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_dir)
-        model = transformers.AutoModelForSequenceClassification.from_pretrained(
-            model_dir
-        )
-        return tokenizer, model
+    # Load from cache if existing
+    cache_path: str | None = None
+    if cache_root is not None:
+        parameters = dict(locals())
+        parameters["__name__"] = train_model.__name__
+        cache_path = get_cache_path(cache_root, parameters)
+        if os.path.exists(cache_path):
+            tokenizer = transformers.AutoTokenizer.from_pretrained(cache_path)
+            model = transformers.AutoModelForSequenceClassification.from_pretrained(
+                cache_path
+            )
+            return tokenizer, model
 
     # Load tokenizer and model
     tokenizer = transformers.AutoTokenizer.from_pretrained(base_model)
@@ -62,7 +71,7 @@ def train_model(
 
     # Define training settings
     training_args = transformers.TrainingArguments(
-        output_dir=model_dir,
+        output_dir=cache_path,
         learning_rate=learning_rate,
         per_device_train_batch_size=16,
         num_train_epochs=num_train_epochs,
@@ -78,8 +87,9 @@ def train_model(
     trainer.train()
 
     # Save the model
-    tokenizer.save_pretrained(model_dir)
-    model.save_pretrained(model_dir)
+    if cache_path is not None:
+        tokenizer.save_pretrained(cache_path)
+        model.save_pretrained(cache_path)
 
     return model, tokenizer
 
@@ -181,6 +191,7 @@ def train_and_predict(
     bias: float = 0.0,
     training_split: str = "train",
     training_examples: int | None = None,
+    cache_root: str | None = None,
 ) -> list[str]:
     """Train and make predictions.
 
@@ -196,19 +207,23 @@ def train_and_predict(
         training_split: The split of the training dataset to use.
         training_examples: The number of examples to use from the training dataset, or
             None to use all of them.
-        test_split: The split of the test dataset to use.
+        cache_root: The root of the cache directory, if any
 
     Returns:
         The predicted labels in string format.
     """
-    # If the experiment is already finished, recover it from the cache
-    parameters = dict(locals())
-    parameters["__name__"] = train_and_predict.__name__
-    parameters.pop("data")  # We assume that knowing the name `test_dataset` is enough
-    result_file = get_cache_path("text_classification", parameters, extension="json")
-    if os.path.exists(result_file):
-        with open(result_file, "r") as f:
-            return json.load(f)
+    # Load from cache if existing
+    cache_path: str | None = None
+    if cache_root is not None:
+        parameters = dict(locals())
+        parameters["__name__"] = train_and_predict.__name__
+        parameters.pop(
+            "data"
+        )  # We assume that knowing the name `test_dataset` is enough
+        cache_path = get_cache_path(cache_root, parameters, extension="json")
+        if os.path.exists(cache_path):
+            with open(cache_path, "r") as f:
+                return json.load(f)
 
     # Train the model
     model, tokenizer = train_model(
@@ -219,6 +234,7 @@ def train_and_predict(
         weight_decay=weight_decay,
         training_split=training_split,
         training_examples=training_examples,
+        cache_root=cache_root,
     )
 
     # Make predictions
@@ -231,7 +247,8 @@ def train_and_predict(
     )
 
     # Save the results
-    with open(result_file, "w") as f:
-        json.dump(predictions, f)
+    if cache_path is not None:
+        with open(cache_path, "w") as f:
+            json.dump(predictions, f)
 
     return predictions
