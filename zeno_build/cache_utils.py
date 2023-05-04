@@ -6,35 +6,11 @@ import hashlib
 import json
 import os
 import pathlib
-import shutil
 from typing import Any
 
 
-def get_cache_root():
-    """Get the cache root directory.
-
-    Uses zeno_build_CACHE environment variable if set, and
-    ~/.cache/zeno_build otherwise.
-    """
-    return os.environ.get(
-        "zeno_build_CACHE",
-        os.path.join(os.path.expanduser("~"), ".cache", "zeno_build"),
-    )
-
-
-def clear_task_cache(
-    task: str,
-) -> None:
-    """Clear the task cache.
-
-    Args:
-        task: The task to clear the cache for.
-    """
-    shutil.rmtree(os.path.join(get_cache_root(), task))
-
-
 def get_cache_path(
-    task: str,
+    cache_root: str,
     params: dict[str, Any],
     extension: str | None = None,
 ) -> str:
@@ -49,13 +25,11 @@ def get_cache_path(
     Returns:
         The path to the cache file or directory.
     """
-    if extension == "llmcp":
+    if extension == "zbp":
         raise ValueError(
-            'Cannot use extension "llmcp", as it is reserved for the parameters.'
+            'Cannot use extension "zbp", as it is reserved for the parameters.'
         )
-    cache_root = get_cache_root()
-    cache_path = os.path.join(cache_root, task)
-    pathlib.Path(cache_path).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(cache_root).mkdir(parents=True, exist_ok=True)
 
     # Find a name with no hash collisions
     dumped_params = json.dumps(params, sort_keys=True)
@@ -63,7 +37,7 @@ def get_cache_path(
     while True:
         m.update(dumped_params.encode("utf-8"))
         base_name = m.hexdigest()
-        param_file = os.path.join(cache_path, f"{base_name}.llmcp")
+        param_file = os.path.join(cache_root, f"{base_name}.zbp")
         if not os.path.exists(param_file):
             break
         with open(param_file, "r") as f:
@@ -72,5 +46,5 @@ def get_cache_path(
     with open(param_file, "w") as f:
         f.write(dumped_params)
     return os.path.join(
-        cache_path, base_name if extension is None else f"{base_name}.{extension}"
+        cache_root, base_name if extension is None else f"{base_name}.{extension}"
     )
