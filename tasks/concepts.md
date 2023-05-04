@@ -22,17 +22,17 @@ examples below:
 
 Zeno Build (and [Zeno](https://zenoml.com)) defines the following for each example:
 
-- `data`: This is the data for a particular instance. It usually includes the
-    input to the machine learning model.
-- `label`: This is the label for a particular instance. It usually includes the
-    ground truth that we'd like the output to match.
+- `data`: This is the raw data for a particular instance. It is usually the
+  input to the machine learning model.
+- `label`: This is the label for a particular instance. It is typically the
+  ground truth that we'd like the output to match.
 - `output`: This is the output/prediction of a machine learning model that we'd
-    like to evaluate and analyze.
+  like to evaluate and analyze.
 
 ## Search Spaces and Constants
 
-When testing out models, you may want to both *search different parameters*,
-and *keep some parameters constant*. Zeno Build handles this by defining two
+When testing out models, you may want to both _search different parameters_,
+and _keep some parameters constant_. Zeno Build handles this by defining two
 variables `space` and `constant` in the `config.py` file. Some examples from
 the [chatbots](chatbot/) example are shown below:
 
