@@ -1,11 +1,11 @@
 # Contributing to zeno-build
 
-If you're reading this, you're probably interested in contributing to zeno-build.
-Thank you for your interest!
+If you're reading this, you're probably interested in contributing to
+`zeno-build`. Thank you for your interest!
 
 ## Developer Installation
 
-If you're a developer, you should also install pre-commit hooks before developing.
+If you're a developer, you should install pre-commit hooks before developing.
 
 ```bash
 pip install .[dev]
@@ -14,7 +14,8 @@ pre-commit install
 
 These will do things like ensuring code formatting, linting, and type checking.
 
-You'll also want to run tests to make sure your code is working by running the following:
+You'll also want to run tests to make sure your code is working by running the
+following:
 
 ```bash
 pytest
@@ -24,18 +25,20 @@ pytest
 
 We welcome:
 
-* **New tasks**, which you can create by navigating to the [tasks/] directory and
-  adding a new sub-directory implementing a new task (see the tasks directory for
-  details).
-* **New reports**, which you can create by modifying the configuration and/or
-  modeling files for new tasks and sending us the a link of the resulting report.
-* **New core functionality**, making Zeno Build more feature-rich or easier to use.
+- **New tasks**, which you can create by navigating to the [tasks/] directory
+  and adding a new sub-directory implementing a new task (see the tasks
+  directory for details).
+- **New reports**, which you can create by modifying the configuration and/or
+  modeling files for new tasks and sending us the a link of the resulting
+  report.
+- **New core functionality**, making `zeno-build` more feature-rich or easier to
+  use.
 
 ## Contribution Guide
 
 If you want to make a contribution you can:
 
-1. Browse existing issues and take one to handle
+1. Browse existing issues and select one to work on.
 2. Create a new issue to discuss a feature that you might want to contribute
 3. Send a PR directly
 
@@ -45,10 +48,11 @@ directly.
 
 ## Making a Release
 
-If you are an admin of the repository, you can make a new release of the library.
+If you are an admin of the repository, you can make a new release of the
+library.
 
-We are using the [hatchling](https://github.com/pypa/hatch) build system, which makes
-it easy to make new library releases.
-In order to do so, just create a new version tag on github (it has to be a valid
-[semantic version](https://semver.org/)) and the CI will automatically build and
-publish the new version to PyPI.
+We are using the [hatchling](https://github.com/pypa/hatch) build system, which
+makes it easy to make new library releases. In order to do so, just create a new
+version tag on github (it has to be a valid [semantic
+version](https://semver.org/)) and the CI will automatically build and publish
+the new version to PyPI.
