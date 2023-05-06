@@ -13,10 +13,10 @@ import openai
 import pandas as pd
 
 from tasks.summarization import config as summarization_config
-from zeno_build.experiment_run import ExperimentRun
+from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
-from zeno_build.visualize import visualize
+from zeno_build.reporting.visualize import visualize
 
 
 def summarization_main(

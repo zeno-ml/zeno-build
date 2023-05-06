@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 
@@ -10,7 +11,7 @@ import datasets
 
 from tasks.summarization import config as summarization_config
 from zeno_build.cache_utils import get_cache_path
-from zeno_build.prompts.text_generate import generate_from_text_prompt
+from zeno_build.models.text_generate import generate_from_text_prompt
 
 
 def load_data(
@@ -74,7 +75,11 @@ def make_predictions(
     if cache_root is not None:
         parameters = dict(locals())
         parameters["__name__"] = make_predictions.__name__
-        parameters["data_hash"] = hash(json.dumps(parameters.pop("data"), default=str))
+        parameters["data_hash"] = hashlib.sha256(
+            json.dumps(parameters.pop("data"), default=str).encode("utf-8")
+        ).hexdigest()
+        for k in ["cache_root", "cache_path"]:
+            parameters.pop(k)
         cache_path = get_cache_path(cache_root, parameters, "json")
         if os.path.exists(cache_path):
             with open(cache_path, "r") as f:

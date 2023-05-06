@@ -14,8 +14,13 @@ class LMConfig:
         model: The name of the model.
         cls: The Python class corresponding to the model, mostly for
              Hugging Face transformers.
+        system_name: The name of the system in chat.
+        user_name: The name of the user in chat.
     """
 
     provider: str
     model: str
-    cls: type | None = None
+    model_cls: type | None = None
+    tokenizer_cls: type | None = None
+    system_name: str = "System"
+    user_name: str = "User"

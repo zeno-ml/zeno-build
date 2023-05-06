@@ -3,8 +3,8 @@
 import json
 import random
 
-from zeno_build import search_space
 from zeno_build.evaluation.text_features.length import input_length
+from zeno_build.experiments import search_space
 from zeno_build.optimizers.random import RandomOptimizer
 
 

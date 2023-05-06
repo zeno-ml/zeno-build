@@ -10,7 +10,7 @@ from vizier.service import clients
 from vizier.service import pyvizier as vz
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
-from zeno_build import search_space
+from zeno_build.experiments import search_space
 from zeno_build.optimizers.base import Optimizer
 
 T = TypeVar("T")

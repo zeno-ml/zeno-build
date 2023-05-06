@@ -8,7 +8,7 @@ from typing import Any, TypeVar
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
-from zeno_build import search_space
+from zeno_build.experiments import search_space
 
 T = TypeVar("T")
 

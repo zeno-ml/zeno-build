@@ -8,22 +8,22 @@ import os
 from dataclasses import asdict
 
 import cohere
-import modeling
 import openai
 import pandas as pd
 
 from tasks.chatbot import config as chatbot_config
-from tasks.chatbot.modeling import ChatExample
-from zeno_build.experiment_run import ExperimentRun
+from tasks.chatbot.modeling import ChatExample, load_data, make_predictions
+from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
-from zeno_build.visualize import visualize
+from zeno_build.reporting.visualize import visualize
 
 
 def chatbot_main(
     results_dir: str,
     cached_data: str | None = None,
     cached_runs: str | None = None,
+    do_visualization: bool = True,
 ):
     """Run the chatbot experiment."""
     # Set all API keys
@@ -36,7 +36,7 @@ def chatbot_main(
 
     # Load the necessary data, either from HuggingFace or a cached file
     if cached_data is None:
-        data = modeling.load_data(
+        data = load_data(
             chatbot_config.constants.pop("test_dataset"),
             chatbot_config.constants.pop("test_split"),
             examples=chatbot_config.constants.pop("test_examples"),
@@ -65,7 +65,7 @@ def chatbot_main(
         )
         for _ in range(chatbot_config.num_trials):
             parameters = optimizer.get_parameters()
-            predictions = modeling.make_predictions(
+            predictions = make_predictions(
                 data=data,
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
@@ -87,14 +87,15 @@ def chatbot_main(
             json.dump(serialized_results, f)
 
     # Perform the visualization
-    visualize(
-        df,
-        labels,
-        results,
-        "text-classification",
-        "source",
-        chatbot_config.zeno_distill_and_metric_functions,
-    )
+    if do_visualization:
+        visualize(
+            df,
+            labels,
+            results,
+            "chatbot",
+            "source",
+            chatbot_config.zeno_distill_and_metric_functions,
+        )
 
 
 if __name__ == "__main__":
@@ -118,10 +119,16 @@ if __name__ == "__main__":
         default=None,
         help="A path to a json file with cached runs.",
     )
+    parser.add_argument(
+        "--skip_visualization",
+        action="store_true",
+        help="Whether to skip the visualization step.",
+    )
     args = parser.parse_args()
 
     chatbot_main(
         results_dir=args.results_dir,
         cached_data=args.cached_data,
         cached_runs=args.cached_runs,
+        do_visualization=not args.skip_visualization,
     )

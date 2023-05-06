@@ -1,7 +1,7 @@
 """Chatbots using API-based services."""
 from __future__ import annotations
 
-import asyncio
+import hashlib
 import itertools
 import json
 import os
@@ -12,7 +12,7 @@ import datasets
 
 from tasks.chatbot import config as chatbot_config
 from zeno_build.cache_utils import get_cache_path
-from zeno_build.prompts.chat_generate import generate_from_chat_prompt
+from zeno_build.models.chat_generate import generate_from_chat_prompt
 
 
 @dataclass(frozen=True)
@@ -106,22 +106,24 @@ def make_predictions(
     if cache_root is not None:
         parameters = dict(locals())
         parameters["__name__"] = make_predictions.__name__
-        parameters["data_hash"] = hash(json.dumps(parameters.pop("data"), default=str))
+        parameters["data_hash"] = hashlib.sha256(
+            json.dumps(parameters.pop("data"), default=str).encode("utf-8")
+        ).hexdigest()
+        for k in ["cache_root", "cache_path"]:
+            parameters.pop(k)
         cache_path = get_cache_path(cache_root, parameters, "json")
         if os.path.exists(cache_path):
             with open(cache_path, "r") as f:
                 return json.load(f)
 
     # Make predictions
-    predictions = asyncio.run(
-        generate_from_chat_prompt(
-            [{"source": x.source, "context": x.context or ""} for x in data],
-            chatbot_config.prompt_messages[prompt_preset],
-            chatbot_config.model_configs[model_preset],
-            temperature,
-            max_tokens,
-            top_p,
-        )
+    predictions: list[str] = generate_from_chat_prompt(
+        [{"source": x.source, "context": x.context or ""} for x in data],
+        chatbot_config.prompt_messages[prompt_preset],
+        chatbot_config.model_configs[model_preset],
+        temperature,
+        max_tokens,
+        top_p,
     )
 
     # Dump the cache and return
