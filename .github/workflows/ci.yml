@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install .
       - name: test
-        run: python -m unittest discover
+        run: pytest .
   format:
     runs-on: ubuntu-latest
     steps:
