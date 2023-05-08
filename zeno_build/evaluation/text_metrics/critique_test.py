@@ -4,6 +4,7 @@ import os
 from unittest import mock
 
 import pandas as pd
+import pytest
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
 from zeno_build.evaluation.text_metrics.critique import avg_bert_score, bert_score
@@ -30,7 +31,13 @@ example_ops = ZenoOptions(
 )
 
 
-@mock.patch.dict(os.environ, {"INSPIREDCO_API_KEY": "mock"})
+@pytest.fixture(autouse=True)
+def mock_settings_env_vars():
+    """Mock the environment variables that are used to set the Critique API key."""
+    with mock.patch.dict(os.environ, {"INSPIREDCO_API_KEY": "mock"}):
+        yield
+
+
 def test_mock_bert_score_distill():
     """Test bert_score with a mocked call to Critique.
 
@@ -47,7 +54,6 @@ def test_mock_bert_score_distill():
         assert expected_distill.distill_output == actual_distill.distill_output
 
 
-@mock.patch.dict(os.environ, {"INSPIREDCO_API_KEY": "mock"})
 def test_mock_avg_bert_score_metric():
     """Test avg_bert_score with a mocked call to Critique.
 
