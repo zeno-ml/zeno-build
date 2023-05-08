@@ -46,8 +46,20 @@ def chatbot_main(
     else:
         with open(cached_data, "r") as f:
             data = [ChatExample(**x) for x in json.load(f)]
-    labels = [x.reference for x in data]
-    df = pd.DataFrame({"source": [x.source for x in data]})
+    # Organize the data into source and context
+    labels, sources, full_contexts = [], [], []
+    for x in data:
+        labels.append(x.reference)
+        sources.append(x.source)
+        full_context = []
+        for i, content in enumerate(x.context):
+            role = "assistant" if (len(x.context) - i) % 2 == 1 else "user"
+            full_context.append({"role": role, "content": content})
+        full_context.append({"role": "user", "content": x.source})
+        full_contexts.append(full_context)
+    df = pd.DataFrame(
+        {"source": sources, "full_context": full_contexts, "label": labels}
+    )
 
     # Run the hyperparameter sweep and print out results
     results: list[ExperimentRun] = []
@@ -92,8 +104,8 @@ def chatbot_main(
             df,
             labels,
             results,
-            "chatbot",
-            "source",
+            "openai-chat",
+            "full_context",
             chatbot_config.zeno_distill_and_metric_functions,
         )
 
