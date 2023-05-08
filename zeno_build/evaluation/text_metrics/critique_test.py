@@ -1,5 +1,6 @@
 """Unit tests for the Critique-reliant evaluators."""
 
+import os
 from unittest import mock
 
 import pandas as pd
@@ -29,6 +30,7 @@ example_ops = ZenoOptions(
 )
 
 
+@mock.patch.dict(os.environ, {"INSPIREDCO_API_KEY": "mock"})
 def test_mock_bert_score_distill():
     """Test bert_score with a mocked call to Critique.
 
@@ -45,6 +47,7 @@ def test_mock_bert_score_distill():
         assert expected_distill.distill_output == actual_distill.distill_output
 
 
+@mock.patch.dict(os.environ, {"INSPIREDCO_API_KEY": "mock"})
 def test_mock_avg_bert_score_metric():
     """Test avg_bert_score with a mocked call to Critique.
 
