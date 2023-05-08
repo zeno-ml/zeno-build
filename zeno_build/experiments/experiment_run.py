@@ -10,7 +10,7 @@ T = TypeVar("T")
 class ExperimentRun(Generic[T]):
     """A single run of an experiment."""
 
-    name: str | None
     parameters: dict[str, Any]
     predictions: list[T]
     eval_result: float
+    name: str | None = None
