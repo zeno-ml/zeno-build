@@ -93,14 +93,20 @@ model_configs = {
     "vicuna-7b": LMConfig(
         provider="huggingface",
         model="eachadea/vicuna-7b-1.1",
-        user_name="HUMAN",
-        system_name="ASSISTANT",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
     ),
     "vicuna-13b": LMConfig(
         provider="huggingface",
-        model="eachadea/vicuna-7b-1.1",
-        user_name="HUMAN",
-        system_name="ASSISTANT",
+        model="eachadea/vicuna-13b-1.1",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
     ),
 }
 

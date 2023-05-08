@@ -48,8 +48,7 @@ async def _generate_from_openai_completion(
             engine=model_config.model,
             prompt=prompt_template.to_text_prompt(
                 full_context=full_context,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
+                name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
             max_tokens=max_tokens,
@@ -93,7 +92,7 @@ async def _generate_from_openai_chat_completion(
     async_responses = [
         _throttled_openai_chat_completion_acreate(
             model=model_config.model,
-            messages=prompt_template.to_openai_chat_completion_messages(vars),
+            messages=prompt_template.to_openai_chat_completion_messages(full_context),
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
@@ -223,9 +222,10 @@ def _generate_from_huggingface(
         results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
     # Post-processing to get only the system utterance
     results = [
-        re.split(rf"\n\n({model_config.user_name}|{model_config.system_name}):", x)[
-            0
-        ].strip()
+        re.split(
+            rf"\n\n({model_config.name_replacements['user']}|{model_config.name_replacements['system']}|{model_config.name_replacements['assistant']}):",  # noqa: E501
+            x,
+        )[0].strip()
         for x in results
     ]
     return results
