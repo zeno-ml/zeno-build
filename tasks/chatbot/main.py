@@ -53,7 +53,7 @@ def chatbot_main(
         sources.append(x.source)
         full_context = []
         for i, content in enumerate(x.context):
-            role = "system" if (len(x.context) - i) % 2 == 1 else "user"
+            role = "assistant" if (len(x.context) - i) % 2 == 1 else "user"
             full_context.append({"role": role, "content": content})
         full_context.append({"role": "user", "content": x.source})
         full_contexts.append(full_context)
