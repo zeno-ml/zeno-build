@@ -25,9 +25,6 @@ from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
 # Define the space of hyperparameters to search over.
 space = {
-    "prompt_preset": search_space.Categorical(
-        ["standard", "friendly", "polite", "cynical"]
-    ),
     "model_preset": search_space.Categorical(
         [
             "gpt-3.5-turbo",
@@ -37,6 +34,9 @@ space = {
             "alpaca-7b",
             "vicuna-7b",
         ]
+    ),
+    "prompt_preset": search_space.Categorical(
+        ["standard", "friendly", "polite", "cynical"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
 }
