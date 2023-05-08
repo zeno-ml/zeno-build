@@ -27,7 +27,7 @@ class ChatExample:
 
     source: str
     reference: str
-    context: str | None
+    context: list[str]
 
 
 def _build_examples_from_sequence(seq: list[str]) -> Iterable[ChatExample]:
@@ -35,7 +35,7 @@ def _build_examples_from_sequence(seq: list[str]) -> Iterable[ChatExample]:
     stripped_seq = [x.strip() for x in seq]
     for i in range(1, len(stripped_seq)):
         yield ChatExample(
-            context=stripped_seq[i - 2] if i > 1 else None,
+            context=stripped_seq[: i - 1],
             source=stripped_seq[i - 1],
             reference=stripped_seq[i],
         )
@@ -118,7 +118,10 @@ def make_predictions(
 
     # Make predictions
     predictions: list[str] = generate_from_chat_prompt(
-        [{"source": x.source, "context": x.context or ""} for x in data],
+        [
+            {"source": x.source, "context": x.context[-1] if len(x.context) else ""}
+            for x in data
+        ],
         chatbot_config.prompt_messages[prompt_preset],
         chatbot_config.model_configs[model_preset],
         temperature,
