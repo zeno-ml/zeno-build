@@ -17,7 +17,7 @@ class ChatTurn:
         content: The utterance itself.
     """
 
-    role: Literal["system", "user"]
+    role: Literal["system", "assistant", "user"]
     content: str
 
 
@@ -33,7 +33,7 @@ class ChatMessages:
 
     def to_openai_chat_completion_messages(
         self,
-        variables: dict[str, str],
+        full_context: ChatMessages,
     ) -> list[dict[str, str]]:
         """Build an OpenAI ChatCompletion message.
 
@@ -46,17 +46,16 @@ class ChatMessages:
         messages = [
             {
                 "role": x.role,
-                "content": replace_variables(x.content, variables),
+                "content": x.content,
             }
-            for x in self.messages
+            for x in self.messages + full_context.messages
         ]
-        return [x for x in messages if x["content"].strip() != ""]
+        return messages
 
     def to_text_prompt(
         self,
-        variables: dict[str, str],
-        system_name: str = "System",
-        user_name: str = "User",
+        full_context: ChatMessages,
+        name_replacements: dict[str, str],
     ) -> str:
         """Create a normal textual prompt of a chat history.
 
@@ -68,11 +67,10 @@ class ChatMessages:
         Returns:
             str: _description_
         """
-        messages = []
-        for x in self.messages:
-            content = replace_variables(x.content, variables)
-            name = system_name if x.role == "system" else user_name
-            if content.strip() != "":
-                messages.append(f"{name}: {content}")
-        messages += [f"{system_name}:"]
+        messages = [
+            f"{name_replacements.get(x.role, x.role)}: {x.content}"
+            for x in self.messages + full_context.messages
+        ]
+        assistant_name = name_replacements.get("assistant", "assistant")
+        messages += [f"{assistant_name}:"]
         return "\n\n".join(messages)

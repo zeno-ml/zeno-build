@@ -34,7 +34,7 @@ async def _throttled_openai_completion_acreate(
 
 
 async def _generate_from_openai_completion(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
@@ -47,7 +47,7 @@ async def _generate_from_openai_completion(
         _throttled_openai_completion_acreate(
             engine=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                vars,
+                full_context=full_context,
                 system_name=model_config.system_name,
                 user_name=model_config.user_name,
             ),
@@ -56,7 +56,7 @@ async def _generate_from_openai_completion(
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["text"] for x in responses]
@@ -81,7 +81,7 @@ async def _throttled_openai_chat_completion_acreate(
 
 
 async def _generate_from_openai_chat_completion(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
@@ -99,7 +99,7 @@ async def _generate_from_openai_chat_completion(
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["message"]["content"] for x in responses]
@@ -133,7 +133,7 @@ async def _throttled_cohere_acreate(
 
 
 async def _generate_from_cohere(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
@@ -146,22 +146,21 @@ async def _generate_from_cohere(
         _throttled_cohere_acreate(
             model=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                vars,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
+                full_context=full_context,
+                name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     return await tqdm_asyncio.gather(*async_responses)
 
 
 def _generate_from_huggingface(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
@@ -202,11 +201,10 @@ def _generate_from_huggingface(
     # Create the prompts
     filled_prompts: list[str] = [
         prompt_template.to_text_prompt(
-            vars,
-            system_name=model_config.system_name,
-            user_name=model_config.user_name,
+            full_context=full_context,
+            name_replacements=model_config.name_replacements,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     # Process in batches
     results = []
@@ -234,7 +232,7 @@ def _generate_from_huggingface(
 
 
 def generate_from_chat_prompt(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
@@ -263,7 +261,7 @@ def generate_from_chat_prompt(
     if model_config.provider == "openai":
         return asyncio.run(
             _generate_from_openai_completion(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
@@ -275,7 +273,7 @@ def generate_from_chat_prompt(
     elif model_config.provider == "openai_chat":
         return asyncio.run(
             _generate_from_openai_chat_completion(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
@@ -287,7 +285,7 @@ def generate_from_chat_prompt(
     elif model_config.provider == "cohere":
         return asyncio.run(
             _generate_from_cohere(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
@@ -298,7 +296,7 @@ def generate_from_chat_prompt(
         )
     elif model_config.provider == "huggingface":
         return _generate_from_huggingface(
-            variables,
+            full_contexts,
             prompt_template,
             model_config,
             temperature,

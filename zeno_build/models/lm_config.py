@@ -22,5 +22,8 @@ class LMConfig:
     model: str
     model_cls: type | None = None
     tokenizer_cls: type | None = None
-    system_name: str = "System"
-    user_name: str = "User"
+    name_replacements: dict[str, str] = {
+        "system": "System",
+        "assistant": "Assistant",
+        "user": "User",
+    }
