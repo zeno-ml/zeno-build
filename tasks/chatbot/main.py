@@ -12,10 +12,11 @@ import openai
 import pandas as pd
 
 from tasks.chatbot import config as chatbot_config
-from tasks.chatbot.modeling import ChatExample, load_data, make_predictions
+from tasks.chatbot.modeling import load_data, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
+from zeno_build.prompts.chat_prompt import ChatMessages
 from zeno_build.reporting.visualize import visualize
 
 
@@ -45,21 +46,13 @@ def chatbot_main(
             json.dump([asdict(x) for x in data], f)
     else:
         with open(cached_data, "r") as f:
-            data = [ChatExample(**x) for x in json.load(f)]
+            data = [ChatMessages(**x) for x in json.load(f)]
     # Organize the data into source and context
-    labels, sources, full_contexts = [], [], []
+    labels, contexts = [], []
     for x in data:
-        labels.append(x.reference)
-        sources.append(x.source)
-        full_context = []
-        for i, content in enumerate(x.context):
-            role = "assistant" if (len(x.context) - i) % 2 == 1 else "user"
-            full_context.append({"role": role, "content": content})
-        full_context.append({"role": "user", "content": x.source})
-        full_contexts.append(full_context)
-    df = pd.DataFrame(
-        {"source": sources, "full_context": full_contexts, "label": labels}
-    )
+        labels.append(x.messages[-1].content)
+        contexts.append(x.messages[:-1])
+    df = pd.DataFrame({"context": contexts, "label": labels})
 
     # Run the hyperparameter sweep and print out results
     results: list[ExperimentRun] = []
@@ -93,6 +86,7 @@ def chatbot_main(
                 temperature=parameters["temperature"],
                 max_tokens=parameters["max_tokens"],
                 top_p=parameters["top_p"],
+                context_length=parameters["context_length"],
                 cache_root=os.path.join(results_dir, "cache"),
             )
             eval_result = optimizer.calculate_metric(data, labels, predictions)
@@ -115,7 +109,7 @@ def chatbot_main(
             labels,
             results,
             "openai-chat",
-            "full_context",
+            "context",
             chatbot_config.zeno_distill_and_metric_functions,
         )
 
