@@ -6,38 +6,27 @@ import itertools
 import json
 import os
 from collections.abc import Iterable
-from dataclasses import dataclass
 
 import datasets
 
 from tasks.chatbot import config as chatbot_config
 from zeno_build.cache_utils import get_cache_path
 from zeno_build.models.chat_generate import generate_from_chat_prompt
+from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
 
-@dataclass(frozen=True)
-class ChatExample:
-    """A single dialog example.
-
-    Args:
-        source: The source utterance by the user.
-        context: The utterance preceding the source utterance (by the system).
-        reference: A reference utterance demonstrating a "good" response.
-    """
-
-    source: str
-    reference: str
-    context: list[str]
-
-
-def _build_examples_from_sequence(seq: list[str]) -> Iterable[ChatExample]:
+def build_examples_from_sequence(seq: list[str]) -> Iterable[ChatMessages]:
     """Convert a datapoint into dialog examples."""
     stripped_seq = [x.strip() for x in seq]
-    for i in range(1, len(stripped_seq)):
-        yield ChatExample(
-            context=stripped_seq[: i - 1],
-            source=stripped_seq[i - 1],
-            reference=stripped_seq[i],
+    for i in range(2, len(stripped_seq) + 1):
+        yield ChatMessages(
+            messages=[
+                ChatTurn(
+                    role="assistant" if (i - j) % 2 == 1 else "user",
+                    content=y,
+                )
+                for j, y in enumerate(stripped_seq[:i])
+            ],
         )
 
 
@@ -47,7 +36,7 @@ def load_data(
     examples: int | None,
     data_format: str = "sequence",
     data_column: str = "dialog",
-) -> list[ChatExample]:
+) -> list[ChatMessages]:
     """Load data from the huggingface library.
 
     Args:
@@ -59,7 +48,7 @@ def load_data(
         examples: The number of examples to load. If None, load all examples.
 
     Returns:
-        The loaded dataset as dialog examples of context, source, and reference.
+        The loaded dataset as dialog examples of context and reference.
     """
     if isinstance(dataset, tuple):
         dname, subdname = dataset
@@ -71,7 +60,7 @@ def load_data(
     if data_format == "sequence":
         return list(
             itertools.chain.from_iterable(
-                _build_examples_from_sequence(x[data_column]) for x in loaded_data
+                build_examples_from_sequence(x[data_column]) for x in loaded_data
             )
         )
     else:
@@ -79,23 +68,26 @@ def load_data(
 
 
 def make_predictions(
-    data: list[ChatExample],
+    data: list[ChatMessages],
     prompt_preset: str,
     model_preset: str,
     temperature: float = 0.3,
     max_tokens: int = 100,
     top_p: float = 1,
+    context_length: int = -1,
     cache_root: str | None = None,
 ) -> list[str]:
     """Make predictions over a particular dataset.
 
     Args:
-        test_dataset: The test dataset in HuggingFace Datasets format.
+        data: The test dataset containing all messages up to last user one.
         prompt_preset: The prompt to use for the API call.
         model_preset: The model to use for the API call.
         temperature: The temperature to use for sampling.
         max_tokens: The maximum number of tokens to generate.
         top_p: The value to use for top-p sampling.
+        context_length: The maximum length of the context to use. If 0,
+            use the full context.
         cache_root: The location of the cache directory if any
 
     Returns:
@@ -116,12 +108,13 @@ def make_predictions(
             with open(cache_path, "r") as f:
                 return json.load(f)
 
+    # Trim to context length if necessary
+    if context_length > 0:
+        data = [ChatMessages(messages=x.messages[-context_length:]) for x in data]
+
     # Make predictions
     predictions: list[str] = generate_from_chat_prompt(
-        [
-            {"source": x.source, "context": x.context[-1] if len(x.context) else ""}
-            for x in data
-        ],
+        data,
         chatbot_config.prompt_messages[prompt_preset],
         chatbot_config.model_configs[model_preset],
         temperature,

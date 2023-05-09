@@ -40,7 +40,7 @@ space = {
         ]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-    "context_length": search_space.Discrete([1, 2, 3, -1]),
+    "context_length": search_space.Discrete([0, 1, 2, 3]),
 }
 
 # Any constants that are not searched over

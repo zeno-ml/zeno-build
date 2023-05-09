@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass
 
 
@@ -22,8 +23,12 @@ class LMConfig:
     model: str
     model_cls: type | None = None
     tokenizer_cls: type | None = None
-    name_replacements: dict[str, str] = {
-        "system": "System",
-        "assistant": "Assistant",
-        "user": "User",
-    }
+    name_replacements: dict[str, str] = dataclasses.field(
+        default_factory=lambda: dict(
+            {
+                "system": "System",
+                "assistant": "Assistant",
+                "user": "User",
+            }
+        )
+    )
