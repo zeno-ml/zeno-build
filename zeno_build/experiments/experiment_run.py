@@ -1,5 +1,7 @@
 """Data class for a single run of an experiment."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
@@ -13,3 +15,4 @@ class ExperimentRun(Generic[T]):
     parameters: dict[str, Any]
     predictions: list[T]
     eval_result: float
+    name: str | None = None

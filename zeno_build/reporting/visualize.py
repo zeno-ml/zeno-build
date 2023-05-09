@@ -34,7 +34,7 @@ def visualize(
     model_results: dict[str, ExperimentRun] = {}
     for i, res in enumerate(results):
         # TODO(alex): think about how to represent hyperparameter-based model names.
-        name = "model" + str(i)
+        name = res.name or "model" + str(i)
 
         # Prevent duplicate runs being added to Zeno
         if name not in model_results:
