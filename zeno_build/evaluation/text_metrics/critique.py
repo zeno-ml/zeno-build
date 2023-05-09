@@ -5,8 +5,6 @@ from inspiredco.critique import Critique
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
-client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
-
 
 def call_critique(
     df: DataFrame,
@@ -30,6 +28,7 @@ def call_critique(
         d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
 
+    client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
     result = client.evaluate(
         metric=metric_name,
         config=config,

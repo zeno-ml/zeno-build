@@ -30,8 +30,9 @@ space = {
     ),
     "model_preset": search_space.Categorical(
         [
-            "gpt-3.5-turbo",
-            "cohere-command-xlarge" "gpt2",
+            # "gpt-3.5-turbo",
+            # "cohere-command-xlarge",
+            "gpt2",
             "gpt2-xl",
             "llama-7b",
             "alpaca-7b",
@@ -39,6 +40,7 @@ space = {
         ]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
+    "context_length": search_space.Discrete([0, 1, 2, 3]),
 }
 
 # Any constants that are not searched over
@@ -91,14 +93,20 @@ model_configs = {
     "vicuna-7b": LMConfig(
         provider="huggingface",
         model="eachadea/vicuna-7b-1.1",
-        user_name="HUMAN",
-        system_name="ASSISTANT",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
     ),
     "vicuna-13b": LMConfig(
         provider="huggingface",
-        model="eachadea/vicuna-7b-1.1",
-        user_name="HUMAN",
-        system_name="ASSISTANT",
+        model="eachadea/vicuna-13b-1.1",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
     ),
 }
 
@@ -111,8 +119,6 @@ prompt_messages: dict[str, ChatMessages] = {
                 content="You are a chatbot tasked with making small-talk with "
                 "people.",
             ),
-            ChatTurn(role="system", content="{{context}}"),
-            ChatTurn(role="user", content="{{source}}"),
         ]
     ),
     "friendly": ChatMessages(
@@ -123,8 +129,6 @@ prompt_messages: dict[str, ChatMessages] = {
                 "small-talk with people in a way that makes them feel "
                 "pleasant.",
             ),
-            ChatTurn(role="system", content="{{context}}"),
-            ChatTurn(role="user", content="{{source}}"),
         ]
     ),
     "polite": ChatMessages(
@@ -135,8 +139,6 @@ prompt_messages: dict[str, ChatMessages] = {
                 "formally and tries to not make any missteps in your "
                 "responses.",
             ),
-            ChatTurn(role="system", content="{{context}}"),
-            ChatTurn(role="user", content="{{source}}"),
         ]
     ),
     "cynical": ChatMessages(
@@ -147,8 +149,6 @@ prompt_messages: dict[str, ChatMessages] = {
                 "world and in general likes to point out any possible "
                 "problems.",
             ),
-            ChatTurn(role="system", content="{{context}}"),
-            ChatTurn(role="user", content="{{source}}"),
         ]
     ),
 }
