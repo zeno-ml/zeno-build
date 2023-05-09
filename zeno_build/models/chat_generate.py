@@ -34,12 +34,13 @@ async def _throttled_openai_completion_acreate(
 
 
 async def _generate_from_openai_completion(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 300,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -47,16 +48,15 @@ async def _generate_from_openai_completion(
         _throttled_openai_completion_acreate(
             engine=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                vars,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
+                full_context=full_context.limit_length(context_length),
+                name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["text"] for x in responses]
@@ -81,25 +81,26 @@ async def _throttled_openai_chat_completion_acreate(
 
 
 async def _generate_from_openai_chat_completion(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 300,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
     async_responses = [
         _throttled_openai_chat_completion_acreate(
             model=model_config.model,
-            messages=prompt_template.to_openai_chat_completion_messages(vars),
+            messages=prompt_template.to_openai_chat_completion_messages(full_context),
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["message"]["content"] for x in responses]
@@ -133,12 +134,13 @@ async def _throttled_cohere_acreate(
 
 
 async def _generate_from_cohere(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -146,27 +148,27 @@ async def _generate_from_cohere(
         _throttled_cohere_acreate(
             model=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                vars,
-                system_name=model_config.system_name,
-                user_name=model_config.user_name,
+                full_context=full_context.limit_length(context_length),
+                name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     return await tqdm_asyncio.gather(*async_responses)
 
 
 def _generate_from_huggingface(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
 ) -> list[str]:
     # Load model
     torch_device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -202,11 +204,10 @@ def _generate_from_huggingface(
     # Create the prompts
     filled_prompts: list[str] = [
         prompt_template.to_text_prompt(
-            vars,
-            system_name=model_config.system_name,
-            user_name=model_config.user_name,
+            full_context=full_context.limit_length(context_length),
+            name_replacements=model_config.name_replacements,
         )
-        for vars in variables
+        for full_context in full_contexts
     ]
     # Process in batches
     results = []
@@ -225,21 +226,23 @@ def _generate_from_huggingface(
         results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
     # Post-processing to get only the system utterance
     results = [
-        re.split(rf"\n\n({model_config.user_name}|{model_config.system_name}):", x)[
-            0
-        ].strip()
+        re.split(
+            rf"\n\n({model_config.name_replacements['user']}|{model_config.name_replacements['system']}|{model_config.name_replacements['assistant']}):",  # noqa: E501
+            x,
+        )[0].strip()
         for x in results
     ]
     return results
 
 
 def generate_from_chat_prompt(
-    variables: list[dict[str, str]],
+    full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 50,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
@@ -251,6 +254,7 @@ def generate_from_chat_prompt(
         temperature: The temperature to use.
         max_tokens: The maximum number of tokens to generate.
         top_p: The top p value to use.
+        context_length: The length of the context to use.
         requests_per_minute: Limit on the number of OpenAI requests per minute
 
     Returns:
@@ -258,52 +262,56 @@ def generate_from_chat_prompt(
     """
     print(
         f"Generating with {prompt_template=}, {model_config.model=}, "
-        f"{temperature=}, {max_tokens=}, {top_p=}..."
+        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}..."
     )
     if model_config.provider == "openai":
         return asyncio.run(
             _generate_from_openai_completion(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
     elif model_config.provider == "openai_chat":
         return asyncio.run(
             _generate_from_openai_chat_completion(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
     elif model_config.provider == "cohere":
         return asyncio.run(
             _generate_from_cohere(
-                variables,
+                full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
     elif model_config.provider == "huggingface":
         return _generate_from_huggingface(
-            variables,
+            full_contexts,
             prompt_template,
             model_config,
             temperature,
             max_tokens,
             top_p,
+            context_length,
         )
     else:
         raise ValueError("Unknown provider, but you can add your own!")
