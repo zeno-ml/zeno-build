@@ -108,10 +108,6 @@ def make_predictions(
             with open(cache_path, "r") as f:
                 return json.load(f)
 
-    # Trim to context length if necessary
-    if context_length > 0:
-        data = [ChatMessages(messages=x.messages[-context_length:]) for x in data]
-
     # Make predictions
     predictions: list[str] = generate_from_chat_prompt(
         data,
@@ -120,6 +116,7 @@ def make_predictions(
         temperature,
         max_tokens,
         top_p,
+        context_length,
     )
 
     # Dump the cache and return

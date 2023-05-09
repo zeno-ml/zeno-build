@@ -5,8 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from zeno_build.prompts.prompt_utils import replace_variables
-
 
 @dataclass
 class ChatTurn:
@@ -74,3 +72,19 @@ class ChatMessages:
         assistant_name = name_replacements.get("assistant", "assistant")
         messages += [f"{assistant_name}:"]
         return "\n\n".join(messages)
+
+    def limit_length(self, context_length: int) -> ChatMessages:
+        """Limit the length of the chat history.
+
+        Args:
+            context_length: The maximum length of the context, or 0 or less for no
+                limit.
+
+        Returns:
+            The chat messages with the context length limited.
+        """
+        return (
+            ChatMessages(messages=self.messages[-context_length:])
+            if context_length >= 0
+            else self
+        )

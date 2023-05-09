@@ -40,6 +40,7 @@ async def _generate_from_openai_completion(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 300,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -47,7 +48,7 @@ async def _generate_from_openai_completion(
         _throttled_openai_completion_acreate(
             engine=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                full_context=full_context,
+                full_context=full_context.limit_length(context_length),
                 name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
@@ -86,6 +87,7 @@ async def _generate_from_openai_chat_completion(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 300,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -138,6 +140,7 @@ async def _generate_from_cohere(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int,
 ) -> list[str]:
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -145,7 +148,7 @@ async def _generate_from_cohere(
         _throttled_cohere_acreate(
             model=model_config.model,
             prompt=prompt_template.to_text_prompt(
-                full_context=full_context,
+                full_context=full_context.limit_length(context_length),
                 name_replacements=model_config.name_replacements,
             ),
             temperature=temperature,
@@ -165,6 +168,7 @@ def _generate_from_huggingface(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
 ) -> list[str]:
     # Load model
     torch_device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -200,7 +204,7 @@ def _generate_from_huggingface(
     # Create the prompts
     filled_prompts: list[str] = [
         prompt_template.to_text_prompt(
-            full_context=full_context,
+            full_context=full_context.limit_length(context_length),
             name_replacements=model_config.name_replacements,
         )
         for full_context in full_contexts
@@ -238,6 +242,7 @@ def generate_from_chat_prompt(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    context_length: int,
     requests_per_minute: int = 50,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
@@ -249,6 +254,7 @@ def generate_from_chat_prompt(
         temperature: The temperature to use.
         max_tokens: The maximum number of tokens to generate.
         top_p: The top p value to use.
+        context_length: The length of the context to use.
         requests_per_minute: Limit on the number of OpenAI requests per minute
 
     Returns:
@@ -256,7 +262,7 @@ def generate_from_chat_prompt(
     """
     print(
         f"Generating with {prompt_template=}, {model_config.model=}, "
-        f"{temperature=}, {max_tokens=}, {top_p=}..."
+        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}..."
     )
     if model_config.provider == "openai":
         return asyncio.run(
@@ -267,6 +273,7 @@ def generate_from_chat_prompt(
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
@@ -279,6 +286,7 @@ def generate_from_chat_prompt(
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
@@ -291,6 +299,7 @@ def generate_from_chat_prompt(
                 temperature,
                 max_tokens,
                 top_p,
+                context_length,
                 requests_per_minute,
             )
         )
@@ -302,6 +311,7 @@ def generate_from_chat_prompt(
             temperature,
             max_tokens,
             top_p,
+            context_length,
         )
     else:
         raise ValueError("Unknown provider, but you can add your own!")
