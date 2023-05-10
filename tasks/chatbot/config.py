@@ -30,10 +30,11 @@ space = {
             # "gpt-3.5-turbo",
             # "cohere-command-xlarge",
             "gpt2",
-            # "gpt2-xl",
-            # "llama-7b",
-            # "alpaca-7b",
-            # "vicuna-7b",
+            "gpt2-xl",
+            "llama-7b",
+            "alpaca-7b",
+            "vicuna-7b",
+            "mpt-7b-chat",
         ]
     ),
     "prompt_preset": search_space.Categorical(
@@ -109,6 +110,10 @@ model_configs = {
             "assistant": "ASSISTANT",
             "user": "HUMAN",
         },
+    ),
+    "mpt-7b-chat": LMConfig(
+        provider="huggingface",
+        model="mosaicml/mpt-7b-chat",
     ),
 }
 
