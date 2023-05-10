@@ -30,24 +30,26 @@ space = {
             # "gpt-3.5-turbo",
             # "cohere-command-xlarge",
             "gpt2",
-            "gpt2-xl",
-            "llama-7b",
-            "alpaca-7b",
-            "vicuna-7b",
+            # "gpt2-xl",
+            # "llama-7b",
+            # "alpaca-7b",
+            # "vicuna-7b",
         ]
     ),
     "prompt_preset": search_space.Categorical(
         ["standard", "friendly", "polite", "cynical"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-    "context_length": search_space.Discrete([0, 1, 2, 3]),
+    "context_length": search_space.Discrete([1, 2, 3, 4]),
 }
 
 # Any constants that are not searched over
 constants: dict[str, Any] = {
-    "test_dataset": "daily_dialog",
+    "test_dataset": "gneubig/dstc11",
     "test_split": "validation",
-    "test_examples": 1000,
+    "test_examples": None,
+    "data_column": "turns",
+    "data_format": "dstc11",
     "max_tokens": 100,
     "top_p": 1.0,
 }

@@ -36,6 +36,8 @@ def chatbot_main(
         data = load_data(
             chatbot_config.constants.pop("test_dataset"),
             chatbot_config.constants.pop("test_split"),
+            data_format=chatbot_config.constants.pop("data_format", "dstc11"),
+            data_column=chatbot_config.constants.pop("data_column", "turns"),
             examples=chatbot_config.constants.pop("test_examples"),
         )
         with open(os.path.join(results_dir, "examples.json"), "w") as f:
