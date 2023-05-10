@@ -114,6 +114,7 @@ model_configs = {
     "mpt-7b-chat": LMConfig(
         provider="huggingface",
         model="mosaicml/mpt-7b-chat",
+        model_loader_kwargs={"trust_remote_code": True},
     ),
 }
 

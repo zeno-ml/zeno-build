@@ -183,7 +183,8 @@ def _generate_from_huggingface(
         else transformers.AutoTokenizer
     )
     model: transformers.PreTrainedModel = model_cls.from_pretrained(
-        model_config.model
+        model_config.model,
+        **model_config.model_loader_kwargs,
     ).to(torch_device)
     tokenizer: transformers.PreTrainedTokenizer = tokenizer_cls.from_pretrained(
         model_config.model
