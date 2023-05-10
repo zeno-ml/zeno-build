@@ -1,6 +1,7 @@
-openai
 cohere
 datasets
-transformers
-sentencepiece
+einops
+openai
 protobuf==3.20.0
+sentencepiece
+transformers

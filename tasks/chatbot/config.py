@@ -34,20 +34,23 @@ space = {
             "llama-7b",
             "alpaca-7b",
             "vicuna-7b",
+            "mpt-7b-chat",
         ]
     ),
     "prompt_preset": search_space.Categorical(
         ["standard", "friendly", "polite", "cynical"]
     ),
     "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-    "context_length": search_space.Discrete([0, 1, 2, 3]),
+    "context_length": search_space.Discrete([1, 2, 3, 4]),
 }
 
 # Any constants that are not searched over
 constants: dict[str, Any] = {
-    "test_dataset": "daily_dialog",
+    "test_dataset": "gneubig/dstc11",
     "test_split": "validation",
-    "test_examples": 1000,
+    "test_examples": None,
+    "data_column": "turns",
+    "data_format": "dstc11",
     "max_tokens": 100,
     "top_p": 1.0,
 }
@@ -107,6 +110,11 @@ model_configs = {
             "assistant": "ASSISTANT",
             "user": "HUMAN",
         },
+    ),
+    "mpt-7b-chat": LMConfig(
+        provider="huggingface",
+        model="mosaicml/mpt-7b-chat",
+        model_loader_kwargs={"trust_remote_code": True},
     ),
 }
 
