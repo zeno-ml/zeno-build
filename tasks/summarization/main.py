@@ -25,10 +25,6 @@ def summarization_main(
     cached_runs: str | None = None,
 ):
     """Run the summarization experiment."""
-    # Set all API keys
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
     # Make results dir if it doesn't exist
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
@@ -56,6 +52,10 @@ def summarization_main(
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
     else:
+        # Set all API keys
+        openai.api_key = os.environ["OPENAI_API_KEY"]
+        global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
             space=summarization_config.space,
