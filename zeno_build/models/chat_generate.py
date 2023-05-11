@@ -6,6 +6,7 @@ import re
 import aiolimiter
 import cohere
 import openai
+import openai.error
 import torch
 import tqdm
 import transformers
@@ -24,13 +25,21 @@ async def _throttled_openai_completion_acreate(
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, str]:
     async with limiter:
-        return await openai.Completion.acreate(
-            engine=engine,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
+        for _ in range(3):
+            try:
+                return await openai.Completion.acreate(
+                    engine=engine,
+                    prompt=prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                )
+            except openai.error.RateLimitError:
+                logging.warning(
+                    "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
+                )
+                await asyncio.sleep(10)
+        raise RuntimeError("OpenAI API rate limit exceeded.")
 
 
 async def _generate_from_openai_completion(
@@ -71,13 +80,21 @@ async def _throttled_openai_chat_completion_acreate(
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, str]:
     async with limiter:
-        return await openai.ChatCompletion.acreate(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
+        for _ in range(3):
+            try:
+                return await openai.ChatCompletion.acreate(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                )
+            except openai.error.RateLimitError:
+                logging.warning(
+                    "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
+                )
+                await asyncio.sleep(10)
+        raise RuntimeError("OpenAI API rate limit exceeded.")
 
 
 async def _generate_from_openai_chat_completion(
