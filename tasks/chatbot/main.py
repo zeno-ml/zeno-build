@@ -104,6 +104,17 @@ def chatbot_main(
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
+    for res in results:
+        res.name = (
+            res.parameters["model_preset"]
+            + "_"
+            + res.parameters["prompt_preset"]
+            + "_temp"
+            + str(res.parameters["temperature"])
+            + "_ctx"
+            + str(res.parameters["context_length"])
+        )
+
     # Perform the visualization
     if do_visualization:
         visualize(
