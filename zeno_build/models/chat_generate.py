@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import re
+from typing import Any
 
 import aiolimiter
 import cohere
@@ -23,7 +24,7 @@ async def _throttled_openai_completion_acreate(
     max_tokens: int,
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     async with limiter:
         for _ in range(3):
             try:
@@ -39,7 +40,10 @@ async def _throttled_openai_completion_acreate(
                     "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
                 )
                 await asyncio.sleep(10)
-        raise RuntimeError("OpenAI API rate limit exceeded.")
+            except openai.error.APIError as e:
+                logging.warning(f"OpenAI API error: {e}")
+                break
+        return {"choices": [{"message": {"content": ""}}]}
 
 
 async def _generate_from_openai_completion(
@@ -78,7 +82,7 @@ async def _throttled_openai_chat_completion_acreate(
     max_tokens: int,
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     async with limiter:
         for _ in range(3):
             try:
@@ -94,7 +98,10 @@ async def _throttled_openai_chat_completion_acreate(
                     "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
                 )
                 await asyncio.sleep(10)
-        raise RuntimeError("OpenAI API rate limit exceeded.")
+            except openai.error.APIError as e:
+                logging.warning(f"OpenAI API error: {e}")
+                break
+        return {"choices": [{"message": {"content": ""}}]}
 
 
 async def _generate_from_openai_chat_completion(
