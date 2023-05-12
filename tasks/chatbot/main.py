@@ -33,7 +33,7 @@ def chatbot_main(
 
     # Load the necessary data, either from HuggingFace or a cached file
     if cached_data is None:
-        data = load_data(
+        contexts_and_labels = load_data(
             chatbot_config.constants.pop("test_dataset"),
             chatbot_config.constants.pop("test_split"),
             data_format=chatbot_config.constants.pop("data_format", "dstc11"),
@@ -41,15 +41,15 @@ def chatbot_main(
             examples=chatbot_config.constants.pop("test_examples"),
         )
         with open(os.path.join(results_dir, "examples.json"), "w") as f:
-            json.dump([asdict(x) for x in data], f)
+            json.dump([asdict(x) for x in contexts_and_labels], f)
     else:
         with open(cached_data, "r") as f:
-            data = [ChatMessages(**x) for x in json.load(f)]
+            contexts_and_labels = [ChatMessages(**x) for x in json.load(f)]
     # Organize the data into source and context
     labels, contexts = [], []
-    for x in data:
+    for x in contexts_and_labels:
         labels.append(x.messages[-1].content)
-        contexts.append(x.messages[:-1])
+        contexts.append(ChatMessages(x.messages[:-1]))
     df = pd.DataFrame({"context": contexts, "label": labels})
 
     # Run the hyperparameter sweep and print out results
@@ -82,7 +82,7 @@ def chatbot_main(
                 ]
             )
             predictions = make_predictions(
-                data=data,
+                data=contexts,
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
                 temperature=parameters["temperature"],
@@ -91,7 +91,7 @@ def chatbot_main(
                 context_length=parameters["context_length"],
                 cache_root=os.path.join(results_dir, "cache"),
             )
-            eval_result = optimizer.calculate_metric(data, labels, predictions)
+            eval_result = optimizer.calculate_metric(contexts, labels, predictions)
             run = ExperimentRun(
                 parameters=parameters,
                 predictions=predictions,
