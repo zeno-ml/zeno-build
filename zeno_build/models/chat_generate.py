@@ -250,13 +250,7 @@ def _generate_from_huggingface(
         outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
         results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
     # Post-processing to get only the system utterance
-    results = [
-        re.split(
-            rf"\n\n({model_config.name_replacements['user']}|{model_config.name_replacements['system']}|{model_config.name_replacements['assistant']}):",  # noqa: E501
-            x,
-        )[0].strip()
-        for x in results
-    ]
+    results = [re.split("\n\n", x)[0].strip() for x in results]
     return results
 
 
