@@ -19,6 +19,7 @@ from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 def build_examples_from_sequence(seq: list[str]) -> Iterable[ChatMessages]:
     """Convert a datapoint into dialog examples."""
     stripped_seq = [x.strip() for x in seq]
+    stripped_seq = [x if len(x) else "..." for x in stripped_seq]
     for i in range(2, len(stripped_seq) + 1):
         yield ChatMessages(
             messages=[
@@ -41,6 +42,9 @@ def build_examples_from_roles_and_contents(
     messages = []
     for role, content in zip(roles, contents):
         role = name_mapping[role]
+        stripped_content = content.strip()
+        if len(stripped_content) == 0:
+            stripped_content = "..."
         messages.append(ChatTurn(role=role, content=content))
         if role == "assistant":
             yield ChatMessages(messages=list(messages))
