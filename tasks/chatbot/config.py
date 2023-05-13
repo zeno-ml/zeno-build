@@ -18,9 +18,11 @@ from zeno_build.evaluation.text_features.length import (
 from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
     avg_bert_score,
     avg_chrf,
+    avg_coherence,
     avg_length_ratio,
     bert_score,
     chrf,
+    coherence,
     length_ratio,
 )
 from zeno_build.experiments import search_space
@@ -180,6 +182,8 @@ zeno_distill_and_metric_functions = [
     length_ratio,
     avg_bert_score,
     bert_score,
+    avg_coherence,
+    coherence,
 ]
 
 # Some metadata to standardize huggingface datasets
