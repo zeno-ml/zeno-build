@@ -10,7 +10,11 @@ from typing import Any
 
 import transformers
 
-from zeno_build.evaluation.text_features.length import input_length, output_length
+from zeno_build.evaluation.text_features.length import (
+    chat_context_length,
+    input_length,
+    output_length,
+)
 from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
     avg_bert_score,
     avg_chrf,
@@ -169,6 +173,7 @@ sweep_metric_function = avg_chrf
 zeno_distill_and_metric_functions = [
     output_length,
     input_length,
+    chat_context_length,
     avg_chrf,
     chrf,
     avg_length_ratio,
