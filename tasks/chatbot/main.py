@@ -58,7 +58,6 @@ def chatbot_main(
         with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
-
     else:
         # Set all API keys
         openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -73,14 +72,6 @@ def chatbot_main(
         )
         for _ in range(chatbot_config.num_trials):
             parameters = optimizer.get_parameters()
-            setting_name = " ".join(
-                [
-                    parameters[k]
-                    if isinstance(parameters[k], str)
-                    else f"{k}={parameters[k]}"
-                    for k in chatbot_config.space.keys()
-                ]
-            )
             predictions = make_predictions(
                 data=contexts,
                 prompt_preset=parameters["prompt_preset"],
@@ -96,13 +87,24 @@ def chatbot_main(
                 parameters=parameters,
                 predictions=predictions,
                 eval_result=eval_result,
-                name=setting_name,
             )
             results.append(run)
 
         serialized_results = [asdict(x) for x in results]
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
+
+    # Make readable names
+    for run in results:
+        if run.name is None:
+            run.name = " ".join(
+                [
+                    run.parameters[k]
+                    if isinstance(run.parameters[k], str)
+                    else f"{k}={run.parameters[k]}"
+                    for k in chatbot_config.space.keys()
+                ]
+            )
 
     # Perform the visualization
     if do_visualization:
