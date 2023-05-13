@@ -98,6 +98,9 @@ async def _throttled_openai_chat_completion_acreate(
                     "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
                 )
                 await asyncio.sleep(10)
+            except asyncio.exceptions.TimeoutError:
+                logging.warning("OpenAI API timeout. Sleeping for 10 seconds.")
+                await asyncio.sleep(10)
             except openai.error.APIError as e:
                 logging.warning(f"OpenAI API error: {e}")
                 break
