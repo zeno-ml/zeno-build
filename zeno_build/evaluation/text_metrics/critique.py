@@ -27,6 +27,8 @@ def call_critique(
     for d in eval_dict:
         d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
+        if len(d["references"][0]) == 0:
+            raise ValueError(f"Empty reference at {d}")
 
     client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
     result = client.evaluate(

@@ -45,7 +45,7 @@ def build_examples_from_roles_and_contents(
         stripped_content = content.strip()
         if len(stripped_content) == 0:
             stripped_content = "..."
-        messages.append(ChatTurn(role=role, content=content))
+        messages.append(ChatTurn(role=role, content=stripped_content))
         if role == "assistant":
             yield ChatMessages(messages=list(messages))
 
