@@ -46,11 +46,11 @@ def chatbot_main(
         with open(cached_data, "r") as f:
             contexts_and_labels = [ChatMessages(**x) for x in json.load(f)]
     # Organize the data into source and context
-    labels, contexts = [], []
+    labels: list[str] = []
+    contexts: list[ChatMessages] = []
     for x in contexts_and_labels:
         labels.append(x.messages[-1].content)
         contexts.append(ChatMessages(x.messages[:-1]))
-    df = pd.DataFrame({"context": contexts, "label": labels})
 
     # Run the hyperparameter sweep and print out results
     results: list[ExperimentRun] = []
@@ -108,12 +108,18 @@ def chatbot_main(
 
     # Perform the visualization
     if do_visualization:
+        df = pd.DataFrame(
+            {
+                "messages": [[asdict(y) for y in x.messages] for x in contexts],
+                "label": labels,
+            }
+        )
         visualize(
             df,
             labels,
             results,
             "openai-chat",
-            "context",
+            "messages",
             chatbot_config.zeno_distill_and_metric_functions,
         )
 
