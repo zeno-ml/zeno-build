@@ -13,6 +13,7 @@ import transformers
 from zeno_build.evaluation.text_features.length import (
     chat_context_length,
     input_length,
+    label_length,
     output_length,
 )
 from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
@@ -173,6 +174,7 @@ sweep_metric_function = avg_chrf
 zeno_distill_and_metric_functions = [
     output_length,
     input_length,
+    label_length,
     chat_context_length,
     avg_chrf,
     chrf,

@@ -20,6 +20,20 @@ def output_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
 
 
 @distill
+def label_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Length of the gold-standard label.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: Lengths of labels
+    """
+    return DistillReturn(distill_output=df[ops.label_column].str.len())
+
+
+@distill
 def input_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """Length of model input.
 
