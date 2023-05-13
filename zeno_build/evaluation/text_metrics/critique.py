@@ -1,6 +1,7 @@
 """Text metrics using InspiredCo's Critique API."""
 import os
 
+import tqdm
 from inspiredco.critique import Critique
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
@@ -11,6 +12,7 @@ def call_critique(
     ops: ZenoOptions,
     metric_name: str,
     config: dict = None,
+    batch_size: int = 20000,
 ) -> MetricReturn:
     """Call Critique.
 
@@ -31,15 +33,21 @@ def call_critique(
             raise ValueError(f"Empty reference at {d}")
 
     client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
-    result = client.evaluate(
-        metric=metric_name,
-        config=config,
-        dataset=eval_dict,
-    )
 
-    return DistillReturn(
-        distill_output=[round(r["value"], 6) for r in result["examples"]]
-    )
+    # evaluate batch by batch
+    all_results = []
+    for i in tqdm.tqdm(
+        range(0, len(eval_dict), batch_size), desc=f"Evaluating {metric_name}"
+    ):
+        result = client.evaluate(
+            metric=metric_name,
+            config=config,
+            dataset=eval_dict[i : i + batch_size],
+        )
+        for r in result["examples"]:
+            all_results.append(round(r["value"], 6))
+
+    return DistillReturn(distill_output=all_results)
 
 
 @distill
@@ -56,7 +64,9 @@ def bert_score(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     # NOTE: It is necessary to mention "ops.output_column" in this function
     # to work-around a hack in Zeno (as of v0.4.11):
     # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
-    return call_critique(df, ops, "bert_score", {"model": "bert-base-uncased"})
+    return call_critique(
+        df, ops, "bert_score", {"model": "bert-base-uncased"}, batch_size=1000
+    )
 
 
 @distill
@@ -177,7 +187,9 @@ def toxicity(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     # NOTE: It is necessary to mention "ops.output_column" in this function
     # to work-around a hack in Zeno (as of v0.4.11):
     # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
-    return call_critique(df, ops, "detoxify", {"model": "unitary/toxic-bert"})
+    return call_critique(
+        df, ops, "detoxify", {"model": "unitary/toxic-bert"}, batch_size=1000
+    )
 
 
 @metric
