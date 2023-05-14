@@ -8,6 +8,8 @@ from inspiredco.critique_utils.exceptions import CritiqueError
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
+from zeno_build.prompts.chat_prompt import ChatMessages
+
 
 def call_critique(
     df: DataFrame,
@@ -27,12 +29,24 @@ def call_critique(
     Returns:
         MetricReturn: Metric results
     """
-    eval_dict = df[[ops.output_column, ops.label_column]].to_dict("records")
+    eval_dict = df[[ops.output_column, ops.label_column, ops.data_column]].to_dict(
+        "records"
+    )
     for d in eval_dict:
         d["references"] = [d.pop(ops.label_column)]
         d["target"] = d.pop(ops.output_column)
         if len(d["references"][0]) == 0:
             raise ValueError(f"Empty reference at {d}")
+        data = d.pop(ops.data_column)
+        if isinstance(data, str):
+            d["source"] = data
+        elif isinstance(data, ChatMessages):
+            d["source"] = (
+                data.messages[-1].content if len(data.messages) >= 1 else "..."
+            )
+            d["context"] = (
+                data.messages[-2].content if len(data.messages) >= 2 else "..."
+            )
 
     client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
 
@@ -203,6 +217,29 @@ def toxicity(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     )
 
 
+@distill
+def coherence(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Coherence score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: Coherence scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df,
+        ops,
+        "uni_eval",
+        {"task": "dialog", "evaluation_aspect": "coherence"},
+        batch_size=150,
+    )
+
+
 @metric
 def avg_bert_score(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average BERT score.
@@ -331,3 +368,19 @@ def avg_toxicity(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     if len(df) == 0:
         return MetricReturn(metric=0)
     return MetricReturn(metric=df[ops.distill_columns["toxicity"]].fillna(0).mean())
+
+
+@metric
+def avg_coherence(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average coherence score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average coherence score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["coherence"]].fillna(0).mean())
