@@ -1,8 +1,10 @@
 """Text metrics using InspiredCo's Critique API."""
+import logging
 import os
 
 import tqdm
 from inspiredco.critique import Critique
+from inspiredco.critique_utils.exceptions import CritiqueError
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
@@ -39,13 +41,22 @@ def call_critique(
     for i in tqdm.tqdm(
         range(0, len(eval_dict), batch_size), desc=f"Evaluating {metric_name}"
     ):
-        result = client.evaluate(
-            metric=metric_name,
-            config=config,
-            dataset=eval_dict[i : i + batch_size],
-        )
-        for r in result["examples"]:
-            all_results.append(round(r["value"], 6))
+        # Allow up to 3 retries
+        for j in range(3):
+            try:
+                result = client.evaluate(
+                    metric=metric_name,
+                    config=config,
+                    dataset=eval_dict[i : i + batch_size],
+                )
+                for r in result["examples"]:
+                    all_results.append(round(r["value"], 6))
+                break
+            except CritiqueError:
+                if j == 2:
+                    raise
+                else:
+                    logging.warning(f"Error evaluating {metric_name}, retrying...")
 
     return DistillReturn(distill_output=all_results)
 
