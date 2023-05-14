@@ -1,6 +1,8 @@
 """Text metrics using InspiredCo's Critique API."""
 import logging
 import os
+import json
+import sys
 
 import tqdm
 from inspiredco.critique import Critique
@@ -15,7 +17,7 @@ def call_critique(
     df: DataFrame,
     ops: ZenoOptions,
     metric_name: str,
-    config: dict = None,
+    config: dict,
     batch_size: int = 20000,
 ) -> MetricReturn:
     """Call Critique.
@@ -38,15 +40,22 @@ def call_critique(
         if len(d["references"][0]) == 0:
             raise ValueError(f"Empty reference at {d}")
         data = d.pop(ops.data_column)
-        if isinstance(data, str):
-            d["source"] = data
-        elif isinstance(data, ChatMessages):
+        # Metrics with OpenAI dialog dict as an input
+        if metric_name == "uni_eval" and config.get("task") == "dialog":
+            if not isinstance(data, list) or any("content" not in x for x in data):
+                raise ValueError(
+                  f"Dialog metrics must have input in OpenAI "
+                  f"dialog dict format but {data} was not"
+                )
             d["source"] = (
-                data.messages[-1].content if len(data.messages) >= 1 else "..."
+                data[-1]["content"] if len(data) >= 1 else "..."
             )
             d["context"] = (
-                data.messages[-2].content if len(data.messages) >= 2 else "..."
+                data[-2]["content"] if len(data) >= 2 else "..."
             )
+        # Metrics with a string as an input
+        elif isinstance(data, str):
+            d["source"] = data
 
     client = Critique(api_key=os.environ["INSPIREDCO_API_KEY"])
 
