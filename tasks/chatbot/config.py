@@ -10,6 +10,7 @@ from typing import Any
 
 import transformers
 
+from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.length import (
     chat_context_length,
     input_length,
@@ -182,6 +183,8 @@ zeno_distill_and_metric_functions = [
     length_ratio,
     avg_bert_score,
     bert_score,
+    exact_match,
+    avg_exact_match,
 ]
 
 # Some metadata to standardize huggingface datasets
