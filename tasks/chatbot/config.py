@@ -10,8 +10,8 @@ from typing import Any
 
 import transformers
 
+from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.length import input_length, output_length
-from zeno_build.evaluation.text_features.perfect_match import perfect_match
 from zeno_build.evaluation.text_metrics.critique import (  # avg_toxicity,; toxicity,
     avg_bert_score,
     avg_chrf,
@@ -168,7 +168,8 @@ zeno_distill_and_metric_functions = [
     length_ratio,
     avg_bert_score,
     bert_score,
-    perfect_match,
+    exact_match,
+    avg_exact_match,
 ]
 
 # Some metadata to standardize huggingface datasets
