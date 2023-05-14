@@ -8,7 +8,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from zeno_build.evaluation.text_features.length import input_length, output_length
+from zeno_build.evaluation.text_features.length import (
+    input_length,
+    label_length,
+    output_length,
+)
 from zeno_build.evaluation.text_metrics.critique import (
     avg_chrf,
     avg_length_ratio,
@@ -72,6 +76,7 @@ sweep_metric_function = avg_chrf
 zeno_distill_and_metric_functions = [
     input_length,
     output_length,
+    label_length,
     avg_chrf,
     avg_length_ratio,
     avg_rouge_1,

@@ -6,6 +6,7 @@ import itertools
 import json
 import os
 from collections.abc import Iterable
+from typing import Literal
 
 import datasets
 
@@ -18,6 +19,7 @@ from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 def build_examples_from_sequence(seq: list[str]) -> Iterable[ChatMessages]:
     """Convert a datapoint into dialog examples."""
     stripped_seq = [x.strip() for x in seq]
+    stripped_seq = [x if len(x) else "..." for x in stripped_seq]
     for i in range(2, len(stripped_seq) + 1):
         yield ChatMessages(
             messages=[
@@ -28,6 +30,24 @@ def build_examples_from_sequence(seq: list[str]) -> Iterable[ChatMessages]:
                 for j, y in enumerate(stripped_seq[:i])
             ],
         )
+
+
+def build_examples_from_roles_and_contents(
+    roles: list[str],
+    contents: list[str],
+    name_mapping: dict[str, Literal["system", "assistant", "user"]],
+) -> Iterable[ChatMessages]:
+    """Convert a datapoint into dialog examples."""
+    assert len(roles) == len(contents)
+    messages = []
+    for role, content in zip(roles, contents):
+        role = name_mapping[role]
+        stripped_content = content.strip()
+        if len(stripped_content) == 0:
+            stripped_content = "..."
+        messages.append(ChatTurn(role=role, content=stripped_content))
+        if role == "assistant":
+            yield ChatMessages(messages=list(messages))
 
 
 def load_data(
@@ -61,6 +81,20 @@ def load_data(
         return list(
             itertools.chain.from_iterable(
                 build_examples_from_sequence(x[data_column]) for x in loaded_data
+            )
+        )
+    elif data_format == "dstc11":
+        return list(
+            itertools.chain.from_iterable(
+                build_examples_from_roles_and_contents(
+                    x[data_column]["speaker_role"],
+                    x[data_column]["utterance"],
+                    name_mapping={
+                        "Agent": "assistant",
+                        "Customer": "user",
+                    },
+                )
+                for x in loaded_data
             )
         )
     else:

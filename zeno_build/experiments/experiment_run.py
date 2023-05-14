@@ -8,7 +8,7 @@ from typing import Any, Generic, TypeVar
 T = TypeVar("T")
 
 
-@dataclass(frozen=True)
+@dataclass
 class ExperimentRun(Generic[T]):
     """A single run of an experiment."""
 

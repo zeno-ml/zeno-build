@@ -33,22 +33,24 @@ def chatbot_main(
 
     # Load the necessary data, either from HuggingFace or a cached file
     if cached_data is None:
-        data = load_data(
+        contexts_and_labels = load_data(
             chatbot_config.constants.pop("test_dataset"),
             chatbot_config.constants.pop("test_split"),
+            data_format=chatbot_config.constants.pop("data_format", "dstc11"),
+            data_column=chatbot_config.constants.pop("data_column", "turns"),
             examples=chatbot_config.constants.pop("test_examples"),
         )
         with open(os.path.join(results_dir, "examples.json"), "w") as f:
-            json.dump([asdict(x) for x in data], f)
+            json.dump([asdict(x) for x in contexts_and_labels], f)
     else:
         with open(cached_data, "r") as f:
-            data = [ChatMessages(**x) for x in json.load(f)]
+            contexts_and_labels = [ChatMessages(**x) for x in json.load(f)]
     # Organize the data into source and context
-    labels, contexts = [], []
-    for x in data:
+    labels: list[str] = []
+    contexts: list[ChatMessages] = []
+    for x in contexts_and_labels:
         labels.append(x.messages[-1].content)
-        contexts.append(x.messages[:-1])
-    df = pd.DataFrame({"context": contexts, "label": labels})
+        contexts.append(ChatMessages(x.messages[:-1]))
 
     # Run the hyperparameter sweep and print out results
     results: list[ExperimentRun] = []
@@ -56,7 +58,6 @@ def chatbot_main(
         with open(cached_runs, "r") as f:
             serialized_results = json.load(f)
         results = [ExperimentRun(**x) for x in serialized_results]
-
     else:
         # Set all API keys
         openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -71,16 +72,8 @@ def chatbot_main(
         )
         for _ in range(chatbot_config.num_trials):
             parameters = optimizer.get_parameters()
-            setting_name = " ".join(
-                [
-                    parameters[k]
-                    if isinstance(parameters[k], str)
-                    else f"{k}={parameters[k]}"
-                    for k in chatbot_config.space.keys()
-                ]
-            )
             predictions = make_predictions(
-                data=data,
+                data=contexts,
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
                 temperature=parameters["temperature"],
@@ -89,12 +82,11 @@ def chatbot_main(
                 context_length=parameters["context_length"],
                 cache_root=os.path.join(results_dir, "cache"),
             )
-            eval_result = optimizer.calculate_metric(data, labels, predictions)
+            eval_result = optimizer.calculate_metric(contexts, labels, predictions)
             run = ExperimentRun(
                 parameters=parameters,
                 predictions=predictions,
                 eval_result=eval_result,
-                name=setting_name,
             )
             results.append(run)
 
@@ -102,14 +94,32 @@ def chatbot_main(
         with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
             json.dump(serialized_results, f)
 
+    # Make readable names
+    for run in results:
+        if run.name is None:
+            run.name = " ".join(
+                [
+                    run.parameters[k]
+                    if isinstance(run.parameters[k], str)
+                    else f"{k}={run.parameters[k]}"
+                    for k in chatbot_config.space.keys()
+                ]
+            )
+
     # Perform the visualization
     if do_visualization:
+        df = pd.DataFrame(
+            {
+                "messages": [[asdict(y) for y in x.messages] for x in contexts],
+                "label": labels,
+            }
+        )
         visualize(
             df,
             labels,
             results,
             "openai-chat",
-            "context",
+            "messages",
             chatbot_config.zeno_distill_and_metric_functions,
         )
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -13,10 +14,15 @@ class LMConfig:
     Attributes:
         provider: The name of the API provider.
         model: The name of the model.
-        cls: The Python class corresponding to the model, mostly for
+        model_cls: The Python class corresponding to the model, mostly for
              Hugging Face transformers.
-        system_name: The name of the system in chat.
-        user_name: The name of the user in chat.
+        tokenizer_cls: The Python class corresponding to the tokenizer, mostly
+            for Hugging Face transformers.
+        name_replacements: A dictionary mapping from the names of the roles
+            (e.g., "system", "assistant", "user") to the names of the
+            roles in the model.
+        model_loader_kwargs: A dictionary of keyword arguments to pass to the
+            model loader.
     """
 
     provider: str
@@ -32,3 +38,4 @@ class LMConfig:
             }
         )
     )
+    model_loader_kwargs: dict[str, Any] = dataclasses.field(default_factory=dict)
