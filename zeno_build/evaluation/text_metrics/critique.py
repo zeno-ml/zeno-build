@@ -1,16 +1,12 @@
 """Text metrics using InspiredCo's Critique API."""
 import logging
 import os
-import json
-import sys
 
 import tqdm
 from inspiredco.critique import Critique
 from inspiredco.critique_utils.exceptions import CritiqueError
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
-
-from zeno_build.prompts.chat_prompt import ChatMessages
 
 
 def call_critique(
@@ -44,15 +40,11 @@ def call_critique(
         if metric_name == "uni_eval" and config.get("task") == "dialog":
             if not isinstance(data, list) or any("content" not in x for x in data):
                 raise ValueError(
-                  f"Dialog metrics must have input in OpenAI "
-                  f"dialog dict format but {data} was not"
+                    f"Dialog metrics must have input in OpenAI "
+                    f"dialog dict format but {data} was not"
                 )
-            d["source"] = (
-                data[-1]["content"] if len(data) >= 1 else "..."
-            )
-            d["context"] = (
-                data[-2]["content"] if len(data) >= 2 else "..."
-            )
+            d["source"] = data[-1]["content"] if len(data) >= 1 else "..."
+            d["context"] = data[-2]["content"] if len(data) >= 2 else "..."
         # Metrics with a string as an input
         elif isinstance(data, str):
             d["source"] = data
@@ -249,6 +241,98 @@ def coherence(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     )
 
 
+@distill
+def engagingness(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Engagingness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: engagingness scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df,
+        ops,
+        "uni_eval",
+        {"task": "dialog", "evaluation_aspect": "engagingness"},
+        batch_size=150,
+    )
+
+
+@distill
+def groundedness(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Groundedness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: groundedness scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df,
+        ops,
+        "uni_eval",
+        {"task": "dialog", "evaluation_aspect": "groundedness"},
+        batch_size=150,
+    )
+
+
+@distill
+def naturalness(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Naturalness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: naturalness scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df,
+        ops,
+        "uni_eval",
+        {"task": "dialog", "evaluation_aspect": "naturalness"},
+        batch_size=150,
+    )
+
+
+@distill
+def understandability(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Understandability score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: understandability scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df,
+        ops,
+        "uni_eval",
+        {"task": "dialog", "evaluation_aspect": "understandability"},
+        batch_size=150,
+    )
+
+
 @metric
 def avg_bert_score(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     """Average BERT score.
@@ -393,3 +477,69 @@ def avg_coherence(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     if len(df) == 0:
         return MetricReturn(metric=0)
     return MetricReturn(metric=df[ops.distill_columns["coherence"]].fillna(0).mean())
+
+
+@metric
+def avg_engagingness(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average engagingness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average engagingness score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["engagingness"]].fillna(0).mean())
+
+
+@metric
+def avg_groundedness(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average groundedness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average groundedness score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["groundedness"]].fillna(0).mean())
+
+
+@metric
+def avg_naturalness(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average naturalness score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average naturalness score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["naturalness"]].fillna(0).mean())
+
+
+@metric
+def avg_understandability(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average understandability score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average understandability score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(
+        metric=df[ops.distill_columns["understandability"]].fillna(0).mean()
+    )
