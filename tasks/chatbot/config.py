@@ -54,10 +54,13 @@ space = {
 # Any constants that are not searched over
 constants: dict[str, Any] = {
     "test_dataset": "gneubig/dstc11",
-    "test_split": "validation",
-    "test_examples": None,
     "data_column": "turns",
     "data_format": "dstc11",
+    # "test_dataset": "daily_dialog",
+    # "data_column": "dialog",
+    # "data_format": "sequence",
+    "test_split": "validation",
+    "test_examples": None,
     "max_tokens": 100,
     "top_p": 1.0,
 }
