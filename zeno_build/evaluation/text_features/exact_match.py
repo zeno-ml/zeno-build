@@ -31,4 +31,4 @@ def avg_exact_match(df: DataFrame, ops: ZenoOptions) -> float:
     """
     if len(df) == 0:
         return MetricReturn(metric=0.0)
-    return MetricReturn(metric_output=df[ops.distill_columns["exact_match"]].mean())
+    return MetricReturn(metric=df[ops.distill_columns["exact_match"]].mean())
