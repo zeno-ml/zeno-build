@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "zeno_build"
 authors = [
-  { name = "Alex Cabrera", email = "cabrera@cmu.edu" },
+  { name = "Ángel Alexander Cabrera", email = "alex.cabrera@gmail.com" },
   { name = "Graham Neubig", email = "neubig@gmail.com" },
 ]
 description = "A library for comparing multiple llm-based systems."
