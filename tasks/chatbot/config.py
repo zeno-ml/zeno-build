@@ -168,6 +168,16 @@ prompt_messages: dict[str, ChatMessages] = {
             ),
         ]
     ),
+    # The following is purpose-tailored for the DSTC11 insurance dataset
+    "insurance_standard": ChatMessages(
+        messages=[
+            ChatTurn(
+                role="system",
+                content="You are an agent at the Rivertown Insurance helpdesk that "
+                "mainly helps with resolving insurance claims.",
+            ),
+        ]
+    ),
 }
 
 # The functions to use to calculate scores for the hyperparameter sweep
