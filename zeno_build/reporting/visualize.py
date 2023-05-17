@@ -16,7 +16,7 @@ def visualize(
     view: str,
     data_column: str,
     functions: list[Callable],
-    zeno_config: ZenoParameters,
+    zeno_config: ZenoParameters = ZenoParameters(),
 ) -> None:
     """Run Zeno to visualize the results of a parameter search run.
 
