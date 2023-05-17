@@ -16,8 +16,7 @@ def visualize(
     view: str,
     data_column: str,
     functions: list[Callable],
-    host: str = "localhost",
-    port: int = 8000,
+    zeno_config: ZenoParameters,
 ) -> None:
     """Run Zeno to visualize the results of a parameter search run.
 
@@ -28,8 +27,7 @@ def visualize(
         view: The Zeno view to use for the data
         data_column: The column in the DataFrame with the data
         functions: List of functions to use in Zeno
-        host: The host to run Zeno on
-        port: The port to run Zeno on
+        zeno_config: Zeno configuration parameters
     """
     if len(df) != len(labels):
         raise ValueError("Length of data and labels must be equal.")
@@ -66,8 +64,7 @@ def visualize(
         data_column=data_column,
         label_column="label",
         batch_size=100000,
-        host=host,
-        port=port,
     )
+    config = config.copy(update=zeno_config.dict())
 
     zeno(config)
