@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "zeno_build"
 authors = [
-  { name = "Alex Cabrera", email = "cabrera@cmu.edu" },
+  { name = "Ángel Alexander Cabrera", email = "alex.cabrera@gmail.com" },
   { name = "Graham Neubig", email = "neubig@gmail.com" },
 ]
 description = "A library for comparing multiple llm-based systems."
@@ -26,7 +26,7 @@ test = ["mypy>=1.2.0", "pre-commit>=3.2.0", "pytest>=6.0.0", "black>=23.3.0"]
 
 [tool.hatch.build]
 include = ["*.py"]
-exclude = ["*_test.py"]
+exclude = ["*_test.py", "tasks/**"]
 only-packages = true
 
 [tool.hatch.build.targets.wheel]
