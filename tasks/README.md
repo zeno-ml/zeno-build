@@ -4,7 +4,7 @@ Here, you can find all of the tasks supported by `zeno-build`.
 
 ## Tasks
 
-The tasks supported by default are:
+The tasks supported right now are:
 
 - [Chatbots](chatbot/) that chat with users and return appropriate responses.
 - [Summarization](summarization/) systems that take longer articles and reduce
@@ -32,7 +32,7 @@ tasks. Most of them consist of four main files:
   of initialization, experimental runs, and visualization.
 
 If you're looking to dive deeper, you should also click over to our [important
-concepts](CONCEPTS.md) doc, or take a look at the [API doc](TODO).
+concepts](CONCEPTS.md) doc, and browse through the code.
 
 ## Contributing Back
 

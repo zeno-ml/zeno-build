@@ -1,15 +1,30 @@
 # Chatbots
 
-In the example here we test two different companies' text generation models,
-[OpenAI's GPT-3](https://openai.com/blog/gpt-3-apps/), and
-[Cohere's text generation models](https://cohere.ai/generate). Evaluation of
-the models is done with the
+This is an example of using zeno-build to test the creation of chatbots.
+In the example here we test several text generation models, including API-based
+models like
+[OpenAI's ChatGPT](https://openai.com/blog/gpt-3-apps/), and
+[Cohere's text generation models](https://cohere.ai/generate),
+as well as publicly available models such as
+[GPT-2](https://huggingface.co/gpt2),
+[LLaMa](https://huggingface.co/decapoda-research/llama-7b-hf),
+[Alpaca](https://huggingface.co/chavinlo/alpaca-native),
+[Vicuna](https://huggingface.co/eachadea/vicuna-7b-1.1),
+and [MPT-Chat](https://huggingface.co/mosaicml/mpt-7b-chat).
+
+Evaluation of the models is done with the
 [Inspired Cognition Critique](https://docs.inspiredco.ai/critique/)
 tool for text generation evaluation. We demonstrate the case for chatbots
-on 100 examples from the
-[Daily Dialog dataset](https://huggingface.co/datasets/daily_dialog). But you can
+on examples from the
+[DSTC 11 customer service dataset](https://github.com/amazon-science/dstc11-track2-intent-induction).
+
+But you can
 swap in whatever models, prompts, metrics, and data that you would like to try on
-other tasks too!
+other tasks too! The result of running Zeno Build will be an interface where you
+can browse and explore the results. See an example below:
+
+* [Browsing Interface](https://zeno-ml-chatbot-report.hf.space)
+* [Textual Summary](report/)
 
 ## Setup
 
@@ -55,7 +70,7 @@ python main.py
 
 This will run ten training runs with various hyperparameters for:
 
-* `prompt`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
+* `prompt_template`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
 * `model`: openai davinci-003 and gpt-3.5-turbo, and cohere command-xlarge
 * `temperature`: between 0.2, 0.3, or 0.4
 
