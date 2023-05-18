@@ -47,13 +47,9 @@ results. `zeno-build` will produce a comprehensive report with the
 [Zeno](https://zenoml.com/) ML analysis platform. To give you a flavor of what
 these reports will look like, check out a few of our pre-made reports below:
 
-- [Zeno Chatbot Report](TODO): A report comparing different methods for creating
-  chatbots, including API-based models such as ChatGPT, Claude, and Cohere, with
-  open-source models such as Vicuna, Alpaca, and Flan-T5.
-- [Zeno Summarization Report](TODO): A report comparing different methods for
-  text summarization, including GPT-3, Flan-T5, and Pegasus.
-- [Zeno Sentiment Analysis Report](TODO): A report comparing different
-  pre-trained models for sentiment analysis across a variety of datasets.
+- [Zeno Chatbot Report](tasks/chat/report): A report comparing different methods
+  for creating chatbots, including API-based models such as ChatGPT and Cohere,
+  with open-source models such as Vicuna, Alpaca, and MPT.
 
 ## Building Your Own Apps (and Contributing Back)
 
