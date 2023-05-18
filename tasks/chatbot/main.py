@@ -16,7 +16,7 @@ from tasks.chatbot.modeling import load_data, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.models import global_models
 from zeno_build.optimizers import standard
-from zeno_build.prompts.chat_prompt import ChatMessages
+from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 from zeno_build.reporting.visualize import visualize
 
 
@@ -44,7 +44,15 @@ def chatbot_main(
             json.dump([asdict(x) for x in contexts_and_labels], f)
     else:
         with open(cached_data, "r") as f:
-            contexts_and_labels = [ChatMessages(**x) for x in json.load(f)]
+            contexts_and_labels = [
+                ChatMessages(
+                    messages=[
+                        ChatTurn(role=y["role"], content=y["content"])
+                        for y in x["messages"]
+                    ]
+                )
+                for x in json.load(f)
+            ]
     # Organize the data into source and context
     labels: list[str] = []
     contexts: list[ChatMessages] = []
