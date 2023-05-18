@@ -3,6 +3,10 @@
 by [Alex Cabrera](https://cabreraalex.com/) and
    [Graham Neubig](http://www.phontron.com/) (May 18, 2023)
 
+<p align="center">
+  <img src="zeno-build-chat-headline.png">
+</p>
+
 ## Overview
 
 Large language models (LLMs) are taking the world by storm, and one big
@@ -22,7 +26,7 @@ APIs, (2) **an online interface for browsing and analyzing** results using
 [Zeno](https://zenoml.com/), and (3) **state-of-the-art evaluation metrics**
 for text using [Critique](https://docs.inspiredco.ai/critique/).
 
-[Browse the results here](https://zeno-ml-chatbot-report.hf.space)
+**[Browse the results here](https://zeno-ml-chatbot-report.hf.space)**
 
 **Highlights:**
 
@@ -166,7 +170,6 @@ said previously.
 More context is particularly important when trying to generate outputs where the
 gold standard is shorter (possibly because there is more ambiguity).
 
-
 <p align="center">
   <img height="400" src="window-bylength-chrf.png">
 </p>
@@ -189,7 +192,6 @@ the task of customer service chat in the insurance domain:
 Overall, the prompt didn’t make a very large measurable difference, but the
 “cynical” chatbot was a little bit worse, and the tailored “insurance” chatbot
 was a little bit better overall.
-
 
 ChrF by Prompt             |  BERTScore by Prompt
 :-------------------------:|:-------------------------:
