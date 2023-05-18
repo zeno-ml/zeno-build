@@ -32,7 +32,7 @@ tasks. Most of them consist of four main files:
   of initialization, experimental runs, and visualization.
 
 If you're looking to dive deeper, you should also click over to our [important
-concepts](CONCEPTS.md) doc, or take a look at the [API doc](TODO).
+concepts](CONCEPTS.md) doc, and browse through the code.
 
 ## Contributing Back
 
