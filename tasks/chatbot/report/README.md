@@ -122,7 +122,7 @@ the importance of training directly on chat.
 
 ChrF by Model             |  BERTScore by Model | UniEval Coherence by Model
 :-------------------------:|:-------------------------:|:-------------------------:
-![ChrF by Model](model-overall-chrf.png) | ![BERTScore by Model](model-overall-bertscore.png) | ![UniEval Coherence by Model](model-overall-coherence.png)
+![ChrF by Model](images/model-overall-chrf.png) | ![BERTScore by Model](images/model-overall-bertscore.png) | ![UniEval Coherence by Model](images/model-overall-coherence.png)
 
 These rankings also approximately match those of the
 [lmsys chat arena](https://chat.lmsys.org/), which uses human A/B testing to
@@ -195,7 +195,7 @@ was a little bit better overall.
 
 ChrF by Prompt             |  BERTScore by Prompt
 :-------------------------:|:-------------------------:
-![ChrF by Prompt](prompt-overall-chrf.png) | ![BERTScore by Prompt](prompt-overall-bertscore.png)
+![ChrF by Prompt](images/prompt-overall-chrf.png) | ![BERTScore by Prompt](images/prompt-overall-bertscore.png)
 
 The differences were especially stark on the first turn of the conversation,
 indicating that the prompt is most important when there is little other context
