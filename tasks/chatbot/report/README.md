@@ -11,15 +11,15 @@ service, and many others. However, chatbots are **notoriously hard to
 evaluate**, and there still isn’t a clear sense about which of the recent models
 are best to use in what situations.
 
-In this report, we demonstrate some **first results on automatically evaluating
+In this report, we demonstrate some **first results on evaluating
 and comparing recent chatbots**, with the goal of making it easier for people to
 understand the current lay-of-the-land with respect to all of the open-source
 and API-based models coming out recently. In particular, we create a **new
 open-source toolkit for evaluating LLMs,
-[Zeno Build](https://github.com/zeno-ml/zeno-build)**. This combines together
+[Zeno Build](https://github.com/zeno-ml/zeno-build)**. This combines
 (1) a unified interface to use open-source LLMs through Hugging Face or online
 APIs, (2) **an online interface for browsing and analyzing** results using
-[Zeno](https://zenoml.com/), and (3) **state-of-the art evaluation metrics**
+[Zeno](https://zenoml.com/), and (3) **state-of-the-art evaluation metrics**
 for text using [Critique](https://docs.inspiredco.ai/critique/).
 
 [Browse the results here](https://zeno-ml-chatbot-report.hf.space)
@@ -32,9 +32,9 @@ for text using [Critique](https://docs.inspiredco.ai/critique/).
   **customer service** dataset
 - **ChatGPT came out on top**, but the open-source chat model **Vicuna was also
   very competitive**
-- It is **important to use a chat-tuned model with a long context window**
+- We find that it is **important to use a chat-tuned model with a long context window**
 - **Prompt engineering particularly improves performance for turns early in the
-  conversation**, but less so later turns where more context is available
+  conversation**, but less so in later turns where more context is available
 - Even for a strong model like ChatGPT, it is easy to find **obvious issues in
   hallucinations, failure to probe for more information, and repeated content**
 
@@ -116,11 +116,9 @@ According to all of these metrics, gpt-3.5-turbo was the clear winner. Vicuna
 was the open-source Winner. GPT-2 and LLaMa were not very good, demonstrating
 the importance of training directly on chat.
 
-![ChrF by Model](model-overall-chrf.png)
-
-![BERTScore by Model](model-overall-bertscore.png)
-
-![UniEval Coherence by Model](model-overall-coherence.png)
+ChrF by Model             |  BERTScore by Model | UniEval Coherence by Model
+:-------------------------:|:-------------------------:|:-------------------------:
+![ChrF by Model](model-overall-chrf.png) | ![BERTScore by Model](model-overall-bertscore.png) | ![UniEval Coherence by Model](model-overall-coherence.png)
 
 These rankings also approximately match those of the
 [lmsys chat arena](https://chat.lmsys.org/), which uses human A/B testing to
@@ -130,7 +128,9 @@ ratings.**
 With regards to verbosity, gpt3.5-turbo is far more verbose than the others, and
 it seems that models tuned for chat tend to be verbose in general.
 
-![Length Ratio by Model](model-overall-lengthratio.png)
+<p align="center">
+  <img height="400" src="model-overall-lengthratio.png">
+</p>
 
 ### Accuracy by Gold-standard Response Length
 
@@ -141,7 +141,9 @@ medium (36-70 characters), and long (≥71 characters) human responses.
 gpt-3.5-turbo and Vicuna maintain accuracy even on longer chat turns while
 others drop off.
 
-![Length Ratio by Model and Response Length](model-bylength-chrf.png)
+<p align="center">
+  <img height="400" src="model-bylength-chrf.png">
+</p>
 
 #### How important is the context window?
 
@@ -149,18 +151,25 @@ We experimented using Vicuna with context windows ranging from 1-4 previous
 utterances. As we increase the context window, the performance goes up,
 indicating that larger context windows are important.
 
-![ChrF by Context Window](window-overall-chrf.png)
+<p align="center">
+  <img height="400" src="window-overall-chrf.png">
+</p>
 
 Longer context is particularly important in the middle and later parts of the
 conversation, where responses are less templated and more dependent on what was
 said previously.
 
-![ChrF by Context Window and Context Position](window-bycontext-chrf.png)
+<p align="center">
+  <img height="400" src="window-bycontext-chrf.png">
+</p>
 
 More context is particularly important when trying to generate outputs where the
 gold standard is shorter (possibly because there is more ambiguity).
 
-![ChrF by Context Window and Response Length](window-bylength-chrf.png)
+
+<p align="center">
+  <img height="400" src="window-bylength-chrf.png">
+</p>
 
 ### How important is the prompt?
 
@@ -181,15 +190,18 @@ Overall, the prompt didn’t make a very large measurable difference, but the
 “cynical” chatbot was a little bit worse, and the tailored “insurance” chatbot
 was a little bit better overall.
 
-![ChrF by Prompt](prompt-overall-chrf.png)
 
-![BERTScore by Prompt](prompt-overall-bertscore.png)
+ChrF by Prompt             |  BERTScore by Prompt
+:-------------------------:|:-------------------------:
+![ChrF by Prompt](prompt-overall-chrf.png) | ![BERTScore by Prompt](prompt-overall-bertscore.png)
 
 The differences were especially stark on the first turn of the conversation,
 indicating that the prompt is most important when there is little other context
 to work with.
 
-![BERTScore by Prompt and Context Position](prompt-bycontext-bertscore.png)
+<p align="center">
+  <img height="400" src="prompt-bycontext-bertscore.png">
+</p>
 
 ## Discovered Errors (and possible mitigations)
 
@@ -207,9 +219,16 @@ policies. This would need to be solved by adding more information about the
 customer into the prompt, or looking up company policies and referring to them
 when answering specific questions.
 
-![Hallucination Example from gpt-3.5-turbo (1)](example-gpt3.5-hallucination-1.png)
-
-![Hallucination Example from gpt-3.5-turbo (2)](example-gpt3.5-hallucination-2.png)
+<table>
+  <tr>
+    <td valign="top">
+  <img src="example-gpt3.5-hallucination-1.png">
+     </td>
+    <td valign="top">
+  <img src="example-gpt3.5-hallucination-2.png">
+     </td>
+  </tr>
+</table>
 
 ### Failure to Probe
 
@@ -219,20 +238,26 @@ complete. This could possibly be mitigated by modifying the prompt to remind the
 model of the required shape for certain pieces of information (e.g. a phone
 number must be 10 digits).
 
-![Probing Example from gpt-3.5-turbo](example-gpt3.5-probing-1.png)
+<p align="center">
+  <img height="400" src="example-gpt3.5-probing-1.png">
+</p>
 
 ### Repeated Content
 
 Sometimes the same content is repeated multiple times, such as the bot saying
 “thank you” twice here.
 
-![Probing Example from gpt-3.5-turbo](example-gpt3.5-probing-1.png)
+<p align="center">
+  <img height="400" src="example-gpt3.5-probing-1.png">
+</p>
 
 ### Correct
 
 Sometimes the response is reasonable, but just different than the human response.
 
-![Correct Example from gpt-3.5-turbo](example-gpt3.5-correct-1.png)
+<p align="center">
+  <img height="400" src="example-gpt3.5-correct-1.png">
+</p>
 
 ## Final Words
 
