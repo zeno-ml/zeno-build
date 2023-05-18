@@ -3,6 +3,10 @@
 by [Alex Cabrera](https://cabreraalex.com/) and
    [Graham Neubig](http://www.phontron.com/) (May 18, 2023)
 
+<p align="center">
+  <img src="images/zeno-build-chat-headline.png">
+</p>
+
 ## Overview
 
 Large language models (LLMs) are taking the world by storm, and one big
@@ -22,7 +26,7 @@ APIs, (2) **an online interface for browsing and analyzing** results using
 [Zeno](https://zenoml.com/), and (3) **state-of-the-art evaluation metrics**
 for text using [Critique](https://docs.inspiredco.ai/critique/).
 
-[Browse the results here](https://zeno-ml-chatbot-report.hf.space)
+**[Browse the results here](https://zeno-ml-chatbot-report.hf.space)**
 
 **Highlights:**
 
@@ -129,7 +133,7 @@ With regards to verbosity, gpt3.5-turbo is far more verbose than the others, and
 it seems that models tuned for chat tend to be verbose in general.
 
 <p align="center">
-  <img height="400" src="model-overall-lengthratio.png">
+  <img height="400" src="images/model-overall-lengthratio.png">
 </p>
 
 ### Accuracy by Gold-standard Response Length
@@ -142,7 +146,7 @@ gpt-3.5-turbo and Vicuna maintain accuracy even on longer chat turns while
 others drop off.
 
 <p align="center">
-  <img height="400" src="model-bylength-chrf.png">
+  <img height="400" src="images/model-bylength-chrf.png">
 </p>
 
 #### How important is the context window?
@@ -152,7 +156,7 @@ utterances. As we increase the context window, the performance goes up,
 indicating that larger context windows are important.
 
 <p align="center">
-  <img height="400" src="window-overall-chrf.png">
+  <img height="400" src="images/window-overall-chrf.png">
 </p>
 
 Longer context is particularly important in the middle and later parts of the
@@ -160,15 +164,14 @@ conversation, where responses are less templated and more dependent on what was
 said previously.
 
 <p align="center">
-  <img height="400" src="window-bycontext-chrf.png">
+  <img height="400" src="images/window-bycontext-chrf.png">
 </p>
 
 More context is particularly important when trying to generate outputs where the
 gold standard is shorter (possibly because there is more ambiguity).
 
-
 <p align="center">
-  <img height="400" src="window-bylength-chrf.png">
+  <img height="400" src="images/window-bylength-chrf.png">
 </p>
 
 ### How important is the prompt?
@@ -190,7 +193,6 @@ Overall, the prompt didn’t make a very large measurable difference, but the
 “cynical” chatbot was a little bit worse, and the tailored “insurance” chatbot
 was a little bit better overall.
 
-
 ChrF by Prompt             |  BERTScore by Prompt
 :-------------------------:|:-------------------------:
 ![ChrF by Prompt](prompt-overall-chrf.png) | ![BERTScore by Prompt](prompt-overall-bertscore.png)
@@ -200,7 +202,7 @@ indicating that the prompt is most important when there is little other context
 to work with.
 
 <p align="center">
-  <img height="400" src="prompt-bycontext-bertscore.png">
+  <img height="400" src="images/prompt-bycontext-bertscore.png">
 </p>
 
 ## Discovered Errors (and possible mitigations)
@@ -222,10 +224,10 @@ when answering specific questions.
 <table>
   <tr>
     <td valign="top">
-  <img src="example-gpt3.5-hallucination-1.png">
+  <img src="images/example-gpt3.5-hallucination-1.png">
      </td>
     <td valign="top">
-  <img src="example-gpt3.5-hallucination-2.png">
+  <img src="images/example-gpt3.5-hallucination-2.png">
      </td>
   </tr>
 </table>
@@ -239,7 +241,7 @@ model of the required shape for certain pieces of information (e.g. a phone
 number must be 10 digits).
 
 <p align="center">
-  <img height="400" src="example-gpt3.5-probing-1.png">
+  <img height="400" src="images/example-gpt3.5-probing-1.png">
 </p>
 
 ### Repeated Content
@@ -248,7 +250,7 @@ Sometimes the same content is repeated multiple times, such as the bot saying
 “thank you” twice here.
 
 <p align="center">
-  <img height="400" src="example-gpt3.5-probing-1.png">
+  <img height="400" src="images/example-gpt3.5-probing-1.png">
 </p>
 
 ### Correct
@@ -256,7 +258,7 @@ Sometimes the same content is repeated multiple times, such as the bot saying
 Sometimes the response is reasonable, but just different than the human response.
 
 <p align="center">
-  <img height="400" src="example-gpt3.5-correct-1.png">
+  <img height="400" src="images/example-gpt3.5-correct-1.png">
 </p>
 
 ## Final Words
