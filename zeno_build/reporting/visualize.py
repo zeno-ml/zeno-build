@@ -16,7 +16,7 @@ def visualize(
     view: str,
     data_column: str,
     functions: list[Callable],
-    zeno_config: ZenoParameters = ZenoParameters(),
+    zeno_config: dict = {},
 ) -> None:
     """Run Zeno to visualize the results of a parameter search run.
 
@@ -65,6 +65,6 @@ def visualize(
         label_column="label",
         batch_size=100000,
     )
-    config = config.copy(update=zeno_config.dict())
+    config = config.copy(update=zeno_config)
 
     zeno(config)
