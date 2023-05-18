@@ -27,14 +27,14 @@ for text using [Critique](https://docs.inspiredco.ai/critique/).
 **Highlights:**
 
 - We evaluated **7 language models**: GPT-2, LLaMa, Alpaca, Vicuna, MPT-Chat,
-  Cohere Command, and ChatGPT
+  Cohere Command, and ChatGPT (gpt-3.5-turbo)
 - The models were evaluated on their ability to create human-like responses on a
   **customer service** dataset
 - **ChatGPT came out on top**, but the open-source chat model **Vicuna was also
   very competitive**
 - It is **important to use a chat-tuned model with a long context window**
-- **Prompt engineering is important early in the conversation**, but less so
-  later
+- **Prompt engineering particularly improves performance for turns early in the
+  conversation**, but less so later turns where more context is available
 - Even for a strong model like ChatGPT, it is easy to find **obvious issues in
   hallucinations, failure to probe for more information, and repeated content**
 
