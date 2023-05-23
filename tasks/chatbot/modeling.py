@@ -52,7 +52,6 @@ def build_examples_from_roles_and_contents(
 def process_data(
     dataset: str | tuple[str, str],
     split: str,
-    num_examples: int | None,
     data_format: str = "sequence",
     data_column: str = "dialog",
     output_dir: str = "results",
@@ -65,7 +64,11 @@ def process_data(
           - A tuple of strings, the name of the dataset and the name of the
             subdataset.
         split: The split of the dataset to load.
-        examples: The number of examples to load. If None, load all examples.
+        data_format: The format of the data, either:
+            - "sequence": A sequence of strings, each string is a message.
+            - "dstc11": The format of the DSTC11 dataset.
+        data_column: The name of the column containing the data.
+        output_dir: The directory to save the processed data to.
 
     Returns:
         The loaded dataset as dialog examples of context and reference.
@@ -84,8 +87,6 @@ def process_data(
         loaded_data = datasets.load_dataset(dname, subdname, split=split)
     else:
         loaded_data = datasets.load_dataset(dataset, split=split)
-    if num_examples is not None:
-        loaded_data = loaded_data.select(range(num_examples))
     if data_format == "sequence":
         messages = list(
             itertools.chain.from_iterable(

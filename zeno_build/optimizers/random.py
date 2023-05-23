@@ -65,6 +65,8 @@ class RandomOptimizer(Optimizer):
                     params[name] = random.uniform(dimension.lower, dimension.upper)
                 elif isinstance(dimension, search_space.Int):
                     params[name] = random.randint(dimension.lower, dimension.upper)
+                elif isinstance(dimension, search_space.Constant):
+                    params[name] = dimension.value
                 else:
                     raise ValueError(f"Unknown search dimension: {dimension}")
             self._state = random.getstate()

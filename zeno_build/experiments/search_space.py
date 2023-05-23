@@ -103,6 +103,7 @@ class SearchSpace(ABC):
         Returns:
             Paths to the valid parameter files.
         """
+        os.makedirs(output_dir, exist_ok=True)
         param_files = [
             os.path.join(output_dir, x)
             for x in os.listdir(output_dir)

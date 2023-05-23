@@ -26,7 +26,7 @@ def chatbot_main(
 ):
     """Run the chatbot experiment."""
     # Get the dataset configuration
-    dataset_preset = chatbot_config.space["dataset"]
+    dataset_preset = chatbot_config.space.dimensions["dataset_preset"]
     if not isinstance(dataset_preset, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
@@ -141,13 +141,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--skip_prediction",
-        type=bool,
         action="store_true",
         help="Skip prediction and just do visualization.",
     )
     parser.add_argument(
         "--skip_visualization",
-        type=bool,
         action="store_true",
         help="Skip visualization and just do prediction.",
     )
