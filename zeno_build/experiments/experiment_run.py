@@ -14,5 +14,5 @@ class ExperimentRun(Generic[T]):
 
     parameters: dict[str, Any]
     predictions: list[T]
-    eval_result: float
+    eval_result: float | None = None
     name: str | None = None

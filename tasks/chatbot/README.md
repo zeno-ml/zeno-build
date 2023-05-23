@@ -41,23 +41,29 @@ Then install the requirements for this example:
 pip install -r requirements.txt
 ```
 
-Finally, you'll want to set three API keys used by the various APIs
-included in this example. You can do this by creating a file called
-`.env` in this directory with the following contents:
+Finally, you'll want to set an API key for the Inspired Cognition Critique
+service, which is used to evaluate the outputs. You can do this by getting
+the necessary API key:
 
-You can get the necessary API keys here:
+* [Inspired Cognition API Key](https://dashboard.inspiredco.ai)
+
+Then setting it as environment variables in whatever environment you use to
+run the example.
+
+```bash
+INSPIREDCO_API_KEY=...
+```
+
+In adddition, if you want to generate results for the API-based models (this
+is off by default, but can be turned on in config.py) you'll
+need to set the following environment variables:
 
 * [OpenAI API Key](https://openai.com/blog/openai-api/)
 * [Cohere API Key](https://cohere.ai/)
-* [Inspired Cognition API Key](https://dashboard.inspiredco.ai)
-
-Then set them as environment variables in whatever environment you use to
-run the example.
 
 ```bash
 OPENAI_API_KEY=...
 COHERE_API_KEY=...
-INSPIREDCO_API_KEY=...
 ```
 
 ## Run the Example
@@ -71,10 +77,10 @@ python main.py
 This will run ten training runs with various hyperparameters for:
 
 * `prompt_template`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
-* `model`: openai davinci-003 and gpt-3.5-turbo, and cohere command-xlarge
+* `model`: gpt2, llama, alpaca, vicuna, mpt-chat, chatgpt, or cohere
 * `temperature`: between 0.2, 0.3, or 0.4
 
-The results will then be saved to `results.json`, and a visual
+The results will be saved to the `results` directory, and a report of the
 comparison will be displayed using [Zeno](https://zenoml.com/).
 
 ## Modification

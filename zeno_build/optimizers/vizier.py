@@ -21,10 +21,10 @@ class VizierOptimizer(Optimizer):
 
     def __init__(
         self,
-        space: dict[str, search_space.SearchDimension],
-        constants: dict[str, Any],
+        space: search_space.SearchSpace,
         distill_functions: list[Callable[[DataFrame, ZenoOptions], DistillReturn]],
         metric: Callable[[DataFrame, ZenoOptions], MetricReturn],
+        num_trials: int | None = None,
         algorithm: str = "RANDOM_SEARCH",
         owner: str = "zeno-build",
         study_id: str = "zeno-build",
@@ -36,17 +36,21 @@ class VizierOptimizer(Optimizer):
             constants: The constants to use.
             distill_functions: The distill functions to use.
             metric: The metric to use.
+            num_trials: The number of trials to run.
             algorithm: The algorithm to use for optimization.
             owner: The owner of the study.
             study_id: The ID of the study.
         """
-        super().__init__(space, constants, distill_functions, metric)
+        if not isinstance(space, search_space.CombinatorialSearchSpace):
+            raise NotImplementedError("Only combinatorial search spaces are supported.")
+
+        super().__init__(space, distill_functions, metric, num_trials)
         self.algorithm = algorithm
         self.owner = owner
         self.study_id = study_id
         # Algorithm, search space, and metrics.
         study_config = vz.StudyConfig(algorithm=self.algorithm)
-        for name, dimension in space.items():
+        for name, dimension in space.dimensions.items():
             if isinstance(dimension, search_space.Categorical):
                 study_config.search_space.root.add_categorical_param(
                     name, dimension.choices

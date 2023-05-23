@@ -1,7 +1,6 @@
 """Chatbots using API-based services."""
 from __future__ import annotations
 
-import hashlib
 import itertools
 import json
 import os
@@ -50,12 +49,13 @@ def build_examples_from_roles_and_contents(
             yield ChatMessages(messages=list(messages))
 
 
-def load_data(
+def process_data(
     dataset: str | tuple[str, str],
     split: str,
-    examples: int | None,
+    num_examples: int | None,
     data_format: str = "sequence",
     data_column: str = "dialog",
+    output_dir: str = "results",
 ) -> list[ChatMessages]:
     """Load data from the huggingface library.
 
@@ -70,21 +70,30 @@ def load_data(
     Returns:
         The loaded dataset as dialog examples of context and reference.
     """
+    # Load from cache and return if existing
+    parameters = {k: v for k, v in locals().items() if k != "output_dir"}
+    data_dir = os.path.join(output_dir, "data")
+    output_path = get_cache_path(data_dir, parameters, "jsonl")
+    if os.path.exists(output_path):
+        with open(output_path, "r") as f:
+            return [ChatMessages.from_dict(json.loads(x)) for x in f]
+
+    # Load and standardize from Hugging Face if not in cache
     if isinstance(dataset, tuple):
         dname, subdname = dataset
         loaded_data = datasets.load_dataset(dname, subdname, split=split)
     else:
         loaded_data = datasets.load_dataset(dataset, split=split)
-    if examples is not None:
-        loaded_data = loaded_data.select(range(examples))
+    if num_examples is not None:
+        loaded_data = loaded_data.select(range(num_examples))
     if data_format == "sequence":
-        return list(
+        messages = list(
             itertools.chain.from_iterable(
                 build_examples_from_sequence(x[data_column]) for x in loaded_data
             )
         )
     elif data_format == "dstc11":
-        return list(
+        messages = list(
             itertools.chain.from_iterable(
                 build_examples_from_roles_and_contents(
                     x[data_column]["speaker_role"],
@@ -100,21 +109,32 @@ def load_data(
     else:
         raise ValueError(f"Unknown data format {data_format}")
 
+    # Save output
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as f:
+        for x in messages:
+            print(json.dumps(x.to_dict()), file=f)
+
+    return messages
+
 
 def make_predictions(
-    data: list[ChatMessages],
+    contexts: list[ChatMessages],
+    dataset_preset: str,
     prompt_preset: str,
     model_preset: str,
     temperature: float = 0.3,
     max_tokens: int = 100,
     top_p: float = 1,
     context_length: int = -1,
-    cache_root: str | None = None,
+    output_dir: str = "results",
 ) -> list[str]:
     """Make predictions over a particular dataset.
 
     Args:
-        data: The test dataset containing all messages up to last user one.
+        contexts: The previous chat contexts to generate from.
+        dataset_preset: The name of the dataset to use (solely for the purpose)
+            of recording in the system output parameters.
         prompt_preset: The prompt to use for the API call.
         model_preset: The model to use for the API call.
         temperature: The temperature to use for sampling.
@@ -122,29 +142,28 @@ def make_predictions(
         top_p: The value to use for top-p sampling.
         context_length: The maximum length of the context to use. If 0,
             use the full context.
-        cache_root: The location of the cache directory if any
+        output_dir: The location of the cache directory if any
+
+    Side effects:
+        - Saves the predictions in the `output_root/predictions` directory
+        - Saves the generated data `output_root/data` directory
 
     Returns:
         The predictions in string format.
     """
     # Load from cache if existing
-    cache_path: str | None = None
-    if cache_root is not None:
-        parameters = dict(locals())
-        parameters["__name__"] = make_predictions.__name__
-        parameters["data_hash"] = hashlib.sha256(
-            json.dumps(parameters.pop("data"), default=str).encode("utf-8")
-        ).hexdigest()
-        for k in ["cache_root", "cache_path"]:
-            parameters.pop(k)
-        cache_path = get_cache_path(cache_root, parameters, "json")
-        if os.path.exists(cache_path):
-            with open(cache_path, "r") as f:
-                return json.load(f)
+    parameters = {
+        k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
+    }
+    predictions_dir = os.path.join(output_dir, "predictions")
+    output_path = get_cache_path(predictions_dir, parameters, "json")
+    if os.path.exists(output_path):
+        with open(output_path, "r") as f:
+            return json.load(f)
 
     # Make predictions
     predictions: list[str] = generate_from_chat_prompt(
-        data,
+        contexts,
         chatbot_config.prompt_messages[prompt_preset],
         chatbot_config.model_configs[model_preset],
         temperature,
@@ -154,7 +173,7 @@ def make_predictions(
     )
 
     # Dump the cache and return
-    if cache_path is not None:
-        with open(cache_path, "w") as f:
+    if output_path is not None:
+        with open(output_path, "w") as f:
             json.dump(predictions, f)
     return predictions

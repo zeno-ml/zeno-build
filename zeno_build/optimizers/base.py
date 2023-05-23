@@ -18,16 +18,16 @@ class Optimizer:
 
     def __init__(
         self,
-        space: dict[str, search_space.SearchDimension],
-        constants: dict[str, Any],
+        space: search_space.SearchSpace,
         distill_functions: list[Callable[[DataFrame, ZenoOptions], DistillReturn]],
         metric: Callable[[DataFrame, ZenoOptions], MetricReturn],
+        num_trials: int | None,
     ):
         """Initialize an optimizer."""
         self.space = space
-        self.constants = constants
         self.distill_functions = distill_functions
         self.metric = metric
+        self.num_trials = num_trials
 
     def calculate_metric(
         self, data: list[Any], labels: list[Any], outputs: list[Any]
@@ -58,3 +58,24 @@ class Optimizer:
         for distill_function in self.distill_functions:
             df[distill_function.__name__] = distill_function(df, ops).distill_output
         return self.metric(df, ops).metric
+
+    def check_for_completion(
+        self,
+        output_dir: str,
+        include_in_progress: bool = False,
+    ) -> bool:
+        """Check if the optimizer has completed.
+
+        Args:
+            output_dir: The directory where the results of each trial are stored.
+            include_in_progress: Whether to include trials that are still running.
+
+        Returns:
+            True if the optimizer run has completed.
+        """
+        if self.num_trials is None:
+            return False
+        valid_param_files = self.space.get_valid_param_files(
+            output_dir=output_dir, include_in_progress=include_in_progress
+        )
+        return len(valid_param_files) >= self.num_trials

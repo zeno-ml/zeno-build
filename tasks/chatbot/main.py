@@ -4,132 +4,130 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 from dataclasses import asdict
 
-import cohere
-import openai
 import pandas as pd
 
 from tasks.chatbot import config as chatbot_config
-from tasks.chatbot.modeling import load_data, make_predictions
+from tasks.chatbot.modeling import make_predictions, process_data
+from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
-from zeno_build.models import global_models
 from zeno_build.optimizers import standard
-from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
+from zeno_build.prompts.chat_prompt import ChatMessages
 from zeno_build.reporting.visualize import visualize
 
 
 def chatbot_main(
     results_dir: str,
-    cached_data: str | None = None,
-    cached_runs: str | None = None,
+    do_prediction: bool = True,
     do_visualization: bool = True,
 ):
     """Run the chatbot experiment."""
-    # Make results dir if it doesn't exist
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
+    # Get the dataset configuration
+    dataset_preset = chatbot_config.space["dataset"]
+    if not isinstance(dataset_preset, search_space.Constant):
+        raise ValueError("All experiments must be run on a single dataset.")
+    dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
 
-    # Load the necessary data, either from HuggingFace or a cached file
-    if cached_data is None:
-        contexts_and_labels = load_data(
-            chatbot_config.constants.pop("test_dataset"),
-            chatbot_config.constants.pop("test_split"),
-            data_format=chatbot_config.constants.pop("data_format", "dstc11"),
-            data_column=chatbot_config.constants.pop("data_column", "turns"),
-            examples=chatbot_config.constants.pop("test_examples"),
-        )
-        with open(os.path.join(results_dir, "examples.json"), "w") as f:
-            json.dump([asdict(x) for x in contexts_and_labels], f)
-    else:
-        with open(cached_data, "r") as f:
-            contexts_and_labels = [
-                ChatMessages(
-                    messages=[
-                        ChatTurn(role=y["role"], content=y["content"])
-                        for y in x["messages"]
-                    ]
-                )
-                for x in json.load(f)
-            ]
-    # Organize the data into source and context
+    data_dir = os.path.join(results_dir, "data")
+    predictions_dir = os.path.join(results_dir, "predictions")
+
+    # Load and standardize the format of the necessary data. The resulting
+    # processed data will be stored in the `results_dir/data` directory
+    # both for browsing and for caching for fast reloading on future runs.
+    contexts_and_labels: list[ChatMessages] = process_data(
+        dataset=dataset_config.dataset,
+        split=dataset_config.split,
+        data_format=dataset_config.data_format,
+        data_column=dataset_config.data_column,
+        output_dir=data_dir,
+    )
+
+    # Organize the data into labels (output) and context (input)
     labels: list[str] = []
     contexts: list[ChatMessages] = []
     for x in contexts_and_labels:
         labels.append(x.messages[-1].content)
         contexts.append(ChatMessages(x.messages[:-1]))
 
-    # Run the hyperparameter sweep and print out results
-    results: list[ExperimentRun] = []
-    if cached_runs is not None:
-        with open(cached_runs, "r") as f:
-            serialized_results = json.load(f)
-        results = [ExperimentRun(**x) for x in serialized_results]
-    else:
-        # Set all API keys
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-        global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
-
+    if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
             space=chatbot_config.space,
-            constants=chatbot_config.constants,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
+            num_trials=chatbot_config.num_trials,
         )
-        for _ in range(chatbot_config.num_trials):
+
+        while not optimizer.check_for_completion(
+            predictions_dir, include_in_progress=True
+        ):
             parameters = optimizer.get_parameters()
             predictions = make_predictions(
-                data=contexts,
+                contexts=contexts,
+                dataset_preset=parameters["dataset_preset"],
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
                 temperature=parameters["temperature"],
                 max_tokens=parameters["max_tokens"],
                 top_p=parameters["top_p"],
                 context_length=parameters["context_length"],
-                cache_root=os.path.join(results_dir, "cache"),
+                output_dir=predictions_dir,
             )
             eval_result = optimizer.calculate_metric(contexts, labels, predictions)
-            run = ExperimentRun(
-                parameters=parameters,
-                predictions=predictions,
-                eval_result=eval_result,
-            )
-            results.append(run)
+            print("*** Iteration complete. ***")
+            print(f"Parameters: {parameters}")
+            print(f"Eval: {eval_result}")
+            print("***************************")
 
-        serialized_results = [asdict(x) for x in results]
-        with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-            json.dump(serialized_results, f)
-
-    # Make readable names
-    for run in results:
-        if run.name is None:
-            run.name = " ".join(
-                [
-                    run.parameters[k]
-                    if isinstance(run.parameters[k], str)
-                    else f"{k}={run.parameters[k]}"
-                    for k in chatbot_config.space.keys()
-                ]
-            )
-
-    # Perform the visualization
     if do_visualization:
-        df = pd.DataFrame(
-            {
-                "messages": [[asdict(y) for y in x.messages] for x in contexts],
-                "label": labels,
-            }
+        param_files = chatbot_config.space.get_valid_param_files(
+            predictions_dir, include_in_progress=False
         )
-        visualize(
-            df,
-            labels,
-            results,
-            "openai-chat",
-            "messages",
-            chatbot_config.zeno_distill_and_metric_functions,
-        )
+        if len(param_files) < chatbot_config.num_trials:
+            logging.getLogger().warning(
+                "Not enough completed but performing visualization anyway."
+            )
+        results: list[ExperimentRun] = []
+        for param_file in param_files:
+            assert param_file.endswith(".zbp")
+            with open(param_file, "r") as f:
+                parameters = json.load(f)
+            with open(f"{param_file[:-3]}.jsonl", "r") as f:
+                predictions = [json.loads(x) for x in f.readlines()]
+            results.append(
+                ExperimentRun(parameters=parameters, predictions=predictions)
+            )
+
+        # Make readable names
+        for run in results:
+            if run.name is None:
+                run.name = " ".join(
+                    [
+                        run.parameters[k]
+                        if isinstance(run.parameters[k], str)
+                        else f"{k}={run.parameters[k]}"
+                        for k in chatbot_config.space.dimensions.keys()
+                    ]
+                )
+
+            # Perform the visualization
+            df = pd.DataFrame(
+                {
+                    "messages": [[asdict(y) for y in x.messages] for x in contexts],
+                    "label": labels,
+                }
+            )
+            visualize(
+                df,
+                labels,
+                results,
+                "openai-chat",
+                "messages",
+                chatbot_config.zeno_distill_and_metric_functions,
+            )
 
 
 if __name__ == "__main__":
@@ -142,27 +140,26 @@ if __name__ == "__main__":
         help="The directory to store the results in.",
     )
     parser.add_argument(
-        "--cached_data",
-        type=str,
-        default=None,
-        help="A path to a json file with the cached data.",
-    )
-    parser.add_argument(
-        "--cached_runs",
-        type=str,
-        default=None,
-        help="A path to a json file with cached runs.",
+        "--skip_prediction",
+        type=bool,
+        action="store_true",
+        help="Skip prediction and just do visualization.",
     )
     parser.add_argument(
         "--skip_visualization",
+        type=bool,
         action="store_true",
-        help="Whether to skip the visualization step.",
+        help="Skip visualization and just do prediction.",
     )
     args = parser.parse_args()
 
+    if args.skip_prediction and args.skip_visualization:
+        raise ValueError(
+            "Cannot specify both --skip_prediction and --skip_visualization."
+        )
+
     chatbot_main(
         results_dir=args.results_dir,
-        cached_data=args.cached_data,
-        cached_runs=args.cached_runs,
+        do_prediction=not args.skip_prediction,
         do_visualization=not args.skip_visualization,
     )
