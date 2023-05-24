@@ -1,99 +1,132 @@
-"""The main entry point for performing comparison on text summarization."""
+"""The main entry point for performing comparison on summarizations."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
-from dataclasses import asdict
 
-import cohere
-import modeling
-import openai
 import pandas as pd
 
 from tasks.summarization import config as summarization_config
+from tasks.summarization.modeling import load_data, make_predictions
+from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
-from zeno_build.models import global_models
 from zeno_build.optimizers import standard
 from zeno_build.reporting.visualize import visualize
 
 
 def summarization_main(
     results_dir: str,
-    cached_data: str | None = None,
-    cached_runs: str | None = None,
+    do_prediction: bool = True,
+    do_visualization: bool = True,
 ):
     """Run the summarization experiment."""
-    # Make results dir if it doesn't exist
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
+    # Get the dataset configuration
+    dataset_preset = summarization_config.space.dimensions["dataset_preset"]
+    if not isinstance(dataset_preset, search_space.Constant):
+        raise ValueError("All experiments must be run on a single dataset.")
+    dataset_config = summarization_config.dataset_configs[dataset_preset.value]
 
-    # Load the necessary data, either from HuggingFace or a cached file
-    if cached_data is None:
-        data_and_labels = modeling.load_data(
-            summarization_config.constants.pop("test_dataset"),
-            summarization_config.constants.pop("test_split"),
-            examples=summarization_config.constants.pop("test_examples"),
-        )
-        with open(os.path.join(results_dir, "examples.json"), "w") as f:
-            json.dump(data_and_labels, f)
-    else:
-        with open(cached_data, "r") as f:
-            data_and_labels = json.load(f)
-    data = [x["data"] for x in data_and_labels]
-    labels = [x["label"] for x in data_and_labels]
-    df = pd.DataFrame({"source": data})
+    data_dir = os.path.join(results_dir, "data")
+    predictions_dir = os.path.join(results_dir, "predictions")
 
-    # Run the hyperparameter sweep and print out results
-    results: list[ExperimentRun] = []
-    if cached_runs is not None:
-        with open(cached_runs, "r") as f:
-            serialized_results = json.load(f)
-        results = [ExperimentRun(**x) for x in serialized_results]
-    else:
-        # Set all API keys
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-        global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
+    # Load and standardize the format of the necessary data. The resulting
+    # processed data will be stored in the `results_dir/data` directory
+    # both for browsing and for caching for fast reloading on future runs.
+    data_and_labels: list[dict[str, str]] = load_data(
+        dataset=dataset_config.dataset,
+        split=dataset_config.split,
+        data_format=dataset_config.data_format,
+        data_column=dataset_config.data_column,
+        output_dir=data_dir,
+    )
 
+    # Organize the data into labels (output) and context (input)
+    data: list[str] = [d["data"] for d in data_and_labels]
+    labels: list[str] = [d["label"] for d in data_and_labels]
+
+    if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
             space=summarization_config.space,
-            constants=summarization_config.constants,
             distill_functions=summarization_config.sweep_distill_functions,
             metric=summarization_config.sweep_metric_function,
+            num_trials=summarization_config.num_trials,
         )
-        for i in range(summarization_config.num_trials):
+
+        while not optimizer.check_for_completion(
+            predictions_dir, include_in_progress=True
+        ):
             parameters = optimizer.get_parameters()
-            predictions = modeling.make_predictions(
+            predictions = make_predictions(
                 data=data,
+                dataset_preset=parameters["dataset_preset"],
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
                 temperature=parameters["temperature"],
                 max_tokens=parameters["max_tokens"],
                 top_p=parameters["top_p"],
-                cache_root=os.path.join(results_dir, "cache"),
+                context_length=parameters["context_length"],
+                output_dir=predictions_dir,
             )
+            if predictions is None:
+                print(f"*** Skipped run for {parameters=} ***")
+                continue
             eval_result = optimizer.calculate_metric(data, labels, predictions)
-            run = ExperimentRun(
-                parameters=parameters,
-                predictions=predictions,
-                eval_result=eval_result,
+            print("*** Iteration complete. ***")
+            print(f"Parameters: {parameters}")
+            print(f"Eval: {eval_result}")
+            print("***************************")
+
+    if do_visualization:
+        param_files = summarization_config.space.get_valid_param_files(
+            predictions_dir, include_in_progress=False
+        )
+        if len(param_files) < summarization_config.num_trials:
+            logging.getLogger().warning(
+                "Not enough completed but performing visualization anyway."
             )
-            results.append(run)
+        results: list[ExperimentRun] = []
+        for param_file in param_files:
+            assert param_file.endswith(".zbp")
+            with open(param_file, "r") as f:
+                parameters = json.load(f)
+            with open(f"{param_file[:-3]}.jsonl", "r") as f:
+                predictions = [json.loads(x) for x in f.readlines()]
+            results.append(
+                ExperimentRun(parameters=parameters, predictions=predictions)
+            )
 
-        serialized_results = [asdict(x) for x in results]
-        with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-            json.dump(serialized_results, f)
+        # Make readable names
+        for run in results:
+            if run.name is None:
+                run.name = " ".join(
+                    [
+                        run.parameters[k]
+                        if isinstance(run.parameters[k], str)
+                        else f"{k}={run.parameters[k]}"
+                        for k, v in summarization_config.space.dimensions.items()
+                        if not isinstance(v, search_space.Constant)
+                    ]
+                )
 
-    visualize(
-        df,
-        labels,
-        results,
-        "text-classification",
-        "source",
-        summarization_config.zeno_distill_and_metric_functions,
-    )
+            # Perform the visualization
+            df = pd.DataFrame(
+                {
+                    "data": data,
+                    "label": labels,
+                }
+            )
+            visualize(
+                df,
+                labels,
+                results,
+                "text-classification",
+                "data",
+                summarization_config.zeno_distill_and_metric_functions,
+            )
 
 
 if __name__ == "__main__":
@@ -106,21 +139,24 @@ if __name__ == "__main__":
         help="The directory to store the results in.",
     )
     parser.add_argument(
-        "--cached_data",
-        type=str,
-        default=None,
-        help="A path to a json file with the cached data.",
+        "--skip_prediction",
+        action="store_true",
+        help="Skip prediction and just do visualization.",
     )
     parser.add_argument(
-        "--cached_runs",
-        type=str,
-        default=None,
-        help="A path to a json file with cached runs.",
+        "--skip_visualization",
+        action="store_true",
+        help="Skip visualization and just do prediction.",
     )
     args = parser.parse_args()
 
+    if args.skip_prediction and args.skip_visualization:
+        raise ValueError(
+            "Cannot specify both --skip_prediction and --skip_visualization."
+        )
+
     summarization_main(
         results_dir=args.results_dir,
-        cached_data=args.cached_data,
-        cached_runs=args.cached_runs,
+        do_prediction=not args.skip_prediction,
+        do_visualization=not args.skip_visualization,
     )
