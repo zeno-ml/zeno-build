@@ -19,10 +19,13 @@ space = search_space.CombinatorialSearchSpace(
         "model_preset": search_space.Categorical(
             ["distilbert-base-uncased", "bert-base-uncased"]
         ),
-        "learning_rate": search_space.Float(1e-5, 1e-3),
+        # "learning_rate": search_space.Float(1e-5, 1e-3),
+        "learning_rate": search_space.Discrete([1e-5, 1e-4, 1e-3]),
         "num_train_epochs": search_space.Int(1, 4),
-        "weight_decay": search_space.Float(0.0, 0.01),
-        "bias": search_space.Float(-1.0, 1.0),
+        # "weight_decay": search_space.Float(0.0, 0.01),
+        "weight_decay": search_space.Constant(0.0),
+        # "bias": search_space.Float(-1.0, 1.0),
+        "bias": search_space.Discrete([-0.1, 0.0, 0.1]),
     }
 )
 
@@ -52,7 +55,8 @@ dataset_configs = {
 }
 
 # The number of trials to run
-num_trials = 10
+# num_trials = 10
+num_trials = 100
 
 # The functions to use to calculate scores for the hyperparameter sweep
 sweep_distill_functions = [exact_match]
