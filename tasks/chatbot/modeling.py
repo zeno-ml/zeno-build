@@ -4,6 +4,7 @@ from __future__ import annotations
 import itertools
 import json
 import os
+import traceback
 from collections.abc import Iterable
 from typing import Literal
 
@@ -177,7 +178,8 @@ def make_predictions(
                 context_length,
             )
         except Exception:
-            fail_cache(file_root)
+            tb = traceback.format_exc()
+            fail_cache(file_root, tb)
             raise
 
         # Dump the cache and return

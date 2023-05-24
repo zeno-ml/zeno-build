@@ -76,6 +76,9 @@ def chatbot_main(
                 context_length=parameters["context_length"],
                 output_dir=predictions_dir,
             )
+            if predictions is None:
+                print(f"*** Skipped run for {parameters=} ***")
+                continue
             eval_result = optimizer.calculate_metric(contexts, labels, predictions)
             print("*** Iteration complete. ***")
             print(f"Parameters: {parameters}")

@@ -50,10 +50,11 @@ def get_cache_path(
     )
 
 
-def fail_cache(cache_file: str) -> None:
+def fail_cache(cache_file: str, cache_message: str | None) -> None:
     """Mark a cache as failed."""
-    with open(cache_file + ".zbfail", "w"):
-        pass
+    with open(cache_file + ".zbfail", "w") as f:
+        if cache_message is not None:
+            print(cache_message, file=f)
 
 
 class CacheLock:
