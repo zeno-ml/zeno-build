@@ -75,8 +75,7 @@ def process_data(
     """
     # Load from cache and return if existing
     parameters = {k: v for k, v in locals().items() if k != "output_dir"}
-    data_dir = os.path.join(output_dir, "data")
-    output_path = get_cache_path(data_dir, parameters, "jsonl")
+    output_path = get_cache_path(output_dir, parameters, "jsonl")
     if os.path.exists(output_path):
         with open(output_path, "r") as f:
             return [ChatMessages.from_dict(json.loads(x)) for x in f]
@@ -156,8 +155,7 @@ def make_predictions(
     parameters = {
         k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
     }
-    predictions_dir = os.path.join(output_dir, "predictions")
-    output_path = get_cache_path(predictions_dir, parameters, "json")
+    output_path = get_cache_path(output_dir, parameters, "json")
     if os.path.exists(output_path):
         with open(output_path, "r") as f:
             return json.load(f)
