@@ -4,9 +4,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
-
-from pyparsing import Any
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
