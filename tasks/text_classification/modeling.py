@@ -53,14 +53,15 @@ def train_model(
     )
 
     # Load dataset
-    dataset_config = text_classification_config.dataset_configs[training_dataset_preset]
-    dataset = load_data(dataset_config)
+    dataset = load_data(training_dataset_preset)
+    data_column = text_classification_config.dataset_configs[
+        training_dataset_preset
+    ].data_column
 
-    tokenized_dataset = [
-        {"text": tokenizer(x, padding="max_length", truncation=True), "label": y}
-        for x, y in dataset
-    ]
-    tokenized_hf_dataset = datasets.Dataset.from_dict(tokenized_dataset)
+    def tokenize_function(examples):
+        return tokenizer(examples[data_column], padding="max_length", truncation=True)
+
+    tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
     # Define training settings
     training_args = transformers.TrainingArguments(
@@ -75,7 +76,7 @@ def train_model(
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_hf_dataset,
+        train_dataset=tokenized_dataset,
     )
     trainer.train()
 
@@ -88,7 +89,8 @@ def train_model(
 
 
 def make_predictions(
-    test_data: list[str],
+    test_data: datasets.Dataset,
+    data_column: str,
     label_mapping: list[str],
     model: transformers.PreTrainedModel,
     tokenizer: transformers.PreTrainedTokenizer,
@@ -98,6 +100,8 @@ def make_predictions(
 
     Args:
         test_data: The test data to use.
+        data_column: The name of the column containing the data.
+        label_mapping: The mapping from integers to labels.
         model: The model to evaluate.
         tokenizer: The tokenizer to use.
         bias: The bias to apply to the first class.
@@ -105,14 +109,15 @@ def make_predictions(
     Returns:
         The predictions in string format.
     """
-    tokenized_dataset = [
-        {"text": tokenizer(x, padding="max_length", truncation=True)} for x in test_data
-    ]
-    tokenized_hf_dataset = datasets.Dataset.from_dict(tokenized_dataset)
+    # Load dataset
+    def tokenize_function(examples):
+        return tokenizer(examples[data_column], padding="max_length", truncation=True)
+
+    tokenized_dataset = test_data.map(tokenize_function, batched=True)
 
     # Make predictions
     trainer = transformers.Trainer(model=model)
-    predictions = trainer.predict(tokenized_hf_dataset)
+    predictions = trainer.predict(tokenized_dataset)
 
     # Convert predictions to labels
     predictions.predictions[:, 0] += bias
@@ -122,7 +127,7 @@ def make_predictions(
     ]
 
 
-def load_data(dataset_preset: str) -> list[tuple[str, str]]:
+def load_data(dataset_preset: str) -> datasets.Dataset:
     """Load data from the huggingface library.
 
     Args:
@@ -140,13 +145,9 @@ def load_data(dataset_preset: str) -> list[tuple[str, str]]:
     config = text_classification_config.dataset_configs[dataset_preset]
     if isinstance(config.dataset, tuple):
         dname, subdname = config.dataset
-        loaded_data = datasets.load_dataset(dname, subdname, split=config.split)
+        return datasets.load_dataset(dname, subdname, split=config.split)
     else:
-        loaded_data = datasets.load_dataset(config.dataset, split=config.split)
-    return [
-        (x[config.data_column], config.label_mapping[x[config.label_column]])
-        for x in loaded_data
-    ]
+        return datasets.load_dataset(config.dataset, split=config.split)
 
 
 def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
@@ -222,8 +223,11 @@ def train_and_predict(
     # Make predictions
     predictions = make_predictions(
         test_data=test_data,
-        label_mapping=text_classification_config.dataset_configs[
+        data_column=text_classification_config.dataset_configs[
             test_dataset_preset
+        ].data_column,
+        label_mapping=text_classification_config.dataset_configs[
+            training_dataset_preset
         ].label_mapping,
         model=model,
         tokenizer=tokenizer,

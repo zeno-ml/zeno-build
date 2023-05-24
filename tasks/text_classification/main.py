@@ -7,6 +7,7 @@ import json
 import logging
 import os
 
+import datasets
 import pandas as pd
 
 from tasks.text_classification import config as text_classification_config
@@ -35,13 +36,14 @@ def text_classification_main(
     predictions_dir = os.path.join(results_dir, "predictions")
 
     # Load the necessary data
-    test_data_and_labels: list[tuple[str, str]] = load_data(
-        dataset_preset=test_dataset_preset
-    )
+    test_dataset_config = text_classification_config.dataset_configs[
+        test_dataset_preset
+    ]
+    test_dataset: datasets.Dataset = load_data(test_dataset_preset)
 
     # Organize the data into labels (output) and context (input)
-    test_data: list[str] = [x for x, _ in test_data_and_labels]
-    test_labels: list[str] = [x for _, x in test_data_and_labels]
+    test_data: list[str] = [x[test_dataset_config.data_column] for x in test_dataset]
+    test_labels: list[str] = [x[test_dataset_config.label_column] for x in test_dataset]
 
     if do_prediction:
         # Perform the hyperparameter sweep
@@ -57,7 +59,7 @@ def text_classification_main(
         ):
             parameters = optimizer.get_parameters()
             predictions = train_and_predict(
-                test_data=test_data,
+                test_data=test_dataset,
                 test_dataset_preset=test_dataset_preset,
                 training_dataset_preset=parameters["training_dataset_preset"],
                 model_preset=parameters["model_preset"],
