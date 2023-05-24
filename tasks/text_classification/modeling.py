@@ -45,7 +45,7 @@ def train_model(
             model = transformers.AutoModelForSequenceClassification.from_pretrained(
                 output_path
             )
-        return tokenizer, model
+        return model, tokenizer
 
     # Load tokenizer and model
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_preset)
