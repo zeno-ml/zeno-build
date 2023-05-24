@@ -10,7 +10,7 @@ from typing import Literal
 import datasets
 
 from tasks.chatbot import config as chatbot_config
-from zeno_build.cache_utils import get_cache_path
+from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
 from zeno_build.models.chat_generate import generate_from_chat_prompt
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
@@ -128,7 +128,7 @@ def make_predictions(
     top_p: float = 1,
     context_length: int = -1,
     output_dir: str = "results",
-) -> list[str]:
+) -> list[str] | None:
     """Make predictions over a particular dataset.
 
     Args:
@@ -155,24 +155,34 @@ def make_predictions(
     parameters = {
         k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
     }
-    output_path = get_cache_path(output_dir, parameters, "json")
-    if os.path.exists(output_path):
-        with open(output_path, "r") as f:
+    file_root = get_cache_path(output_dir, parameters)
+    if os.path.exists(f"{file_root}.json"):
+        with open(f"{file_root}.json", "r") as f:
             return json.load(f)
 
-    # Make predictions
-    predictions: list[str] = generate_from_chat_prompt(
-        contexts,
-        chatbot_config.prompt_messages[prompt_preset],
-        chatbot_config.model_configs[model_preset],
-        temperature,
-        max_tokens,
-        top_p,
-        context_length,
-    )
+    with CacheLock(file_root) as cache_lock:
+        # If the cache is locked, then another process is already generating
+        # so just skip this one
+        if not cache_lock:
+            return None
+        # Make predictions
+        try:
+            predictions: list[str] = generate_from_chat_prompt(
+                contexts,
+                chatbot_config.prompt_messages[prompt_preset],
+                chatbot_config.model_configs[model_preset],
+                temperature,
+                max_tokens,
+                top_p,
+                context_length,
+            )
+        except Exception:
+            fail_cache(file_root)
+            raise
 
-    # Dump the cache and return
-    if output_path is not None:
-        with open(output_path, "w") as f:
-            json.dump(predictions, f)
+        # Dump the cache and return
+        if file_root is not None:
+            with open(f"{file_root}.json", "w") as f:
+                json.dump(predictions, f)
+
     return predictions
