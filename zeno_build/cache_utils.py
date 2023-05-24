@@ -61,7 +61,7 @@ class CacheLock:
 
     def __init__(self, filename: str):
         """Initialize the lock."""
-        self.lock_path = os.path.join(filename, ".zblock")
+        self.lock_path = f"{filename}.zblock"
 
     def __enter__(self) -> bool:
         """Enter the cache lock.
