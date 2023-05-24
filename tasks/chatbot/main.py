@@ -112,7 +112,8 @@ def chatbot_main(
                         run.parameters[k]
                         if isinstance(run.parameters[k], str)
                         else f"{k}={run.parameters[k]}"
-                        for k in chatbot_config.space.dimensions.keys()
+                        for k, v in chatbot_config.space.dimensions.items()
+                        if not isinstance(v, search_space.Constant)
                     ]
                 )
 

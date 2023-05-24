@@ -9,25 +9,23 @@ from collections.abc import Sequence
 import datasets
 import transformers
 
-from tasks.text_classification import config as classification_config
+from tasks.text_classification import config as text_classification_config
 from zeno_build.cache_utils import get_cache_path
 
 
 def train_model(
-    training_dataset: str | tuple[str, str],
-    base_model: str,
-    learning_rate: float = 2e-5,
-    num_train_epochs: int = 3,
-    weight_decay: float = 0.01,
-    training_split: str = "train",
-    training_examples: int | None = None,
-    cache_root: str | None = None,
+    training_dataset_preset: str,
+    model_preset: str,
+    learning_rate: float,
+    num_train_epochs: int,
+    weight_decay: float,
+    models_dir: str,
 ) -> tuple[transformers.PreTrainedModel, transformers.PreTrainedTokenizer]:
     """Train a model on a text classification task.
 
     Args:
         training_dataset: The path to the training dataset, either as string or tuple.
-        base_model: The name of the base model to use.
+        model_preset: The name of the base model to use.
         learning_rate: The learning rate to use
         num_train_epoch: The number of epochs to train for
         weight_decay: The weight decay parameter to use
@@ -38,40 +36,35 @@ def train_model(
     Returns:
         The trained model and tokenizer.
     """
-    # Load from cache if existing
-    cache_path: str | None = None
-    if cache_root is not None:
-        parameters = dict(locals())
-        parameters["__name__"] = train_model.__name__
-        cache_path = get_cache_path(cache_root, parameters)
-        if os.path.exists(cache_path):
-            tokenizer = transformers.AutoTokenizer.from_pretrained(cache_path)
+    parameters = {k: v for k, v in locals().items() if k != "models_dir"}
+    output_path = get_cache_path(models_dir, parameters)
+    if os.path.exists(output_path):
+        if os.path.exists(output_path):
+            tokenizer = transformers.AutoTokenizer.from_pretrained(output_path)
             model = transformers.AutoModelForSequenceClassification.from_pretrained(
-                cache_path
+                output_path
             )
-            return tokenizer, model
+        return tokenizer, model
 
     # Load tokenizer and model
-    tokenizer = transformers.AutoTokenizer.from_pretrained(base_model)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_preset)
     model = transformers.AutoModelForSequenceClassification.from_pretrained(
-        base_model, num_labels=2
+        model_preset, num_labels=2
     )
 
     # Load dataset
-    dataset = load_data(training_dataset, training_split, examples=training_examples)
-    mapping = classification_config.dataset_mapping.get(training_dataset, {})
+    dataset_config = text_classification_config.dataset_configs[training_dataset_preset]
+    dataset = load_data(dataset_config)
 
-    # Tokenize data
-    input_name = mapping.get("input", "text")
-
-    def tokenize_function(examples):
-        return tokenizer(examples[input_name], padding="max_length", truncation=True)
-
-    tokenized_datasets = dataset.map(tokenize_function, batched=True)
+    tokenized_dataset = [
+        {"text": tokenizer(x, padding="max_length", truncation=True), "label": y}
+        for x, y in dataset
+    ]
+    tokenized_hf_dataset = datasets.Dataset.from_dict(tokenized_dataset)
 
     # Define training settings
     training_args = transformers.TrainingArguments(
-        output_dir=cache_path,
+        output_dir=output_path,
         learning_rate=learning_rate,
         per_device_train_batch_size=16,
         num_train_epochs=num_train_epochs,
@@ -82,21 +75,21 @@ def train_model(
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_datasets,
+        train_dataset=tokenized_hf_dataset,
     )
     trainer.train()
 
     # Save the model
-    if cache_path is not None:
-        tokenizer.save_pretrained(cache_path)
-        model.save_pretrained(cache_path)
+    if output_path is not None:
+        tokenizer.save_pretrained(output_path)
+        model.save_pretrained(output_path)
 
     return model, tokenizer
 
 
 def make_predictions(
-    data: datasets.Dataset,
-    test_dataset: str | tuple[str, str],
+    test_data: list[str],
+    label_mapping: list[str],
     model: transformers.PreTrainedModel,
     tokenizer: transformers.PreTrainedTokenizer,
     bias: float = 0.0,
@@ -104,60 +97,56 @@ def make_predictions(
     """Make predictions over a particular dataset.
 
     Args:
-        data: The data from the test dataset.
-        test_dataset: The path to the test dataset.
+        test_data: The test data to use.
         model: The model to evaluate.
         tokenizer: The tokenizer to use.
         bias: The bias to apply to the first class.
-        test_split: The split of the test dataset to use.
 
     Returns:
         The predictions in string format.
     """
-    # Load dataset
-    mapping = classification_config.dataset_mapping.get(test_dataset, {})
-
-    # Tokenize data
-    input_name = mapping.get("input", "text")
-
-    def tokenize_function(examples):
-        return tokenizer(examples[input_name], padding="max_length", truncation=True)
-
-    tokenized_datasets = data.map(tokenize_function, batched=True)
+    tokenized_dataset = [
+        {"text": tokenizer(x, padding="max_length", truncation=True)} for x in test_data
+    ]
+    tokenized_hf_dataset = datasets.Dataset.from_dict(tokenized_dataset)
 
     # Make predictions
     trainer = transformers.Trainer(model=model)
-    predictions = trainer.predict(tokenized_datasets)
+    predictions = trainer.predict(tokenized_hf_dataset)
 
     # Convert predictions to labels
-    labels: Sequence[str] = mapping.get("label_mapping", data.features["label"].names)
     predictions.predictions[:, 0] += bias
     return [
-        labels[prediction] for prediction in predictions.predictions.argmax(axis=-1)
+        label_mapping[prediction]
+        for prediction in predictions.predictions.argmax(axis=-1)
     ]
 
 
-def load_data(
-    dataset: str | tuple[str, str], split: str, examples: int | None = None
-) -> datasets.Dataset:
-    """Get the full dataset for task.
+def load_data(dataset_preset: str) -> list[tuple[str, str]]:
+    """Load data from the huggingface library.
 
     Args:
-        dataset: The path to the test dataset.
-        split: The split of the test dataset to use.
-        examples: The number of examples to use.
+        dataset: The name of the dataset to load, either:
+          - A string, the name of the dataset.
+          - A tuple of strings, the name of the dataset and the name of the
+            subdataset.
+        split: The split of the dataset to load.
+        data_column: The name of the column containing the data.
+        label_column: The name of the column containing the labels.
 
     Returns:
-        The dataset.
+        The loaded dataset as dialog examples of context and reference.
     """
-    if isinstance(dataset, tuple):
-        dname, subdname = dataset
-        loaded_data = datasets.load_dataset(dname, subdname, split=split)
+    config = text_classification_config.dataset_configs[dataset_preset]
+    if isinstance(config.dataset, tuple):
+        dname, subdname = config.dataset
+        loaded_data = datasets.load_dataset(dname, subdname, split=config.split)
     else:
-        loaded_data = datasets.load_dataset(dataset, split=split)
-    if examples is not None:
-        loaded_data = loaded_data.select(range(examples))
-    return loaded_data
+        loaded_data = datasets.load_dataset(config.dataset, split=config.split)
+    return [
+        (x[config.data_column], config.label_mapping[x[config.label_column]])
+        for x in loaded_data
+    ]
 
 
 def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
@@ -171,7 +160,7 @@ def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
         The labels in string format.
     """
     # Load dataset
-    mapping = classification_config.dataset_mapping.get(dataset_name, {})
+    mapping = text_classification_config.dataset_mapping.get(dataset_name, {})
 
     # Convert labels to strings
     label_mapping: Sequence[str] = mapping.get(
@@ -181,74 +170,68 @@ def get_labels(dataset: datasets.Dataset, dataset_name: str) -> list[str]:
 
 
 def train_and_predict(
-    data: datasets.Dataset,
-    test_dataset: str,
-    training_dataset: str,
-    base_model: str,
-    learning_rate: float = 2e-5,
-    num_train_epochs: int = 3,
-    weight_decay: float = 0.01,
-    bias: float = 0.0,
-    training_split: str = "train",
-    training_examples: int | None = None,
-    cache_root: str | None = None,
+    test_data: list[str],
+    test_dataset_preset: str,
+    training_dataset_preset: str,
+    model_preset: str,
+    learning_rate: float,
+    num_train_epochs: int,
+    weight_decay: float,
+    bias: float,
+    models_dir: str,
+    predictions_dir: str,
 ) -> list[str]:
     """Train and make predictions.
 
     Args:
-        data: The test data in huggingface dataset format.
-        test_dataset: The name of the testing dataset.
-        training_dataset: The name of the training dataset.
-        base_model: The name of the base model to use.
+        test_data: The data from the test dataset.
+        test_dataset_preset: The name of the test dataset.
+        training_dataset_preset: The name of the training dataset.
+        model_preset: The name of the model to use.
         learning_rate: The learning rate to use.
         num_train_epochs: The number of training epochs.
         weight_decay: The weight decay to use.
-        bias: The bias to apply to the first class at inference time.
-        training_split: The split of the training dataset to use.
-        training_examples: The number of examples to use from the training dataset, or
-            None to use all of them.
-        cache_root: The root of the cache directory, if any
+        bias: The bias to apply to the first class.
+        models_dir: The directory to save the models to.
+        predictions_dir: The directory to save the predictions to.
 
     Returns:
         The predicted labels in string format.
     """
     # Load from cache if existing
-    cache_path: str | None = None
-    if cache_root is not None:
-        parameters = dict(locals())
-        parameters["__name__"] = train_and_predict.__name__
-        parameters.pop(
-            "data"
-        )  # We assume that knowing the name `test_dataset` is enough
-        cache_path = get_cache_path(cache_root, parameters, extension="json")
-        if os.path.exists(cache_path):
-            with open(cache_path, "r") as f:
-                return json.load(f)
+    parameters = {
+        k: v
+        for k, v in locals().items()
+        if k not in {"test_data", "models_dir", "predictions_dir"}
+    }
+    file_root = get_cache_path(predictions_dir, parameters)
+    if os.path.exists(f"{file_root}.json"):
+        with open(f"{file_root}.json", "r") as f:
+            return json.load(f)
 
     # Train the model
     model, tokenizer = train_model(
-        training_dataset=training_dataset,
-        base_model=base_model,
+        training_dataset_preset=training_dataset_preset,
+        model_preset=model_preset,
         learning_rate=learning_rate,
         num_train_epochs=num_train_epochs,
         weight_decay=weight_decay,
-        training_split=training_split,
-        training_examples=training_examples,
-        cache_root=cache_root,
+        models_dir=models_dir,
     )
 
     # Make predictions
     predictions = make_predictions(
-        data=data,
+        test_data=test_data,
+        label_mapping=text_classification_config.dataset_configs[
+            test_dataset_preset
+        ].label_mapping,
         model=model,
         tokenizer=tokenizer,
-        test_dataset=test_dataset,
         bias=bias,
     )
 
     # Save the results
-    if cache_path is not None:
-        with open(cache_path, "w") as f:
-            json.dump(predictions, f)
+    with open(f"{file_root}.json", "w") as f:
+        json.dump(predictions, f)
 
     return predictions

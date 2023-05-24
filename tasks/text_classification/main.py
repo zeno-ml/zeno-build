@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
-from dataclasses import asdict
 
-import modeling
+import pandas as pd
 
-from tasks.text_classification import config as classification_config
+from tasks.text_classification import config as text_classification_config
+from tasks.text_classification.modeling import load_data, train_and_predict
+from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
 from zeno_build.reporting.visualize import visualize
@@ -17,74 +19,113 @@ from zeno_build.reporting.visualize import visualize
 
 def text_classification_main(
     results_dir: str,
-    cached_runs: str | None = None,
+    do_prediction: bool = True,
+    do_visualization: bool = True,
 ):
     """Run the text classification experiment."""
-    # Make results dir if it doesn't exist
-    if not os.path.exists(results_dir):
-        os.makedirs(results_dir)
+    # Get the dataset configuration
+    test_dataset_dim = text_classification_config.space.dimensions[
+        "test_dataset_preset"
+    ]
+    if not isinstance(test_dataset_dim, search_space.Constant):
+        raise ValueError("All experiments must be run on a single dataset.")
+    test_dataset_preset = test_dataset_dim.value
 
-    # Load the necessary data, either from HuggingFace or a cached file
-    test_dataset = classification_config.constants["test_dataset"]
-    data = modeling.load_data(
-        test_dataset,
-        classification_config.constants.pop("test_split"),
-        examples=classification_config.constants.pop("test_examples"),
+    models_dir = os.path.join(results_dir, "models")
+    predictions_dir = os.path.join(results_dir, "predictions")
+
+    # Load the necessary data
+    test_data_and_labels: list[tuple[str, str]] = load_data(
+        dataset_preset=test_dataset_preset
     )
-    with open(os.path.join(results_dir, "examples.json"), "w") as f:
-        json.dump(list(data), f)
-    labels = modeling.get_labels(data, test_dataset)
 
-    # Run the hyperparameter sweep and print out results
-    results: list[ExperimentRun] = []
-    if cached_runs is not None:
-        with open(cached_runs, "r") as f:
-            serialized_results = json.load(f)
-        results = [ExperimentRun(**x) for x in serialized_results]
-    else:
+    # Organize the data into labels (output) and context (input)
+    test_data: list[str] = [x for x, _ in test_data_and_labels]
+    test_labels: list[str] = [x for _, x in test_data_and_labels]
+
+    if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
-            space=classification_config.space,
-            constants=classification_config.constants,
-            distill_functions=[],
-            metric=classification_config.sweep_metric_function,
+            space=text_classification_config.space,
+            distill_functions=text_classification_config.sweep_distill_functions,
+            metric=text_classification_config.sweep_metric_function,
+            num_trials=text_classification_config.num_trials,
         )
-        for _ in range(classification_config.num_trials):
+
+        while not optimizer.check_for_completion(
+            predictions_dir, include_in_progress=True
+        ):
             parameters = optimizer.get_parameters()
-            predictions = modeling.train_and_predict(
-                data=data,
-                test_dataset=test_dataset,
-                training_dataset=parameters["training_dataset"],
-                base_model=parameters["base_model"],
+            predictions = train_and_predict(
+                test_data=test_data,
+                test_dataset_preset=test_dataset_preset,
+                training_dataset_preset=parameters["training_dataset_preset"],
+                model_preset=parameters["model_preset"],
                 learning_rate=parameters["learning_rate"],
                 num_train_epochs=parameters["num_train_epochs"],
                 weight_decay=parameters["weight_decay"],
                 bias=parameters["bias"],
-                training_split=parameters["training_split"],
-                training_examples=parameters["training_examples"],
-                cache_root=os.path.join(results_dir, "cache"),
+                models_dir=models_dir,
+                predictions_dir=predictions_dir,
             )
-            eval_result = optimizer.calculate_metric(test_dataset, labels, predictions)
-            run = ExperimentRun(
-                parameters=parameters,
-                predictions=predictions,
-                eval_result=eval_result,
+            if predictions is None:
+                print(f"*** Skipped run for {parameters=} ***")
+                continue
+            eval_result = optimizer.calculate_metric(
+                test_data, test_labels, predictions
             )
-            results.append(run)
+            print("*** Iteration complete. ***")
+            print(f"Parameters: {parameters}")
+            print(f"Eval: {eval_result}")
+            print("***************************")
 
-        # Print out results
-        serialized_results = [asdict(x) for x in results]
-        with open(os.path.join(results_dir, "all_runs.json"), "w") as f:
-            json.dump(serialized_results, f)
+    if do_visualization:
+        param_files = text_classification_config.space.get_valid_param_files(
+            predictions_dir, include_in_progress=False
+        )
+        if len(param_files) < text_classification_config.num_trials:
+            logging.getLogger().warning(
+                "Not enough completed but performing visualization anyway."
+            )
+        results: list[ExperimentRun] = []
+        for param_file in param_files:
+            assert param_file.endswith(".zbp")
+            with open(param_file, "r") as f:
+                parameters = json.load(f)
+            with open(f"{param_file[:-3]}.json", "r") as f:
+                predictions = json.load(f)
+            results.append(
+                ExperimentRun(parameters=parameters, predictions=predictions)
+            )
 
-    visualize(
-        data.to_pandas(),
-        labels,
-        results,
-        "text-classification",
-        "text",
-        classification_config.zeno_distill_and_metric_functions,
-    )
+        # Make readable names
+        for run in results:
+            if run.name is None:
+                run.name = " ".join(
+                    [
+                        run.parameters[k]
+                        if isinstance(run.parameters[k], str)
+                        else f"{k}={run.parameters[k]}"
+                        for k, v in text_classification_config.space.dimensions.items()
+                        if not isinstance(v, search_space.Constant)
+                    ]
+                )
+
+            # Perform the visualization
+            df = pd.DataFrame(
+                {
+                    "text": test_data,
+                    "label": test_labels,
+                }
+            )
+            visualize(
+                df,
+                test_labels,
+                results,
+                "text-classification",
+                "text",
+                text_classification_config.zeno_distill_and_metric_functions,
+            )
 
 
 if __name__ == "__main__":
@@ -97,14 +138,24 @@ if __name__ == "__main__":
         help="The directory to store the results in.",
     )
     parser.add_argument(
-        "--cached_runs",
-        type=str,
-        default=None,
-        help="A path to a json file with cached runs.",
+        "--skip_prediction",
+        action="store_true",
+        help="Skip prediction and just do visualization.",
+    )
+    parser.add_argument(
+        "--skip_visualization",
+        action="store_true",
+        help="Skip visualization and just do prediction.",
     )
     args = parser.parse_args()
 
+    if args.skip_prediction and args.skip_visualization:
+        raise ValueError(
+            "Cannot specify both --skip_prediction and --skip_visualization."
+        )
+
     text_classification_main(
         results_dir=args.results_dir,
-        cached_runs=args.cached_runs,
+        do_prediction=not args.skip_prediction,
+        do_visualization=not args.skip_visualization,
     )
