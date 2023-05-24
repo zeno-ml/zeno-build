@@ -16,27 +16,25 @@ def test_random_optimizer():
     3. The optimizer should not be affected by the external state.
     """
     # Example from text classification
-    space = {
-        "training_dataset": search_space.Categorical(["imdb", "sst2"]),
-        "base_model": search_space.Categorical(
-            ["distilbert-base-uncased", "bert-base-uncased"]
-        ),
-        "learning_rate": search_space.Float(1e-5, 1e-3),
-        "num_train_epochs": search_space.Int(1, 4),
-        "weight_decay": search_space.Float(0.0, 0.01),
-        "bias": search_space.Float(-1.0, 1.0),
-    }
-    constants = {
-        "training_split": "train",
-        "training_examples": 50,
-        "test_dataset": "imdb",
-        "test_split": "test",
-        "test_examples": 50,
-    }
-
-    optimizer = RandomOptimizer(
-        space=space, constants=constants, distill_functions=[], metric=input_length
+    space = search_space.CombinatorialSearchSpace(
+        {
+            "training_dataset": search_space.Categorical(["imdb", "sst2"]),
+            "base_model": search_space.Categorical(
+                ["distilbert-base-uncased", "bert-base-uncased"]
+            ),
+            "learning_rate": search_space.Float(1e-5, 1e-3),
+            "num_train_epochs": search_space.Int(1, 4),
+            "weight_decay": search_space.Float(0.0, 0.01),
+            "bias": search_space.Float(-1.0, 1.0),
+            "training_split": search_space.Constant("train"),
+            "training_examples": search_space.Constant(50),
+            "test_dataset": search_space.Constant("imdb"),
+            "test_split": search_space.Constant("test"),
+            "test_examples": search_space.Constant(50),
+        }
     )
+
+    optimizer = RandomOptimizer(space=space, distill_functions=[], metric=input_length)
 
     total_number = 100
     all_param_choices = []
