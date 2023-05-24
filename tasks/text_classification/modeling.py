@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 import os
+import traceback
 from collections.abc import Sequence
 
 import datasets
 import transformers
 
 from tasks.text_classification import config as text_classification_config
-from zeno_build.cache_utils import get_cache_path
+from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
 
 
 def train_model(
@@ -181,7 +182,7 @@ def train_and_predict(
     bias: float,
     models_dir: str,
     predictions_dir: str,
-) -> list[str]:
+) -> list[str] | None:
     """Train and make predictions.
 
     Args:
@@ -197,7 +198,8 @@ def train_and_predict(
         predictions_dir: The directory to save the predictions to.
 
     Returns:
-        The predicted labels in string format.
+        The predicted labels in string format, or None if this run is
+        skipped.
     """
     # Load from cache if existing
     parameters = {
@@ -210,32 +212,43 @@ def train_and_predict(
         with open(f"{file_root}.json", "r") as f:
             return json.load(f)
 
-    # Train the model
-    model, tokenizer = train_model(
-        training_dataset_preset=training_dataset_preset,
-        model_preset=model_preset,
-        learning_rate=learning_rate,
-        num_train_epochs=num_train_epochs,
-        weight_decay=weight_decay,
-        models_dir=models_dir,
-    )
+    with CacheLock(file_root) as cache_lock:
+        # If the cache is locked, then another process is already generating
+        # so just skip this one
+        if not cache_lock:
+            return None
 
-    # Make predictions
-    predictions = make_predictions(
-        test_data=test_data,
-        data_column=text_classification_config.dataset_configs[
-            test_dataset_preset
-        ].data_column,
-        label_mapping=text_classification_config.dataset_configs[
-            training_dataset_preset
-        ].label_mapping,
-        model=model,
-        tokenizer=tokenizer,
-        bias=bias,
-    )
+        try:
+            # Train the model
+            model, tokenizer = train_model(
+                training_dataset_preset=training_dataset_preset,
+                model_preset=model_preset,
+                learning_rate=learning_rate,
+                num_train_epochs=num_train_epochs,
+                weight_decay=weight_decay,
+                models_dir=models_dir,
+            )
 
-    # Save the results
-    with open(f"{file_root}.json", "w") as f:
-        json.dump(predictions, f)
+            # Make predictions
+            predictions = make_predictions(
+                test_data=test_data,
+                data_column=text_classification_config.dataset_configs[
+                    test_dataset_preset
+                ].data_column,
+                label_mapping=text_classification_config.dataset_configs[
+                    training_dataset_preset
+                ].label_mapping,
+                model=model,
+                tokenizer=tokenizer,
+                bias=bias,
+            )
+        except Exception:
+            tb = traceback.format_exc()
+            fail_cache(file_root, tb)
+            raise
+
+        # Save the results
+        with open(f"{file_root}.json", "w") as f:
+            json.dump(predictions, f)
 
     return predictions
