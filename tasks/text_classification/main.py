@@ -94,7 +94,7 @@ def text_classification_main(
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
                 parameters = json.load(f)
-            with open(f"{param_file[:-3]}.json", "r") as f:
+            with open(f"{param_file[:-4]}.json", "r") as f:
                 predictions = json.load(f)
             results.append(
                 ExperimentRun(parameters=parameters, predictions=predictions)

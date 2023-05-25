@@ -98,7 +98,7 @@ def chatbot_main(
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
                 parameters = json.load(f)
-            with open(f"{param_file[:-3]}.jsonl", "r") as f:
+            with open(f"{param_file[:-4]}.jsonl", "r") as f:
                 predictions = [json.loads(x) for x in f.readlines()]
             results.append(
                 ExperimentRun(parameters=parameters, predictions=predictions)
