@@ -55,7 +55,7 @@ space = search_space.CombinatorialSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 1000
+num_trials = 10
 
 # The details of each dataset
 dataset_configs = {
