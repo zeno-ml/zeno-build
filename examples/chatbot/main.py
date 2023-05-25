@@ -62,9 +62,7 @@ def chatbot_main(
             num_trials=chatbot_config.num_trials,
         )
 
-        while not optimizer.check_for_completion(
-            predictions_dir, include_in_progress=True
-        ):
+        while not optimizer.is_complete(predictions_dir, include_in_progress=True):
             parameters = optimizer.get_parameters()
             predictions = make_predictions(
                 contexts=contexts,

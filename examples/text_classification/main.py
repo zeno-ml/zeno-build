@@ -58,9 +58,7 @@ def text_classification_main(
             num_trials=text_classification_config.num_trials,
         )
 
-        while not optimizer.check_for_completion(
-            predictions_dir, include_in_progress=True
-        ):
+        while not optimizer.is_complete(predictions_dir, include_in_progress=True):
             parameters = optimizer.get_parameters()
             predictions = train_and_predict(
                 test_data=test_dataset,

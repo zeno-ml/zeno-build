@@ -59,7 +59,7 @@ class Optimizer:
             df[distill_function.__name__] = distill_function(df, ops).distill_output
         return self.metric(df, ops).metric
 
-    def check_for_completion(
+    def is_complete(
         self,
         output_dir: str,
         include_in_progress: bool = False,
