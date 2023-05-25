@@ -110,14 +110,12 @@ def make_predictions(
     Returns:
         The predictions in string format.
     """
-    # Load dataset
+    trainer = transformers.Trainer(model=model)
+
     def tokenize_function(examples):
         return tokenizer(examples[data_column], padding="max_length", truncation=True)
 
     tokenized_dataset = test_data.map(tokenize_function, batched=True)
-
-    # Make predictions
-    trainer = transformers.Trainer(model=model)
     predictions = trainer.predict(tokenized_dataset)
 
     # Convert predictions to labels
