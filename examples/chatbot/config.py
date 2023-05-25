@@ -6,8 +6,6 @@ of the variables to run different experiments.
 
 from __future__ import annotations
 
-from typing import Any
-
 import transformers
 
 from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
@@ -26,46 +24,48 @@ from zeno_build.evaluation.text_metrics.critique import (
     length_ratio,
 )
 from zeno_build.experiments import search_space
+from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
 # Define the space of hyperparameters to search over.
-space = {
-    "model_preset": search_space.Categorical(
-        [
-            # "gpt-3.5-turbo",
-            # "cohere-command-xlarge",
-            "gpt2",
-            "gpt2-xl",
-            "llama-7b",
-            "alpaca-7b",
-            "vicuna-7b",
-            "mpt-7b-chat",
-        ]
-    ),
-    "prompt_preset": search_space.Categorical(
-        ["standard", "friendly", "polite", "cynical"]
-    ),
-    "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-    "context_length": search_space.Discrete([1, 2, 3, 4]),
-}
-
-# Any constants that are not searched over
-constants: dict[str, Any] = {
-    "test_dataset": "gneubig/dstc11",
-    "data_column": "turns",
-    "data_format": "dstc11",
-    # "test_dataset": "daily_dialog",
-    # "data_column": "dialog",
-    # "data_format": "sequence",
-    "test_split": "validation",
-    "test_examples": None,
-    "max_tokens": 100,
-    "top_p": 1.0,
-}
+space = search_space.CombinatorialSearchSpace(
+    {
+        "dataset_preset": search_space.Constant("dstc11"),
+        "model_preset": search_space.Categorical(
+            [
+                # "gpt-3.5-turbo",
+                # "cohere-command-xlarge",
+                "gpt2",
+                "gpt2-xl",
+                "llama-7b",
+                "alpaca-7b",
+                "vicuna-7b",
+                "mpt-7b-chat",
+            ]
+        ),
+        "prompt_preset": search_space.Categorical(
+            ["standard", "friendly", "polite", "cynical"]
+        ),
+        "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
+        "context_length": search_space.Discrete([1, 2, 3, 4]),
+        "max_tokens": search_space.Constant(100),
+        "top_p": search_space.Constant(1.0),
+    }
+)
 
 # The number of trials to run
-num_trials = 1000
+num_trials = 10
+
+# The details of each dataset
+dataset_configs = {
+    "dstc11": DatasetConfig(
+        dataset="gneubig/dstc11",
+        split="validation",
+        data_column="turns",
+        data_format="dstc11",
+    ),
+}
 
 # The details of each model
 model_configs = {
@@ -190,20 +190,12 @@ zeno_distill_and_metric_functions = [
     input_length,
     label_length,
     chat_context_length,
-    avg_chrf,
     chrf,
-    avg_length_ratio,
     length_ratio,
-    avg_bert_score,
     bert_score,
     exact_match,
+    avg_chrf,
+    avg_length_ratio,
+    avg_bert_score,
     avg_exact_match,
 ]
-
-# Some metadata to standardize huggingface datasets
-dataset_mapping: dict[str | tuple[str, str], Any] = {
-    "daily_dialog": {
-        "data_column": "dialog",
-        "data_format": "sequence",
-    },
-}

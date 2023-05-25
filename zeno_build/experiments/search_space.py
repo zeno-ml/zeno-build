@@ -1,8 +1,10 @@
 """Search space for hyperparameter optimization."""
 
-from abc import ABC
+import json
+import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -10,12 +12,32 @@ T = TypeVar("T")
 class SearchDimension(ABC):
     """A dimension along which a hyperparameter can be searched."""
 
+    @abstractmethod
+    def value_in_scope(self, value: Any) -> bool:
+        """Check if a value is in the scope of this dimension."""
+        ...
+
+
+@dataclass(frozen=True)
+class Constant(SearchDimension, Generic[T]):
+    """A constant."""
+
+    value: T
+
+    def value_in_scope(self, value: Any) -> bool:
+        """See base class."""
+        return value == self.value
+
 
 @dataclass(frozen=True)
 class Categorical(SearchDimension, Generic[T]):
     """A categorical hyperparameter."""
 
     choices: list[T]
+
+    def value_in_scope(self, value: Any) -> bool:
+        """See base class."""
+        return value in self.choices
 
 
 @dataclass(frozen=True)
@@ -29,6 +51,10 @@ class Discrete(SearchDimension, Generic[T]):
 
     choices: list[T]
 
+    def value_in_scope(self, value: Any) -> bool:
+        """See base class."""
+        return value in self.choices
+
 
 @dataclass(frozen=True)
 class Float(SearchDimension):
@@ -37,6 +63,10 @@ class Float(SearchDimension):
     lower: float
     upper: float
 
+    def value_in_scope(self, value: Any) -> bool:
+        """See base class."""
+        return self.lower <= value <= self.upper
+
 
 @dataclass(frozen=True)
 class Int(SearchDimension):
@@ -44,3 +74,69 @@ class Int(SearchDimension):
 
     lower: int
     upper: int
+
+    def value_in_scope(self, value: Any) -> bool:
+        """See base class."""
+        return self.lower <= value <= self.upper
+
+
+class SearchSpace(ABC):
+    """A search space for hyperparameter optimization."""
+
+    @abstractmethod
+    def contains_params(self, params: dict[str, Any]) -> bool:
+        """Check whether the search space contains the given parameters."""
+        ...
+
+    def get_valid_param_files(
+        self, output_dir: str, include_in_progress: bool
+    ) -> list[str]:
+        """Get the valid parameter files in the given directory.
+
+        Args:
+            output_dir: The directory where the parameter files are stored.
+            include_in_progress: Whether to include parameter files for runs that are
+                still running.
+
+        Returns:
+            Paths to the valid parameter files.
+        """
+        os.makedirs(output_dir, exist_ok=True)
+        param_files = [
+            os.path.join(output_dir, x)
+            for x in os.listdir(output_dir)
+            if x.endswith(".zbp")
+        ]
+        finished_files = []
+        for param_file in param_files:
+            fail_file = f"{param_file[:-4]}.zbfail"
+            lock_file = f"{param_file[:-4]}.zblock"
+            if os.path.exists(fail_file):
+                continue
+            with open(param_file, "r") as f:
+                params = json.load(f)
+                if self.contains_params(params):
+                    if include_in_progress or not os.path.exists(lock_file):
+                        finished_files.append(param_file)
+        return finished_files
+
+
+class CombinatorialSearchSpace(SearchSpace):
+    """A search space that includes the cross product of dimensions."""
+
+    def __init__(self, dimensions: dict[str, SearchDimension]):
+        """Initialize the search space.
+
+        Args:
+            dimensions: The dimensions of the search space.
+        """
+        self.dimensions = dimensions
+
+    def contains_params(self, params: dict[str, Any]) -> bool:
+        """See base class."""
+        for k, v in params.items():
+            if k not in self.dimensions:
+                return False
+            if not self.dimensions[k].value_in_scope(v):
+                return False
+        return True

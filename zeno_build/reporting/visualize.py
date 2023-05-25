@@ -33,14 +33,7 @@ def visualize(
         raise ValueError("Length of data and labels must be equal.")
     if data_column not in df.columns:
         raise ValueError(f"Data column {data_column} not in DataFrame.")
-    model_results: dict[str, ExperimentRun] = {}
-    for i, res in enumerate(results):
-        # TODO(alex): think about how to represent hyperparameter-based model names.
-        name = res.name or "model" + str(i)
-
-        # Prevent duplicate runs being added to Zeno
-        if name not in model_results:
-            model_results[name] = res
+    model_results: dict[str, ExperimentRun] = {x.name: x for x in results}
 
     @model
     def get_model(name):

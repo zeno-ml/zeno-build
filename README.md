@@ -35,11 +35,12 @@ To get started with `zeno-build`, install the package from PyPI:
 pip install zeno-build
 ```
 
-Next, _start building_! Browse the [tasks/](tasks/) directory, where we have a
-bunch of examples of how you can use `zeno-build` for different tasks, such as
-[chatbots](tasks/chatbot/), [text summarization](tasks/summarization/), or [text
-classification](tasks/text_classification/). Check out the [Zeno Build
-Concepts](tasks/CO) doc for more details on the different aspects of the
+Next, _start building_! Browse the [examples/](examples/) directory, where we
+have a bunch of examples of how you can use `zeno-build` for different tasks,
+such as [chatbots](examples/chatbot/),
+[text summarization](examples/summarization/), or [text
+classification](examples/text_classification/). Check out the [Zeno Build
+Concepts](examples/CO) doc for more details on the different aspects of the
 library.
 
 Each of the examples include code for running experiments and evaluating the
@@ -47,20 +48,20 @@ results. `zeno-build` will produce a comprehensive report with the
 [Zeno](https://zenoml.com/) ML analysis platform. To give you a flavor of what
 these reports will look like, check out a few of our pre-made reports below:
 
-- [Zeno Chatbot Report](tasks/chatbot/report/): A report comparing different methods
+- [Zeno Chatbot Report](examples/chatbot/report/): A report comparing different methods
   for creating chatbots, including API-based models such as ChatGPT and Cohere,
   with open-source models such as Vicuna, Alpaca, and MPT.
 
 ## Building Your Own Apps (and Contributing Back)
 
-Each of the examples in the [tasks/](tasks/) directory is specifically designed
+Each of the examples in the [examples/](examples/) directory is specifically designed
 to be self-contained and easy to modify. To get started building your own apps,
 we suggest that you first click into the directory and read the general README,
 find the closest example to what you're trying to do, copy the example to the
 new directory, and start hacking!
 
 If you build something cool, **we'd love for you to contribute it back**. We
-welcome pull requests of both new task examples, new reports for existing tasks,
+welcome pull requests of both new examples, new reports for existing examples,
 and new functionality for the core `zeno_build` library. If this is of interest
 to you, please click through to our [contributing doc](contributing.md) doc to
 learn more.

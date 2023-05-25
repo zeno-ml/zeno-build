@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 
 @dataclass
@@ -28,6 +28,27 @@ class ChatMessages:
     """
 
     messages: list[ChatTurn]
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> ChatMessages:
+        """Create a chat messages object from a dictionary."""
+        return ChatMessages(
+            messages=[
+                ChatTurn(role=x["role"], content=x["content"]) for x in data["messages"]
+            ]
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert a chat messages object to a dictionary."""
+        return {
+            "messages": [
+                {
+                    "role": x.role,
+                    "content": x.content,
+                }
+                for x in self.messages
+            ]
+        }
 
     def to_openai_chat_completion_messages(
         self,
