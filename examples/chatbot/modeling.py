@@ -187,9 +187,8 @@ def make_predictions(
             fail_cache(file_root, tb)
             raise
 
-        # Dump the cache and return
-        if file_root is not None:
-            with open(f"{file_root}.json", "w") as f:
-                json.dump(predictions, f)
+        # Dump the predictions
+        with open(f"{file_root}.json", "w") as f:
+            json.dump(predictions, f)
 
     return predictions

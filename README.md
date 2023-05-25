@@ -35,13 +35,12 @@ To get started with `zeno-build`, install the package from PyPI:
 pip install zeno-build
 ```
 
-Next, _start building_! Browse the [examples/](examples/) directory, where we
+Next, _start building_! Browse to the [docs](docs/) directory to get a
+primer or to the [examples/](examples/) directory, where we
 have a bunch of examples of how you can use `zeno-build` for different tasks,
 such as [chatbots](examples/chatbot/),
 [text summarization](examples/summarization/), or [text
-classification](examples/text_classification/). Check out the [Zeno Build
-Concepts](examples/CO) doc for more details on the different aspects of the
-library.
+classification](examples/text_classification/).
 
 Each of the examples include code for running experiments and evaluating the
 results. `zeno-build` will produce a comprehensive report with the
