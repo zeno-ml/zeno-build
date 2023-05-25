@@ -9,8 +9,8 @@ import os
 
 import pandas as pd
 
-from tasks.summarization import config as summarization_config
-from tasks.summarization.modeling import load_data, make_predictions
+from examples.summarization import config as summarization_config
+from examples.summarization.modeling import load_data, make_predictions
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard

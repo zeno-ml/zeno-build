@@ -1,4 +1,4 @@
-"""The main entry point for performing comparison on chatbots."""
+"""The main entry point for performing comparison on text classification."""
 
 from __future__ import annotations
 
@@ -6,91 +6,90 @@ import argparse
 import json
 import logging
 import os
-from dataclasses import asdict
 
+import datasets
 import pandas as pd
 
-from tasks.chatbot import config as chatbot_config
-from tasks.chatbot.modeling import make_predictions, process_data
+from examples.text_classification import config as text_classification_config
+from examples.text_classification.modeling import load_data, train_and_predict
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
-from zeno_build.prompts.chat_prompt import ChatMessages
 from zeno_build.reporting import reporting_utils
 from zeno_build.reporting.visualize import visualize
 
 
-def chatbot_main(
+def text_classification_main(
     results_dir: str,
     do_prediction: bool = True,
     do_visualization: bool = True,
 ):
-    """Run the chatbot experiment."""
+    """Run the text classification experiment."""
     # Get the dataset configuration
-    dataset_preset = chatbot_config.space.dimensions["dataset_preset"]
-    if not isinstance(dataset_preset, search_space.Constant):
+    test_dataset_dim = text_classification_config.space.dimensions[
+        "test_dataset_preset"
+    ]
+    if not isinstance(test_dataset_dim, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
-    dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
+    test_dataset_preset = test_dataset_dim.value
 
-    data_dir = os.path.join(results_dir, "data")
+    models_dir = os.path.join(results_dir, "models")
     predictions_dir = os.path.join(results_dir, "predictions")
 
-    # Load and standardize the format of the necessary data. The resulting
-    # processed data will be stored in the `results_dir/data` directory
-    # both for browsing and for caching for fast reloading on future runs.
-    contexts_and_labels: list[ChatMessages] = process_data(
-        dataset=dataset_config.dataset,
-        split=dataset_config.split,
-        data_format=dataset_config.data_format,
-        data_column=dataset_config.data_column,
-        output_dir=data_dir,
-    )
+    # Load the necessary data
+    test_dataset_config = text_classification_config.dataset_configs[
+        test_dataset_preset
+    ]
+    test_dataset: datasets.Dataset = load_data(test_dataset_preset)
 
     # Organize the data into labels (output) and context (input)
-    labels: list[str] = []
-    contexts: list[ChatMessages] = []
-    for x in contexts_and_labels:
-        labels.append(x.messages[-1].content)
-        contexts.append(ChatMessages(x.messages[:-1]))
+    test_data: list[str] = [x[test_dataset_config.data_column] for x in test_dataset]
+    test_labels: list[str] = [
+        test_dataset_config.label_mapping[x[test_dataset_config.label_column]]
+        for x in test_dataset
+    ]
 
     if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
-            space=chatbot_config.space,
-            distill_functions=chatbot_config.sweep_distill_functions,
-            metric=chatbot_config.sweep_metric_function,
-            num_trials=chatbot_config.num_trials,
+            space=text_classification_config.space,
+            distill_functions=text_classification_config.sweep_distill_functions,
+            metric=text_classification_config.sweep_metric_function,
+            num_trials=text_classification_config.num_trials,
         )
 
         while not optimizer.check_for_completion(
             predictions_dir, include_in_progress=True
         ):
             parameters = optimizer.get_parameters()
-            predictions = make_predictions(
-                contexts=contexts,
-                dataset_preset=parameters["dataset_preset"],
-                prompt_preset=parameters["prompt_preset"],
+            predictions = train_and_predict(
+                test_data=test_dataset,
+                test_dataset_preset=test_dataset_preset,
+                training_dataset_preset=parameters["training_dataset_preset"],
                 model_preset=parameters["model_preset"],
-                temperature=parameters["temperature"],
-                max_tokens=parameters["max_tokens"],
-                top_p=parameters["top_p"],
-                context_length=parameters["context_length"],
-                output_dir=predictions_dir,
+                learning_rate=parameters["learning_rate"],
+                num_train_epochs=parameters["num_train_epochs"],
+                weight_decay=parameters["weight_decay"],
+                bias=parameters["bias"],
+                models_dir=models_dir,
+                predictions_dir=predictions_dir,
             )
             if predictions is None:
                 print(f"*** Skipped run for {parameters=} ***")
                 continue
-            eval_result = optimizer.calculate_metric(contexts, labels, predictions)
+            eval_result = optimizer.calculate_metric(
+                test_data, test_labels, predictions
+            )
             print("*** Iteration complete. ***")
             print(f"Parameters: {parameters}")
             print(f"Eval: {eval_result}")
             print("***************************")
 
     if do_visualization:
-        param_files = chatbot_config.space.get_valid_param_files(
+        param_files = text_classification_config.space.get_valid_param_files(
             predictions_dir, include_in_progress=False
         )
-        if len(param_files) < chatbot_config.num_trials:
+        if len(param_files) < text_classification_config.num_trials:
             logging.getLogger().warning(
                 "Not enough completed but performing visualization anyway."
             )
@@ -99,9 +98,11 @@ def chatbot_main(
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
                 parameters = json.load(f)
-            with open(f"{param_file[:-4]}.jsonl", "r") as f:
-                predictions = [json.loads(x) for x in f.readlines()]
-            name = reporting_utils.parameters_to_name(parameters, chatbot_config.space)
+            with open(f"{param_file[:-4]}.json", "r") as f:
+                predictions = json.load(f)
+            name = reporting_utils.parameters_to_name(
+                parameters, text_classification_config.space
+            )
             results.append(
                 ExperimentRun(parameters=parameters, predictions=predictions, name=name)
             )
@@ -109,17 +110,17 @@ def chatbot_main(
         # Perform the visualization
         df = pd.DataFrame(
             {
-                "messages": [[asdict(y) for y in x.messages] for x in contexts],
-                "label": labels,
+                "text": test_data,
+                "label": test_labels,
             }
         )
         visualize(
             df,
-            labels,
+            test_labels,
             results,
-            "openai-chat",
-            "messages",
-            chatbot_config.zeno_distill_and_metric_functions,
+            "text-classification",
+            "text",
+            text_classification_config.zeno_distill_and_metric_functions,
         )
 
 
@@ -149,7 +150,7 @@ if __name__ == "__main__":
             "Cannot specify both --skip_prediction and --skip_visualization."
         )
 
-    chatbot_main(
+    text_classification_main(
         results_dir=args.results_dir,
         do_prediction=not args.skip_prediction,
         do_visualization=not args.skip_visualization,

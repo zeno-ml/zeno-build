@@ -1,7 +1,7 @@
 # Important Concepts
 
 This page outlines some important concepts in Zeno Build, particularly useful
-for modifying or implementing new [tasks](/tasks/README.md).
+for modifying or implementing new [examples](/examples/README.md).
 
 ## Test and Training Sets
 

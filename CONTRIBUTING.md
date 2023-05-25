@@ -25,11 +25,11 @@ pytest
 
 We welcome:
 
-- **New tasks**, which you can create by navigating to the [tasks/] directory
-  and adding a new sub-directory implementing a new task (see the tasks
-  directory for details).
+- **New examples**, which you can create by navigating to the [examples/]
+  directory and adding a new sub-directory implementing a new example
+  (see the examples directory for details).
 - **New reports**, which you can create by modifying the configuration and/or
-  modeling files for new tasks and sending us the a link of the resulting
+  modeling files under [examples/] and sending us the a link of the resulting
   report.
 - **New core functionality**, making `zeno-build` more feature-rich or easier to
   use.
