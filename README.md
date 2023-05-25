@@ -36,7 +36,7 @@ pip install zeno-build
 ```
 
 Next, _start building_! Browse the [examples/](examples/) directory, where we
-have a bunch of examples of how you can use `zeno-build` for different examples,
+have a bunch of examples of how you can use `zeno-build` for different tasks,
 such as [chatbots](examples/chatbot/),
 [text summarization](examples/summarization/), or [text
 classification](examples/text_classification/). Check out the [Zeno Build

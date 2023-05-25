@@ -29,13 +29,13 @@ If you opt to dive in to the latter approach, most of the examples consist of
 four main files and you should be able to get started by modifying these:
 
 - `README.md` describing the features of the tasks, models, and hyperparameters.
+- `main.py` implementing the main experimental logic, including the entire flow
+  of initialization, experimental runs, and visualization.
 - `modeling.py` implementing the core modeling strategy for the task. You can
   change this file to implement new modeling strategies.
 - `config.py` describing the hyperparameters used in the experiments. You can
   modify this this file to change the hyperparameter settings that you want to
   experiment with.
-- `main.py` implementing the main experimental logic, including the entire flow
-  of initialization, experimental runs, and visualization.
 
 ## Contributing Back
 
