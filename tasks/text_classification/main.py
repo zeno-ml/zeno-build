@@ -44,7 +44,10 @@ def text_classification_main(
 
     # Organize the data into labels (output) and context (input)
     test_data: list[str] = [x[test_dataset_config.data_column] for x in test_dataset]
-    test_labels: list[str] = [x[test_dataset_config.label_column] for x in test_dataset]
+    test_labels: list[str] = [
+        test_dataset_config.label_mapping[x[test_dataset_config.label_column]]
+        for x in test_dataset
+    ]
 
     if do_prediction:
         # Perform the hyperparameter sweep
