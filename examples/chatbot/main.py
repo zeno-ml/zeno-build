@@ -32,6 +32,7 @@ def chatbot_main(
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
 
+    # Define the directories for storing data and predictions
     data_dir = os.path.join(results_dir, "data")
     predictions_dir = os.path.join(results_dir, "predictions")
 

@@ -71,6 +71,11 @@ def process_data(
         data_column: The name of the column containing the data.
         output_dir: The directory to save the processed data to.
 
+    Side effects:
+        Writes:
+            - The parameters to a 'zbp' file in the output directory
+            - The processed data to a 'jsonl' file in the output directory
+
     Returns:
         The loaded dataset as dialog examples of context and reference.
     """
@@ -146,8 +151,8 @@ def make_predictions(
         output_dir: The location of the cache directory if any
 
     Side effects:
-        - Saves the predictions in the `output_root/predictions` directory
-        - Saves the generated data `output_root/data` directory
+        - Saves the predictions in a '.json' file in the `output_dir` directory
+        - Saves the parameters in a '.zbp' file in the `output_dir` directory
 
     Returns:
         The predictions in string format.
