@@ -47,7 +47,7 @@ results. `zeno-build` will produce a comprehensive report with the
 [Zeno](https://zenoml.com/) ML analysis platform. To give you a flavor of what
 these reports will look like, check out a few of our pre-made reports below:
 
-- [Zeno Chatbot Report](tasks/chat/report): A report comparing different methods
+- [Zeno Chatbot Report](tasks/chatbot/report/): A report comparing different methods
   for creating chatbots, including API-based models such as ChatGPT and Cohere,
   with open-source models such as Vicuna, Alpaca, and MPT.
 
