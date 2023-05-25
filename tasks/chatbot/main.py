@@ -16,6 +16,7 @@ from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
 from zeno_build.prompts.chat_prompt import ChatMessages
+from zeno_build.reporting import reporting_utils
 from zeno_build.reporting.visualize import visualize
 
 
@@ -100,38 +101,26 @@ def chatbot_main(
                 parameters = json.load(f)
             with open(f"{param_file[:-4]}.jsonl", "r") as f:
                 predictions = [json.loads(x) for x in f.readlines()]
+            name = reporting_utils.parameters_to_name(parameters, chatbot_config.space)
             results.append(
-                ExperimentRun(parameters=parameters, predictions=predictions)
+                ExperimentRun(parameters=parameters, predictions=predictions, name=name)
             )
 
-        # Make readable names
-        for run in results:
-            if run.name is None:
-                run.name = " ".join(
-                    [
-                        run.parameters[k]
-                        if isinstance(run.parameters[k], str)
-                        else f"{k}={run.parameters[k]}"
-                        for k, v in chatbot_config.space.dimensions.items()
-                        if not isinstance(v, search_space.Constant)
-                    ]
-                )
-
-            # Perform the visualization
-            df = pd.DataFrame(
-                {
-                    "messages": [[asdict(y) for y in x.messages] for x in contexts],
-                    "label": labels,
-                }
-            )
-            visualize(
-                df,
-                labels,
-                results,
-                "openai-chat",
-                "messages",
-                chatbot_config.zeno_distill_and_metric_functions,
-            )
+        # Perform the visualization
+        df = pd.DataFrame(
+            {
+                "messages": [[asdict(y) for y in x.messages] for x in contexts],
+                "label": labels,
+            }
+        )
+        visualize(
+            df,
+            labels,
+            results,
+            "openai-chat",
+            "messages",
+            chatbot_config.zeno_distill_and_metric_functions,
+        )
 
 
 if __name__ == "__main__":
