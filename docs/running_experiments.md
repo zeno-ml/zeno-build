@@ -25,15 +25,19 @@ you can run 4 experiments in parallel by running the following:
 
 ```bash
 mkdir -p examples/chatbot/results
+
 python examples/chatbot/main.py --results-dir examples/chatbot/results \
     --skip-visualization \
     &> examples/chatbot/results/run1.log &
+
 python examples/chatbot/main.py --results-dir examples/chatbot/results \
     --skip-visualization \
     &> examples/chatbot/results/run2.log &
+
 python examples/chatbot/main.py --results-dir examples/chatbot/results \
     --skip-visualization \
     &> examples/chatbot/results/run3.log &
+
 python examples/chatbot/main.py --results-dir examples/chatbot/results \
     --skip-visualization \
     &> examples/chatbot/results/run4.log &
