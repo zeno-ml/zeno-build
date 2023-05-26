@@ -298,6 +298,4 @@ Then we write out the predictions to a file (`.json`), and return.
 
 ## Next Steps
 
-Next, we move on to describing how we can specify parameters.
-
-[Next: Specifying Parameters](/docs/specifying_parameters.md)
+Next, we move on to describing how we can [specifying parameters](/docs/specifying_parameters.md)
