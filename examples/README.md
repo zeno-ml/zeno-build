@@ -16,11 +16,17 @@ If you want to jump in and run any of the examples, click over to the appropriat
 directory, read the README to set up your environment, and get
 started!
 
-## Build Your Own Task
+## Build Your Own Example
 
 Zeno Build is designed to make it easy for you to build your own new examples and
-applications. To do so, we recommend that you first take a look at the existing
-examples. Most of them consist of four main files:
+applications. To get started, we suggest that you do one or both of the following:
+
+- Browse the [docs](../docs/) to get a sense of how the library works.
+- Find an example in this directory that is close to what you want, browse it,
+  then copy the example to a new directory, and start hacking!
+
+If you opt to dive in to the latter approach, most of the examples consist of
+four main files and you should be able to get started by modifying these:
 
 - `README.md` describing the features of the tasks, models, and hyperparameters.
 - `main.py` implementing the main experimental logic, including the entire flow
@@ -30,9 +36,6 @@ examples. Most of them consist of four main files:
 - `config.py` describing the hyperparameters used in the experiments. You can
   modify this this file to change the hyperparameter settings that you want to
   experiment with.
-
-If you're looking to dive deeper, you should also click over to our [important
-concepts](CONCEPTS.md) doc, and browse through the code.
 
 ## Contributing Back
 

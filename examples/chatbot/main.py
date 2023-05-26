@@ -32,6 +32,7 @@ def chatbot_main(
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
 
+    # Define the directories for storing data and predictions
     data_dir = os.path.join(results_dir, "data")
     predictions_dir = os.path.join(results_dir, "predictions")
 
@@ -125,18 +126,18 @@ if __name__ == "__main__":
     # Parse the command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--results_dir",
+        "--results-dir",
         type=str,
         default="results",
         help="The directory to store the results in.",
     )
     parser.add_argument(
-        "--skip_prediction",
+        "--skip-prediction",
         action="store_true",
         help="Skip prediction and just do visualization.",
     )
     parser.add_argument(
-        "--skip_visualization",
+        "--skip-visualization",
         action="store_true",
         help="Skip visualization and just do prediction.",
     )
@@ -144,7 +145,7 @@ if __name__ == "__main__":
 
     if args.skip_prediction and args.skip_visualization:
         raise ValueError(
-            "Cannot specify both --skip_prediction and --skip_visualization."
+            "Cannot specify both --skip-prediction and --skip-visualization."
         )
 
     chatbot_main(

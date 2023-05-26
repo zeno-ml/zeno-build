@@ -54,7 +54,7 @@ run the example.
 INSPIREDCO_API_KEY=...
 ```
 
-In addition, if you want to generate results for the API-based models (this
+In adddition, if you want to generate results for the API-based models (this
 is off by default, but can be turned on in config.py) you'll
 need to set the following environment variables:
 
