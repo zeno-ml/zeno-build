@@ -38,16 +38,46 @@ class ExhaustiveOptimizer(Optimizer):
             ValueError: If the space contains floats.
         """
         super().__init__(space, distill_functions, metric, num_trials)
-        if isinstance(self.space, search_space.CombinatorialSearchSpace):
-            self._values_iterator = itertools.product(
-                *[
-                    ExhaustiveOptimizer._dimension_iter(x)
-                    for x in self.space.dimensions.values()
-                ]
+        self._keys, self._values_iterator = ExhaustiveOptimizer._get_keys_and_iter(
+            space
+        )
+
+    @staticmethod
+    def _get_keys_and_iter(
+        space: search_space.SearchSpace,
+    ) -> tuple[list[str], Iterator[Any]]:
+        """Get the keys and iterator for a search space.
+
+        Args:
+            space: The space to get the keys and iterator for.
+
+        Returns:
+            A tuple of the keys and iterator.
+        """
+        if isinstance(space, search_space.CombinatorialSearchSpace):
+            return (
+                list(space.dimensions.keys()),
+                itertools.product(
+                    *[
+                        ExhaustiveOptimizer._dimension_iter(x)
+                        for x in space.dimensions.values()
+                    ]
+                ),
             )
-            self._keys = list(self.space.dimensions.keys())
+        elif isinstance(space, search_space.CompositeSearchSpace):
+            keys: list[list[str]] = []
+            iterators = []
+            for sub_space in space.spaces:
+                sub_keys, sub_iterator = ExhaustiveOptimizer._get_keys_and_iter(
+                    sub_space
+                )
+                keys.append(sub_keys)
+                iterators.append(sub_iterator)
+            if any(x != keys[0] for x in keys):
+                raise ValueError("Composite search spaces must have the same keys.")
+            return keys[0], itertools.chain.from_iterable(iterators)
         else:
-            raise NotImplementedError(f"Unsupported search space {type(self.space)}.")
+            raise NotImplementedError(f"Unsupported search space {type(space)}.")
 
     @staticmethod
     def _dimension_iter(dimension: search_space.SearchDimension) -> Iterator[Any]:
