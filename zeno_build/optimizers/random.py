@@ -43,7 +43,7 @@ class RandomOptimizer(Optimizer):
         self._state = random.getstate()
         random.setstate(saved_state)
 
-    def get_parameters(self) -> dict[str, Any]:
+    def get_parameters(self) -> dict[str, Any] | None:
         """Randomize the parameters in a space.
 
         Args:

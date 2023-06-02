@@ -65,6 +65,8 @@ def chatbot_main(
 
         while not optimizer.is_complete(predictions_dir, include_in_progress=True):
             parameters = optimizer.get_parameters()
+            if parameters is None:
+                break
             predictions = make_predictions(
                 contexts=contexts,
                 dataset_preset=parameters["dataset_preset"],
@@ -97,12 +99,16 @@ def chatbot_main(
         for param_file in param_files:
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
-                parameters = json.load(f)
+                loaded_parameters = json.load(f)
             with open(f"{param_file[:-4]}.jsonl", "r") as f:
                 predictions = [json.loads(x) for x in f.readlines()]
-            name = reporting_utils.parameters_to_name(parameters, chatbot_config.space)
+            name = reporting_utils.parameters_to_name(
+                loaded_parameters, chatbot_config.space
+            )
             results.append(
-                ExperimentRun(parameters=parameters, predictions=predictions, name=name)
+                ExperimentRun(
+                    parameters=loaded_parameters, predictions=predictions, name=name
+                )
             )
 
         # Perform the visualization
