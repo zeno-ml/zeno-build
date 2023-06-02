@@ -6,6 +6,7 @@ import random
 from collections.abc import Callable
 from typing import Any, TypeVar
 
+import numpy as np
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions
 
@@ -43,20 +44,13 @@ class RandomOptimizer(Optimizer):
         self._state = random.getstate()
         random.setstate(saved_state)
 
-    def get_parameters(self) -> dict[str, Any] | None:
-        """Randomize the parameters in a space.
-
-        Args:
-            space: The space to randomize.
-
-        Returns:
-            A dictionary of randomized parameters.
-        """
-        if isinstance(self.space, search_space.CombinatorialSearchSpace):
-            saved_state = random.getstate()
-            random.setstate(self._state)
+    @staticmethod
+    def _get_parameters_from_space(
+        space: search_space.SearchSpace,
+    ) -> dict[str, Any] | None:
+        if isinstance(space, search_space.CombinatorialSearchSpace):
             params = {}
-            for name, dimension in self.space.dimensions.items():
+            for name, dimension in space.dimensions.items():
                 if isinstance(dimension, search_space.Categorical) or isinstance(
                     dimension, search_space.Discrete
                 ):
@@ -69,8 +63,27 @@ class RandomOptimizer(Optimizer):
                     params[name] = dimension.value
                 else:
                     raise ValueError(f"Unknown search dimension: {dimension}")
-            self._state = random.getstate()
-            random.setstate(saved_state)
+            return params
+        elif isinstance(space, search_space.CompositeSearchSpace):
+            sub_space = space.spaces[
+                np.random.choice(len(space.spaces), p=space.weights)
+            ]
+            return RandomOptimizer._get_parameters_from_space(sub_space)
         else:
-            raise NotImplementedError(f"Unsupported search space {type(self.space)}.")
+            raise NotImplementedError(f"Unsupported search space {type(space)}.")
+
+    def get_parameters(self) -> dict[str, Any] | None:
+        """Randomize the parameters in a space.
+
+        Args:
+            space: The space to randomize.
+
+        Returns:
+            A dictionary of randomized parameters.
+        """
+        saved_state = random.getstate()
+        random.setstate(self._state)
+        params = RandomOptimizer._get_parameters_from_space(self.space)
+        self._state = random.getstate()
+        random.setstate(saved_state)
         return params

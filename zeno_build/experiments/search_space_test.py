@@ -64,6 +64,39 @@ def test_get_valid_param_files():
         assert actual_output == expected_output
 
 
+def test_get_composite_files():
+    """Test that get_valid_param_files works."""
+    space = search_space.CompositeSearchSpace(
+        [
+            search_space.CombinatorialSearchSpace(
+                {"a": search_space.Categorical([1, 2, 3])}
+            ),
+            search_space.CombinatorialSearchSpace(
+                {"a": search_space.Categorical([1, 3, 5])}
+            ),
+        ]
+    )
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create valid and invalid parameter files.
+        with open(f"{temp_dir}/valid1.zbp", "w") as file:
+            json.dump({"a": 1}, file)
+        with open(f"{temp_dir}/valid2.zbp", "w") as file:
+            json.dump({"a": 2}, file)
+        with open(f"{temp_dir}/valid3.zbp", "w") as file:
+            json.dump({"a": 5}, file)
+        with open(f"{temp_dir}/invalid.zbp", "w") as file:
+            json.dump({"a": 4}, file)
+
+        # Check that get_valid_param_files returns the correct files.
+        actual_output = sorted(space.get_valid_param_files(temp_dir, False))
+        expected_output = [
+            f"{temp_dir}/valid1.zbp",
+            f"{temp_dir}/valid2.zbp",
+            f"{temp_dir}/valid3.zbp",
+        ]
+        assert actual_output == expected_output
+
+
 def test_get_valid_param_with_locks_and_fails():
     """Test that get_valid_param_files works."""
     space = search_space.CombinatorialSearchSpace(

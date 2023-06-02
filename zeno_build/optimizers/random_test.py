@@ -46,3 +46,27 @@ def test_random_optimizer():
         assert external_state == random.getstate()
     unique_param_jsons = set([json.dumps(x) for x in all_param_choices])
     assert total_number == len(unique_param_jsons)
+
+
+def test_random_composite():
+    """Check the composite space with weighting.
+
+    This uses random sampling at a 0.2/0.8 ratio, which
+    means that the first space should be sampled about 20%
+    of the time.
+    """
+    space = search_space.CompositeSearchSpace(
+        [
+            search_space.CombinatorialSearchSpace({"a": search_space.Constant(1)}),
+            search_space.CombinatorialSearchSpace({"a": search_space.Constant(2)}),
+        ],
+        weights=[0.2, 0.8],
+    )
+
+    optimizer = RandomOptimizer(space=space, distill_functions=[], metric=input_length)
+    NUM_TRIALS = 10000
+    num_first = 0
+    for _ in range(NUM_TRIALS):
+        if optimizer.get_parameters()["a"] == 1:
+            num_first += 1
+    assert 0.1 < num_first / NUM_TRIALS < 0.3

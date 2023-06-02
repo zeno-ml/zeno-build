@@ -145,3 +145,22 @@ class CombinatorialSearchSpace(SearchSpace):
             if not self.dimensions[k].value_in_scope(v):
                 return False
         return True
+
+
+class CompositeSearchSpace(SearchSpace):
+    """A search space consisting of multiple search spaces."""
+
+    def __init__(self, spaces: list[SearchSpace], weights: list[float] | None = None):
+        """Initialize the search space.
+
+        Args:
+            spaces: The search spaces to combine.
+            weights: The weights of the search spaces. If None, all search spaces
+                have equal weight.
+        """
+        self.spaces = spaces
+        self.weights = weights or [1.0 / len(spaces)] * len(spaces)
+
+    def contains_params(self, params: dict[str, Any]) -> bool:
+        """Check if the parameters are contained in the search space."""
+        return any([s.contains_params(params) for s in self.spaces])
