@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import abc
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -13,7 +14,7 @@ from zeno_build.experiments import search_space
 T = TypeVar("T")
 
 
-class Optimizer:
+class Optimizer(abc.ABC):
     """An optimizer for hyperparameter search."""
 
     def __init__(
@@ -79,3 +80,13 @@ class Optimizer:
             output_dir=output_dir, include_in_progress=include_in_progress
         )
         return len(valid_param_files) >= self.num_trials
+
+    @abc.abstractmethod
+    def get_parameters(self) -> dict[str, Any] | None:
+        """Get the next parameters to optimize.
+
+        Returns:
+            A dictionary of instantiated parameters, or None
+            if there are no more parameters to return.
+        """
+        ...

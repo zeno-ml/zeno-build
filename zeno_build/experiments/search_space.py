@@ -70,7 +70,12 @@ class Float(SearchDimension):
 
 @dataclass(frozen=True)
 class Int(SearchDimension):
-    """An integer hyperparameter range."""
+    """An integer hyperparameter range.
+
+    Attributes:
+        lower: The lower bound of the range (inclusive).
+        upper: The upper bound of the range (inclusive).
+    """
 
     lower: int
     upper: int
