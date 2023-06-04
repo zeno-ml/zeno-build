@@ -209,7 +209,7 @@ to work with.
 
 Finally, we used Zeno’s
 [exploration UI](https://zenoml.com/docs/intro#exploration-ui) to try to find
-possible errors by gpt-3.5-turbo, the worst performing model. Specifically, we
+possible errors by gpt-3.5-turbo, the best performing model. Specifically, we
 looked at all examples that had low chrf (<0.1) and looked through them manually
 to find trends.
 
