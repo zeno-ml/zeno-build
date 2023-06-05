@@ -100,8 +100,8 @@ def chatbot_main(
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
                 loaded_parameters = json.load(f)
-            with open(f"{param_file[:-4]}.jsonl", "r") as f:
-                predictions = [json.loads(x) for x in f.readlines()]
+            with open(f"{param_file[:-4]}.json", "r") as f:
+                predictions = json.load(f)
             name = reporting_utils.parameters_to_name(
                 loaded_parameters, chatbot_config.space
             )
