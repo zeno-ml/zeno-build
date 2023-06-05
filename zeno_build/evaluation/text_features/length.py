@@ -60,10 +60,13 @@ def chat_context_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """
     chat_context_lengths = []
     for data in df[ops.data_column]:
-        if not isinstance(data, ChatMessages):
+        if isinstance(data, ChatMessages):
+            chat_context_lengths.append(len(data.messages))
+        elif isinstance(data, list):
+            chat_context_lengths.append(len(data))
+        else:
             raise ValueError(
-                f"Expected {ops.data_column} column to be ChatMessages, but got "
-                f"{type(data)} instead."
+                f"Expected {ops.data_column} column to be ChatMessages, or list "
+                f"but got {type(data)} instead."
             )
-        chat_context_lengths.append(len(data.messages))
     return DistillReturn(distill_output=chat_context_lengths)
