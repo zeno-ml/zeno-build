@@ -145,7 +145,9 @@ def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     # NOTE: It is necessary to mention "ops.output_column" in this function
     # to work-around a hack in Zeno (as of v0.4.11):
     # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
-    return call_critique(df, ops, "length_ratio", {})
+    return call_critique(
+        df, ops, "length_ratio", {"tokenizer": {"name": "character", "config": {}}}
+    )
 
 
 @distill
