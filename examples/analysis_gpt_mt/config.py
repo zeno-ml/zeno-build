@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from zeno_build.evaluation.text_features.capitalization import input_capital_char_ratio
 from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.length import (
     doc_context_length,
@@ -115,6 +116,7 @@ zeno_distill_and_metric_functions = [
     input_length,
     label_length,
     doc_context_length,
+    input_capital_char_ratio,
     chrf,
     length_ratio,
     bert_score,
