@@ -91,9 +91,8 @@ async def generate_from_openai_completion(
         for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
-    oai_session = openai.aiosession.get()
-    assert oai_session is not None
-    await oai_session.close()
+    # Note: will never be none because it's set, but mypy doesn't know that.
+    await openai.aiosession.get().close()  # type: ignore
     return [x["choices"][0]["text"] for x in responses]
 
 
@@ -175,7 +174,6 @@ async def generate_from_openai_chat_completion(
         for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
-    oai_session = openai.aiosession.get()
-    assert oai_session is not None
-    await oai_session.close()
+    # Note: will never be none because it's set, but mypy doesn't know that.
+    await openai.aiosession.get().close()  # type: ignore
     return [x["choices"][0]["message"]["content"] for x in responses]
