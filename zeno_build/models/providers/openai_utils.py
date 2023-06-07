@@ -74,8 +74,7 @@ async def generate_from_openai_completion(
             "OPENAI_API_KEY environment variable must be set when using OpenAI API."
         )
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    session = ClientSession()
-    openai.aiosession.set(session)
+    openai.aiosession.set(ClientSession())
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
     async_responses = [
         _throttled_openai_completion_acreate(
@@ -92,7 +91,8 @@ async def generate_from_openai_completion(
         for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
-    await session.close()
+    # Note: will never be none because it's set, but mypy doesn't know that.
+    await openai.aiosession.get().close()  # type: ignore
     return [x["choices"][0]["text"] for x in responses]
 
 
@@ -121,6 +121,21 @@ async def _throttled_openai_chat_completion_acreate(
                 await asyncio.sleep(10)
             except asyncio.exceptions.TimeoutError:
                 logging.warning("OpenAI API timeout. Sleeping for 10 seconds.")
+                await asyncio.sleep(10)
+            except openai.error.InvalidRequestError:
+                logging.warning("OpenAI API Invalid Request: Prompt was filtered")
+                return {
+                    "choices": [
+                        {"message": {"content": "Invalid Request: Prompt was filtered"}}
+                    ]
+                }
+            except openai.error.APIConnectionError:
+                logging.warning(
+                    "OpenAI API Connection Error: Error Communicating with OpenAI"
+                )
+                await asyncio.sleep(10)
+            except openai.error.Timeout:
+                logging.warning("OpenAI APITimeout Error: OpenAI Timeout")
                 await asyncio.sleep(10)
             except openai.error.APIError as e:
                 logging.warning(f"OpenAI API error: {e}")
@@ -158,8 +173,7 @@ async def generate_from_openai_chat_completion(
             "OPENAI_API_KEY environment variable must be set when using OpenAI API."
         )
     openai.api_key = os.environ["OPENAI_API_KEY"]
-    session = ClientSession()
-    openai.aiosession.set(session)
+    openai.aiosession.set(ClientSession())
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
     async_responses = [
         _throttled_openai_chat_completion_acreate(
@@ -175,5 +189,6 @@ async def generate_from_openai_chat_completion(
         for full_context in full_contexts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
-    await session.close()
+    # Note: will never be none because it's set, but mypy doesn't know that.
+    await openai.aiosession.get().close()  # type: ignore
     return [x["choices"][0]["message"]["content"] for x in responses]
