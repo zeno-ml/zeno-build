@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 
 import pandas as pd
 
@@ -67,6 +68,7 @@ def analysis_gpt_mt_main(
         "text-classification",
         "data",
         config.zeno_distill_and_metric_functions,
+        zeno_config={"cache_path": os.path.join(results_dir, "zeno_cache")},
     )
 
 

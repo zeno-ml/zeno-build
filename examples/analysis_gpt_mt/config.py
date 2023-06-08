@@ -16,9 +16,11 @@ from zeno_build.evaluation.text_features.length import (
 from zeno_build.evaluation.text_metrics.critique import (
     avg_bert_score,
     avg_chrf,
+    avg_comet,
     avg_length_ratio,
     bert_score,
     chrf,
+    comet,
     length_ratio,
 )
 from zeno_build.experiments import search_space
@@ -120,10 +122,12 @@ zeno_distill_and_metric_functions = [
     input_capital_char_ratio,
     output_max_word_freq,
     chrf,
+    comet,
     length_ratio,
     bert_score,
     exact_match,
     avg_chrf,
+    avg_comet,
     avg_length_ratio,
     avg_bert_score,
     avg_exact_match,
