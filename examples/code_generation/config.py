@@ -181,8 +181,10 @@ zeno_distill_and_metric_functions = [
     length_ratio,
     bert_score,
     exact_match,
+    execution_accuracy,
     avg_chrf,
     avg_length_ratio,
     avg_bert_score,
     avg_exact_match,
+    avg_execution_accuracy,
 ]
