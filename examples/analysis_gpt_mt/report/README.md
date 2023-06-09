@@ -31,14 +31,14 @@ stand up to practical usage in multilingual applications. So we used
   or dropping content, or performing particularly poorly on unusually formatted
   text
 - On the other hand, GPT models did **better on some more tricky examples**,
-  such as idioms, ambiguous expressions, or pronouns - We also compared pricing,
-  **gpt-3.5-turbo is less expensive, text-davinci-003 is comparable, and gpt-4
-  is more expensive than special-purpose translation APIs** such as Google’s or
-  Microsoft’s
+  such as idioms, ambiguous expressions, or pronouns
+- We also compared pricing, **gpt-3.5-turbo is less expensive,
+  text-davinci-003 is comparable, and gpt-4 is more expensive than
+  special-purpose translation APIs** such as Google’s or Microsoft’s
 
 We released a browsing interface here so that you can easily dig in deeper too:
 
-- **[Browse the results here](https://zeno-ml-gpt-mt-report.hf.space)**
+- **[Browse the results here](https://zeno-ml-translation-report.hf.space)**
 
 Read on for more!
 
@@ -255,7 +255,7 @@ seems to underperform when translating into non-English languages, and also
 seems to be less robust, showing significantly more degenerate behavior.
 
 You can click around **[the browsing
-interface](https://zeno-ml-gpt-mt-report.hf.space)** and explore more! If you
+interface](https://zeno-ml-translation-report.hf.space)** and explore more! If you
 speak any of the languages that were evaluated, you can also click on the
 appropriate “language pair” bar and view only outputs from that language as
 well.
