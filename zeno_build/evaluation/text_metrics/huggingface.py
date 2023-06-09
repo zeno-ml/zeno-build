@@ -27,15 +27,13 @@ def call_evaluate(
     eval_dict = df[[ops.output_column, ops.label_column, ops.data_column]].to_dict(
         "records"
     )
+
     for d in eval_dict:
-        d["references"] = d.pop(ops.label_column)
-        if metric_name == "code_eval":
-            d["target"] = [d.get(ops.data_column) + d.pop(ops.output_column)]
-        else:
-            d["target"] = [d.pop(ops.output_column)]
+        d["references"] = d.get(ops.label_column)
+        d["target"] = [d.get(ops.output_column)]
+        # d["target"] = [d.get(ops.data_column) + d.pop(ops.output_column)]
         if len(d["references"][0]) == 0:
             raise ValueError(f"Empty referencea at {d}")
-        # d["source"] = d.pop(ops.data_column)
     
     eval_metric = evaluate.load(metric_name)
 
@@ -57,6 +55,8 @@ def call_evaluate(
 
 @distill
 def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    ops.output_column = "outputs"
+
     import os
     os.environ["HF_ALLOW_CODE_EVAL"] = "1"
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
