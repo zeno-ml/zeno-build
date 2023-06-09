@@ -70,3 +70,23 @@ def chat_context_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
                 f"but got {type(data)} instead."
             )
     return DistillReturn(distill_output=chat_context_lengths)
+
+
+@distill
+def doc_context_length(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Length of the previous document context, e.g. for document-level translation.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: The document context
+    """
+    doc_context_lengths = []
+    # Count the number of times `doc_id` has appeared so far
+    doc_ids: dict[str, int] = {}
+    for x in df["doc_id"]:
+        doc_ids[x] = doc_ids.get(x, 0) + 1
+        doc_context_lengths.append(doc_ids[x])
+    return DistillReturn(distill_output=doc_context_lengths)
