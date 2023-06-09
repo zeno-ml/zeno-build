@@ -27,7 +27,7 @@ def build_input_from_intents_and_prompts(
 def build_test(test_start: str, test: list[str], entry_point: str) -> str:
     return "\n".join(
         [
-            test_start,
+            test_start.replace("candidate", entry_point),
             "".join(test),
             "",
             f"check({entry_point})",
