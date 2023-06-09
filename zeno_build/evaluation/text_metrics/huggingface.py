@@ -30,8 +30,8 @@ def call_evaluate(
 
     for d in eval_dict:
         d["references"] = d.get(ops.label_column)
-        d["target"] = [d.get(ops.output_column)]
-        # d["target"] = [d.get(ops.data_column) + d.pop(ops.output_column)]
+        # d["target"] = [d.get(ops.output_column)]
+        d["target"] = [d.get(ops.data_column) + d.get(ops.output_column)]
         if len(d["references"][0]) == 0:
             raise ValueError(f"Empty referencea at {d}")
     
@@ -48,7 +48,6 @@ def call_evaluate(
             **config
         )
         all_results.append(round(pass_at_k["pass@1"], 6))
-    
     return DistillReturn(distill_output=all_results)
 
 
@@ -67,4 +66,4 @@ def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
 def avg_execution_accuracy(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     if len(df) == 0:
         return MetricReturn(metric=0.0)
-    return MetricReturn(metric=sum(df[ops.distill_columns["execution_accuracy"]]) / len(df))
+    return MetricReturn(metric=df[ops.distill_columns["execution_accuracy"]].fillna(0).mean())
