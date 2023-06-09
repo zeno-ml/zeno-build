@@ -44,12 +44,13 @@ space = search_space.CombinatorialSearchSpace(
                 # "llama-7b",
                 # "alpaca-7b",
                 "codegen-350M-mono"
+                # "codegen-2B-mono"
             ]
         ),
         "prompt_preset": search_space.Categorical(
             ["standard"]
         ),
-        "temperature": search_space.Discrete([0.8]),
+        "temperature": search_space.Discrete([0.2]),
         "max_tokens": search_space.Constant(512),
         "top_p": search_space.Constant(0.95),
     }
@@ -158,6 +159,14 @@ model_configs = {
     "codegen-350M-mono": LMConfig(
         provider="huggingface",
         model="Salesforce/codegen-350M-mono",
+    ),
+    "codegen-2B-mono": LMConfig(
+        provider="huggingface",
+        model="Salesforce/codegen-2B-mono",
+    ),
+    "codegen-6B-mono": LMConfig(
+        provider="huggingface",
+        model="Salesforce/codegen-6B-mono",
     )
 }
 
@@ -177,14 +186,10 @@ zeno_distill_and_metric_functions = [
     output_length,
     input_length,
     label_length,
-    chrf,
-    length_ratio,
-    bert_score,
-    exact_match,
     execution_accuracy,
-    avg_chrf,
-    avg_length_ratio,
-    avg_bert_score,
-    avg_exact_match,
+    # chrf, 
+    # length_ratio,
     avg_execution_accuracy,
+    # avg_chrf,
+    # avg_length_ratio,
 ]
