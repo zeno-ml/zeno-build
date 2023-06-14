@@ -1,4 +1,4 @@
-"""The main entry point for performing comparison on analysis_gpt_mts."""
+"""The main entry point for performing comparison on transcription models."""
 
 from __future__ import annotations
 

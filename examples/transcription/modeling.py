@@ -1,4 +1,4 @@
-"""Chatbots using API-based services."""
+"""Run transcription on audio files."""
 from __future__ import annotations
 
 import json

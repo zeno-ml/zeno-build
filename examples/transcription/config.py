@@ -29,7 +29,7 @@ space = search_space.CombinatorialSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 2
+num_trials = 9
 
 sweep_distill_functions = [wer]
 sweep_metric_function = avg_wer
