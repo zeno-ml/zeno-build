@@ -5,6 +5,7 @@ import json
 import os
 import traceback
 
+import tqdm
 import whisper
 
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
@@ -55,7 +56,7 @@ def transcribe_audio(model_name: str, audio_paths: list[str]) -> list[str]:
     model = whisper.load_model(model_name)
 
     outs: list[str] = []
-    for f in audio_paths:
-        outs.append(model.transcribe(f)["text"])
+    for i in tqdm.trange(0, len(audio_paths)):
+        outs.append(model.transcribe(audio_paths[i])["text"])
 
     return outs
