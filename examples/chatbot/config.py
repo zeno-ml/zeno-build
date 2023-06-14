@@ -28,8 +28,9 @@ from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
-# Define the space of hyperparameters to search over.
-space = search_space.CombinatorialSearchSpace(
+# Define the space of hyperparameters to search over if using
+# hyperparameter search.
+full_space = search_space.CombinatorialSearchSpace(
     {
         "dataset_preset": search_space.Constant("dstc11"),
         "model_preset": search_space.Categorical(
@@ -55,8 +56,10 @@ space = search_space.CombinatorialSearchSpace(
 )
 
 # Specifically, this is the space of hyperparameters used in the Zeno
-# chatbot report:
+# chatbot report on the DSTC11 dataset:
 # https://github.com/zeno-ml/zeno-build/tree/main/examples/chatbot
+# It can be used together with ExhaustiveOptimizer to reproduce the
+# results in the report.
 report_space = search_space.CompositeSearchSpace(
     [
         # Comparison of models
