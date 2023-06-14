@@ -27,12 +27,10 @@ def transcription_main(
     # Load data from input dir.
     metadata = pd.read_csv(input_metadata)
     audio_paths = (
-        transcription_config.space.dimensions["data_source_preset"].value
-        + metadata[transcription_config.space.dimensions["data_source_column"].value]
+        transcription_config.data_source
+        + metadata[transcription_config.data_source_column]
     ).tolist()
-    labels = metadata[
-        transcription_config.space.dimensions["label_column"].value
-    ].tolist()
+    labels = metadata[transcription_config.label_column].tolist()
 
     # Define the directories for storing predictions
     predictions_dir = os.path.join(results_dir, "predictions")
@@ -92,9 +90,12 @@ def transcription_main(
             labels,
             results,
             "audio-transcription",
-            transcription_config.space.dimensions["data_source_column"],
+            "id",
             transcription_config.zeno_distill_and_metric_functions,
-            zeno_config={"cache_path": os.path.join(results_dir, "zeno_cache")},
+            zeno_config={
+                "cache_path": os.path.join(results_dir, "zeno_cache"),
+                "data_path": transcription_config.data_source,
+            },
         )
 
 

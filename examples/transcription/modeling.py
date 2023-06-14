@@ -17,10 +17,7 @@ def make_predictions(
 ) -> list[str] | None:
     """Make predictions over a particular dataset."""
     # Load from cache if existing
-    parameters = {
-        k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
-    }
-    file_root = get_cache_path(output_dir, parameters)
+    file_root = get_cache_path(output_dir, {"model_preset": model_name})
     if os.path.exists(f"{file_root}.json"):
         with open(f"{file_root}.json", "r") as f:
             return json.load(f)
