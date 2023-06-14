@@ -27,7 +27,7 @@ def chatbot_main(
 ):
     """Run the chatbot experiment."""
     # Get the dataset configuration
-    dataset_preset = chatbot_config.space.dimensions["dataset_preset"]
+    dataset_preset = chatbot_config.report_space.dimensions["dataset_preset"]
     if not isinstance(dataset_preset, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
@@ -57,7 +57,7 @@ def chatbot_main(
     if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = standard.StandardOptimizer(
-            space=chatbot_config.space,
+            space=chatbot_config.report_space,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
             num_trials=chatbot_config.num_trials,
@@ -88,7 +88,7 @@ def chatbot_main(
             print("***************************")
 
     if do_visualization:
-        param_files = chatbot_config.space.get_valid_param_files(
+        param_files = chatbot_config.report_space.get_valid_param_files(
             predictions_dir, include_in_progress=False
         )
         if len(param_files) < chatbot_config.num_trials:
@@ -103,7 +103,7 @@ def chatbot_main(
             with open(f"{param_file[:-4]}.json", "r") as f:
                 predictions = json.load(f)
             name = reporting_utils.parameters_to_name(
-                loaded_parameters, chatbot_config.space
+                loaded_parameters, chatbot_config.report_space
             )
             results.append(
                 ExperimentRun(
