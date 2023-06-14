@@ -14,7 +14,7 @@ from examples.chatbot import config as chatbot_config
 from examples.chatbot.modeling import make_predictions, process_data
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
-from zeno_build.optimizers import standard
+from zeno_build.optimizers import exhaustive
 from zeno_build.prompts.chat_prompt import ChatMessages
 from zeno_build.reporting import reporting_utils
 from zeno_build.reporting.visualize import visualize
@@ -56,7 +56,7 @@ def chatbot_main(
 
     if do_prediction:
         # Perform the hyperparameter sweep
-        optimizer = standard.StandardOptimizer(
+        optimizer = exhaustive.ExhaustiveOptimizer(
             space=chatbot_config.report_space,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
