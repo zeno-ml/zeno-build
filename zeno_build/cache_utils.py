@@ -74,19 +74,19 @@ class CacheLock:
         """
         # Skip if the lock file exists
         if os.path.exists(self.lock_path):
-            logging.getLogger(__name__).info(f"Skipping {self.lock_path}")
+            logging.getLogger(__name__).debug(f"Skipping {self.lock_path}")
             self.skipped = True
             return False
 
         # Create the lock file
         with open(self.lock_path, "w"):
-            logging.getLogger(__name__).info(f"Created lock file {self.lock_path}")
+            logging.getLogger(__name__).debug(f"Created lock file {self.lock_path}")
             pass
 
         return True
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Remove the lock file."""
-        logging.getLogger(__name__).info(f"Exiting {self.lock_path}")
         if not self.skipped:
+            logging.getLogger(__name__).debug(f"Deleting lock {self.lock_path}")
             os.remove(self.lock_path)
