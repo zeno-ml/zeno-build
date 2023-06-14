@@ -69,7 +69,7 @@ report_space = search_space.CompositeSearchSpace(
                 "model_preset": search_space.Categorical(
                     [
                         "gpt-3.5-turbo",
-                        "cohere-command-xlarge",
+                        # "cohere-command-xlarge",
                         "gpt2",
                         "gpt2-xl",
                         "llama-7b",
