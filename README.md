@@ -44,9 +44,9 @@ classification](examples/text_classification/).
 
 Each of the examples include code for running experiments and evaluating the
 results. `zeno-build` will produce a comprehensive report with the
-[Zeno](https://zenoml.com/) ML analysis platform.
+[Zeno](https://zenoml.com/) AI evaluation platform.
 
-## Online Demos/Reports
+## Interactive Demos/Reports
 
 Using Zeno Build, we have generated reports and online browsing demos of
 state-of-the-art systems for different popular generative AI tasks.
