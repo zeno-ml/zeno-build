@@ -136,3 +136,33 @@ def test_get_valid_param_with_locks_and_fails():
             f"{temp_dir}/valid4.zbp",
         ]
         assert actual_output_in_progress == expected_output_in_progress
+
+
+def test_get_non_constant_dimensions_combinatorial():
+    """Test that get_non_constant_dimensions works."""
+    space = search_space.CombinatorialSearchSpace(
+        {
+            "a": search_space.Constant(1),
+            "b": search_space.Categorical([1, 2, 3]),
+            "c": search_space.Int(0, 1),
+        }
+    )
+    assert space.get_non_constant_dimensions() == ["b", "c"]
+
+
+def test_get_non_constant_dimensions_composite():
+    """Test that get_non_constant_dimensions works."""
+    space = search_space.CompositeSearchSpace(
+        [
+            search_space.CombinatorialSearchSpace(
+                {
+                    "a": search_space.Constant(1),
+                    "b": search_space.Categorical([1, 2, 3]),
+                }
+            ),
+            search_space.CombinatorialSearchSpace(
+                {"a": search_space.Constant(1), "c": search_space.Int(0, 1)}
+            ),
+        ]
+    )
+    assert space.get_non_constant_dimensions() == ["b", "c"]
