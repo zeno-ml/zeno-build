@@ -64,6 +64,7 @@ class CacheLock:
     def __init__(self, filename: str):
         """Initialize the lock."""
         self.lock_path = f"{filename}.zblock"
+        self.fail_path = f"{filename}.zbfail"
         self.skipped = False
 
     def __enter__(self) -> bool:
@@ -73,7 +74,7 @@ class CacheLock:
         Otherwise, return False.
         """
         # Skip if the lock file exists
-        if os.path.exists(self.lock_path):
+        if os.path.exists(self.lock_path) or os.path.exists(self.fail_path):
             logging.getLogger(__name__).debug(f"Skipping {self.lock_path}")
             self.skipped = True
             return False
