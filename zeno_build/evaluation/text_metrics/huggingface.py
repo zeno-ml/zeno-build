@@ -6,60 +6,58 @@ from pandas import DataFrame
 from zeno import ZenoOptions, DistillReturn, MetricReturn, distill, metric
 
 
-def call_evaluate(
-    df: DataFrame,
-    ops: ZenoOptions,
-    metric_name: str,
-    config: dict,
-    batch_size: int = 1,
-) -> DistillReturn:
-    """Call HuggingFace evaluate.
+@distill
+def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """Evaluate execution accuracy of code.
+    
+    Note that there are some expectations about the content of df:
+    - df[ops.data_column]: A column containing code prefixes.
+    - df[ops.output_column]: A column containing generated code.
+    - df[ops.label_column]: A column containing lists of tests to be executed.
     
     Args:
-        df: Zeno Dataframe
-        ops: Zeno Options
-        metric_name: Name of the metric
-        config: Metric configuration
+        df: A dataframe containing the necessary inputs.
+        ops: The options for the inputs.
+    
+    Side effect:
+        Adds a column "execution_accuracy_message" with the message from
+        the execution accuracy evaluator.
     
     Returns:
-        MetricReturn: Metric results
+        The results of pass@1 execution accuracy.
     """
+    import os
+    os.environ["HF_ALLOW_CODE_EVAL"] = "1"
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    
     eval_dict = df[[ops.output_column, ops.label_column, ops.data_column]].to_dict(
         "records"
     )
 
     for d in eval_dict:
         d["references"] = d.get(ops.label_column)
-        # d["target"] = [d.get(ops.output_column)]
         d["target"] = [d.get(ops.data_column) + d.get(ops.output_column)]
-        if len(d["references"][0]) == 0:
-            raise ValueError(f"Empty referencea at {d}")
+        if len(d["references]) == 0 or len(d["references"][0]) == 0:
+            raise ValueError(f"Empty references at {d}")
     
-    eval_metric = evaluate.load(metric_name)
+    eval_metric = evaluate.load("code_eval")
 
-    # evaluate batch by batch
+    # evaluate all outputs
     all_results = []
+    all_messages = []
     for i in tqdm.tqdm(
-        range(0, len(eval_dict), batch_size), desc=f"Evaluating {metric_name}",
+        range(0, len(eval_dict)), desc=f"Evaluating {metric_name}",
     ):
         pass_at_k, results = eval_metric.compute(
-            predictions=[d["target"] for d in eval_dict[i: i + batch_size]],
-            references=[d["references"] for d in eval_dict[i: i + batch_size]],
+            predictions=[d["target"] for d in eval_dict[i]],
+            references=[d["references"] for d in eval_dict[i]],
             **config
         )
-        all_results.append(round(pass_at_k["pass@1"], 6))
+        all_results.append(pass_at_k["pass@1"])
+        all_messages.append(results[0])
+    # Save the messages for possible future reference
+    df["execution_accuracy_messages"] = all_messages
     return DistillReturn(distill_output=all_results)
-
-
-
-@distill
-def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
-    ops.output_column = "outputs"
-
-    import os
-    os.environ["HF_ALLOW_CODE_EVAL"] = "1"
-    os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    return call_evaluate(df, ops, "code_eval", {"k": [1]})
 
 
 @metric
