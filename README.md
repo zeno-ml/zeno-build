@@ -44,12 +44,23 @@ classification](examples/text_classification/).
 
 Each of the examples include code for running experiments and evaluating the
 results. `zeno-build` will produce a comprehensive report with the
-[Zeno](https://zenoml.com/) ML analysis platform. To give you a flavor of what
-these reports will look like, check out a few of our pre-made reports below:
+[Zeno](https://zenoml.com/) AI evaluation platform.
 
-- [Zeno Chatbot Report](examples/chatbot/report/): A report comparing different methods
+## Interactive Demos/Reports
+
+Using Zeno Build, we have generated reports and online browsing demos of
+state-of-the-art systems for different popular generative AI tasks.
+Check out our pre-made reports below:
+
+- **Chatbots** ([Report](examples/chatbot/report/),
+  [Browser](https://zeno-ml-chatbot-report.hf.space/)):
+  A report comparing different methods
   for creating chatbots, including API-based models such as ChatGPT and Cohere,
   with open-source models such as Vicuna, Alpaca, and MPT.
+- **Translation** ([Report](examples/analysis_gpt_mt/report/),
+  [Browser](https://zeno-ml-translation-report.hf.space/)):
+  A report comparing GPT-based methods, Microsoft Translator, and the best system
+  from the Conference on Machine Translation.
 
 ## Building Your Own Apps (and Contributing Back)
 
