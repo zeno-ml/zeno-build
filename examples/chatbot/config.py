@@ -28,8 +28,9 @@ from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
-# Define the space of hyperparameters to search over.
-space = search_space.CombinatorialSearchSpace(
+# Define the space of hyperparameters to search over if using
+# hyperparameter search.
+full_space = search_space.CombinatorialSearchSpace(
     {
         "dataset_preset": search_space.Constant("dstc11"),
         "model_preset": search_space.Categorical(
@@ -39,7 +40,6 @@ space = search_space.CombinatorialSearchSpace(
                 "gpt2",
                 "gpt2-xl",
                 "llama-7b",
-                "alpaca-7b",
                 "vicuna-7b",
                 "mpt-7b-chat",
             ]
@@ -54,8 +54,65 @@ space = search_space.CombinatorialSearchSpace(
     }
 )
 
+# Specifically, this is the space of hyperparameters used in the Zeno
+# chatbot report on the DSTC11 dataset:
+# https://github.com/zeno-ml/zeno-build/tree/main/examples/chatbot
+# It can be used together with ExhaustiveOptimizer to reproduce the
+# results in the report.
+report_space = search_space.CompositeSearchSpace(
+    [
+        # Comparison of models
+        search_space.CombinatorialSearchSpace(
+            {
+                "dataset_preset": search_space.Constant("dstc11"),
+                "model_preset": search_space.Categorical(
+                    [
+                        "gpt-3.5-turbo",
+                        "gpt2",
+                        "gpt2-xl",
+                        "llama-7b",
+                        "vicuna-7b",
+                        "mpt-7b-chat",
+                    ]
+                ),
+                "prompt_preset": search_space.Constant("standard"),
+                "temperature": search_space.Constant(0.3),
+                "context_length": search_space.Constant(4),
+                "max_tokens": search_space.Constant(100),
+                "top_p": search_space.Constant(1.0),
+            }
+        ),
+        # Comparison of prompts
+        search_space.CombinatorialSearchSpace(
+            {
+                "dataset_preset": search_space.Constant("dstc11"),
+                "model_preset": search_space.Constant("vicuna-7b"),
+                "prompt_preset": search_space.Categorical(
+                    ["standard", "friendly", "polite", "cynical", "insurance_standard"]
+                ),
+                "temperature": search_space.Constant(0.3),
+                "context_length": search_space.Constant(4),
+                "max_tokens": search_space.Constant(100),
+                "top_p": search_space.Constant(1.0),
+            }
+        ),
+        # Comparison of context lengths
+        search_space.CombinatorialSearchSpace(
+            {
+                "dataset_preset": search_space.Constant("dstc11"),
+                "model_preset": search_space.Constant("vicuna-7b"),
+                "prompt_preset": search_space.Constant("standard"),
+                "temperature": search_space.Constant(0.3),
+                "context_length": search_space.Discrete([1, 2, 3, 4]),
+                "max_tokens": search_space.Constant(100),
+                "top_p": search_space.Constant(1.0),
+            }
+        ),
+    ]
+)
+
 # The number of trials to run
-num_trials = 10
+num_trials = 13
 
 # The details of each dataset
 dataset_configs = {
@@ -93,14 +150,6 @@ model_configs = {
         provider="huggingface",
         model="decapoda-research/llama-13b-hf",
         tokenizer_cls=transformers.LlamaTokenizer,
-    ),
-    "alpaca-7b": LMConfig(
-        provider="huggingface",
-        model="chavinlo/alpaca-native",
-    ),
-    "alpaca-13b": LMConfig(
-        provider="huggingface",
-        model="chavinlo/alpaca-13b",
     ),
     "vicuna-7b": LMConfig(
         provider="huggingface",

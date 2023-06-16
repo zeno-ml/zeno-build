@@ -64,8 +64,6 @@ which includes agent-customer customer service interactions. We test 7 models:
 - **[LLaMa](https://huggingface.co/decapoda-research/llama-7b-hf):** A language
   model originally trained by Meta AI that uses a straight-up language modeling
   objective. We use the 7B model for this and all following open-source models.
-- **[Alpaca](https://huggingface.co/chavinlo/alpaca-native):** A model based on
-  LLaMa that additionally uses instruction tuning.
 - **[Vicuna](https://huggingface.co/eachadea/vicuna-7b-1.1):** A model based on
   LLaMa that is further explicitly tuned for chatbot-based applications.
 - **[MPT-Chat](https://huggingface.co/mosaicml/mpt-7b-chat):** A model trained

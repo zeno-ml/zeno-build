@@ -11,7 +11,12 @@ from typing import Literal
 import datasets
 
 from examples.chatbot import config as chatbot_config
-from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
+from zeno_build.cache_utils import (
+    CacheLock,
+    fail_cache,
+    get_cache_id_and_path,
+    get_cache_path,
+)
 from zeno_build.models.chat_generate import generate_from_chat_prompt
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
@@ -134,7 +139,7 @@ def make_predictions(
     top_p: float = 1,
     context_length: int = -1,
     output_dir: str = "results",
-) -> list[str] | None:
+) -> tuple[str, list[str]] | None:
     """Make predictions over a particular dataset.
 
     Args:
@@ -155,16 +160,17 @@ def make_predictions(
         - Saves the parameters in a '.zbp' file in the `output_dir` directory
 
     Returns:
-        The predictions in string format.
+        - The system ID of the predictions.
+        - The predictions as a list of strings.
     """
     # Load from cache if existing
     parameters = {
         k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
     }
-    file_root = get_cache_path(output_dir, parameters)
+    system_id, file_root = get_cache_id_and_path(output_dir, parameters)
     if os.path.exists(f"{file_root}.json"):
         with open(f"{file_root}.json", "r") as f:
-            return json.load(f)
+            return system_id, json.load(f)
 
     with CacheLock(file_root) as cache_lock:
         # If the cache is locked, then another process is already generating
@@ -191,4 +197,4 @@ def make_predictions(
         with open(f"{file_root}.json", "w") as f:
             json.dump(predictions, f)
 
-    return predictions
+    return system_id, predictions
