@@ -64,10 +64,12 @@ def chatbot_main(
         )
 
         while not optimizer.is_complete(predictions_dir, include_in_progress=True):
+            # Get parameters
             parameters = optimizer.get_parameters()
             if parameters is None:
                 break
-            predictions = make_predictions(
+            # Get the run ID and resulting predictions
+            id_and_predictions = make_predictions(
                 contexts=contexts,
                 dataset_preset=parameters["dataset_preset"],
                 prompt_preset=parameters["prompt_preset"],
@@ -78,13 +80,21 @@ def chatbot_main(
                 context_length=parameters["context_length"],
                 output_dir=predictions_dir,
             )
-            if predictions is None:
+            if id_and_predictions is None:
                 print(f"*** Skipped run for {parameters=} ***")
                 continue
-            eval_result = optimizer.calculate_metric(contexts, labels, predictions)
+            # Run or read the evaluation result
+            id, predictions = id_and_predictions
+            if os.path.exists(f"{predictions_dir}/{id}.eval"):
+                with open(f"{predictions_dir}/{id}.eval", "r") as f:
+                    eval_result = float(next(f).strip())
+            else:
+                eval_result = optimizer.calculate_metric(contexts, labels, predictions)
+                with open(f"{predictions_dir}/{id}.eval", "w") as f:
+                    f.write(f"{eval_result}")
+            # Print out the results
             print("*** Iteration complete. ***")
-            print(f"Parameters: {parameters}")
-            print(f"Eval: {eval_result}")
+            print(f"Eval: {eval_result}, Parameters: {parameters}")
             print("***************************")
 
     if do_visualization:

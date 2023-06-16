@@ -68,7 +68,6 @@ report_space = search_space.CompositeSearchSpace(
                 "model_preset": search_space.Categorical(
                     [
                         "gpt-3.5-turbo",
-                        # "cohere-command-xlarge",
                         "gpt2",
                         "gpt2-xl",
                         "llama-7b",
@@ -113,7 +112,7 @@ report_space = search_space.CompositeSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 15
+num_trials = 13
 
 # The details of each dataset
 dataset_configs = {

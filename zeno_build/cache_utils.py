@@ -15,16 +15,37 @@ def get_cache_path(
     params: dict[str, Any],
     extension: str | None = None,
 ) -> str:
-    """Get a path to a cache.
+    """Get the path to a cache.
 
     Args:
-        task: The task to cache for.
+        cache_root: The root of the cache path.
         params: The parameters that the cache should represent.
         extension: The extension to use for the cache file, or None for no
             extension.
 
     Returns:
         The path to the cache file or directory.
+    """
+    _, cache_path = get_cache_id_and_path(cache_root, params, extension)
+    return cache_path
+
+
+def get_cache_id_and_path(
+    cache_root: str,
+    params: dict[str, Any],
+    extension: str | None = None,
+) -> tuple[str, str]:
+    """Get the ID and path to a cache.
+
+    Args:
+        cache_root: The root of the cache path.
+        params: The parameters that the cache should represent.
+        extension: The extension to use for the cache file, or None for no
+            extension.
+
+    Returns:
+        - The cache ID, which is the hash of the parameters.
+        - The path to the cache file or directory.
     """
     if extension == "zbp":
         raise ValueError(
@@ -46,7 +67,7 @@ def get_cache_path(
                 break
     with open(param_file, "w") as f:
         f.write(dumped_params)
-    return os.path.join(
+    return base_name, os.path.join(
         cache_root, base_name if extension is None else f"{base_name}.{extension}"
     )
 
