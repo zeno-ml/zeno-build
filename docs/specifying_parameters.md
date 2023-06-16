@@ -18,7 +18,7 @@ space = search_space.CombinatorialSearchSpace(
     {
         "dataset_preset": search_space.Constant("dstc11"),
         "model_preset": search_space.Categorical(
-            ["gpt2-xl", "llama-7b", "alpaca-7b", "vicuna-7b", "mpt-7b-chat"]
+            ["gpt2-xl", "llama-7b", "vicuna-7b", "mpt-7b-chat"]
         ),
         "prompt_preset": search_space.Categorical(
             ["standard", "friendly", "polite", "cynical"]

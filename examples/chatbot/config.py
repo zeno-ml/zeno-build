@@ -40,7 +40,6 @@ full_space = search_space.CombinatorialSearchSpace(
                 "gpt2",
                 "gpt2-xl",
                 "llama-7b",
-                "alpaca-7b",
                 "vicuna-7b",
                 "mpt-7b-chat",
             ]
@@ -73,7 +72,6 @@ report_space = search_space.CompositeSearchSpace(
                         "gpt2",
                         "gpt2-xl",
                         "llama-7b",
-                        "alpaca-7b",
                         "vicuna-7b",
                         "mpt-7b-chat",
                     ]
@@ -153,14 +151,6 @@ model_configs = {
         provider="huggingface",
         model="decapoda-research/llama-13b-hf",
         tokenizer_cls=transformers.LlamaTokenizer,
-    ),
-    "alpaca-7b": LMConfig(
-        provider="huggingface",
-        model="chavinlo/alpaca-native",
-    ),
-    "alpaca-13b": LMConfig(
-        provider="huggingface",
-        model="chavinlo/alpaca-13b",
     ),
     "vicuna-7b": LMConfig(
         provider="huggingface",

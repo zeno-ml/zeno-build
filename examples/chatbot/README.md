@@ -8,7 +8,6 @@ models like
 as well as publicly available models such as
 [GPT-2](https://huggingface.co/gpt2),
 [LLaMa](https://huggingface.co/decapoda-research/llama-7b-hf),
-[Alpaca](https://huggingface.co/chavinlo/alpaca-native),
 [Vicuna](https://huggingface.co/eachadea/vicuna-7b-1.1),
 and [MPT-Chat](https://huggingface.co/mosaicml/mpt-7b-chat).
 
@@ -77,7 +76,7 @@ python main.py
 This will run ten training runs with various hyperparameters for:
 
 * `prompt_template`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
-* `model`: gpt2, llama, alpaca, vicuna, mpt-chat, chatgpt, or cohere
+* `model`: gpt2, llama, vicuna, mpt-chat, chatgpt, or cohere
 * `temperature`: between 0.2, 0.3, or 0.4
 
 The results will be saved to the `results` directory, and a report of the
