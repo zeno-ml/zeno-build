@@ -56,8 +56,8 @@ def process_data(
     split: str,
     examples: int,
     data_format: str,
-    data_column: str | list[str],
-    label_column: str | list[str],
+    data_column: str,
+    label_column: str,
     output_dir: str = "results",
 ) -> list[dict[str, str]]:
     """Load and process data from the huggingface library.
@@ -100,18 +100,18 @@ def process_data(
         loaded_data = loaded_data.select(range(examples))
 
     if data_format == "odex":
-        intent_column, prompt_column = data_column
+        intent_column, prompt_column = data_column.split()
         prompts = [
             build_input_from_intents_and_prompts(x[intent_column], x[prompt_column])
             for x in loaded_data
         ]
-        start_column, test_column, entry_column = label_column
+        start_column, test_column, entry_column = label_column.split()
         labels = [
             build_test(x[start_column], x[test_column], x[entry_column])
             for x in loaded_data
         ]
         suffixes = [x["suffix"] for x in loaded_data]
-        # @todo: change to tokenizer map
+
         data_examples = [
             {"input": p, "label": l, "suffix": s}
             for p, l, s in zip(prompts, labels, suffixes)
