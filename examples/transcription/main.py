@@ -10,7 +10,7 @@ import os
 import pandas as pd
 
 import examples.transcription.config as transcription_config
-from examples.transcription.modeling import make_predictions
+from examples.transcription.modeling import get_audio_paths, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
 from zeno_build.reporting import reporting_utils
@@ -20,16 +20,18 @@ from zeno_build.reporting.visualize import visualize
 def transcription_main(
     input_metadata: str,
     results_dir: str,
+    local_cache: str | None = None,
     do_prediction: bool = True,
     do_visualization: bool = True,
 ) -> None:
     """Run the analysis of transcription models."""
     # Load data from input dir.
     metadata = pd.read_csv(input_metadata)
-    audio_paths = (
-        transcription_config.data_source
-        + metadata[transcription_config.data_source_column]
-    ).tolist()
+    audio_paths = get_audio_paths(
+        metadata[transcription_config.data_source_column].to_list(),
+        transcription_config.data_source,
+        local_cache,
+    )
     labels = metadata[transcription_config.label_column].tolist()
 
     # Define the directories for storing predictions
@@ -113,9 +115,16 @@ if __name__ == "__main__":
         default="results",
         help="The directory to store the results in.",
     )
+    parser.add_argument(
+        "--local-cache",
+        type=str,
+        optional=True,
+        help="An optional local cache where the audio files are stored.",
+    )
     args = parser.parse_args()
 
     transcription_main(
         input_metadata=args.input_metadata,
         results_dir=args.results_dir,
+        local_cache=args.local_cache,
     )

@@ -3,12 +3,60 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import traceback
+import urllib.request
 
 import tqdm
 import whisper
 
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
+
+
+def get_audio_paths(
+    relative_paths: list[str],
+    data_source: str,
+    local_cache: str | None = None,
+) -> list[str]:
+    """Get the paths to the audio files."""
+    # If not cacheing locally, just return the original source
+    if not local_cache:
+        return [os.path.join(data_source, path) for path in relative_paths]
+    # Otherwise, load from the local cache dir
+    os.makedirs(local_cache, exist_ok=True)
+    files = {
+        x: os.path.join(local_cache, f"{x}.zblock")
+        for x in ["loading", "done", "failed"]
+    }
+    if os.path.exists(files["failed"]):
+        raise RuntimeError("Failed to load data")
+    while not os.path.exists(files["done"]):
+        if os.path.exists(files["failed"]):
+            raise RuntimeError("Failed to load data")
+        elif os.path.exists(files["loading"]):
+            time.sleep(60)
+        else:
+            # Touch the loading file
+            with open(files["loading"], "w"):
+                pass
+            try:
+                for path in relative_paths:
+                    urllib.request.urlretrieve(
+                        os.path.join(data_source, path),
+                        os.path.join(local_cache, path),
+                    )
+            except Exception:
+                # If we fail, then touch the failed file
+                with open(files["failed"], "w"):
+                    pass
+                raise
+            # Touch the done file
+            with open(files["done"], "w"):
+                pass
+            # Delete the loading file
+            os.remove(files["loading"])
+    # Return the paths
+    return [os.path.join(local_cache, path) for path in relative_paths]
 
 
 def make_predictions(
