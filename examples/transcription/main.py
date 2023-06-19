@@ -12,7 +12,7 @@ import pandas as pd
 import examples.transcription.config as transcription_config
 from examples.transcription.modeling import get_audio_paths, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
-from zeno_build.optimizers import standard
+from zeno_build.optimizers import exhaustive
 from zeno_build.reporting import reporting_utils
 from zeno_build.reporting.visualize import visualize
 
@@ -39,7 +39,7 @@ def transcription_main(
 
     if do_prediction:
         # Perform the hyperparameter sweep
-        optimizer = standard.StandardOptimizer(
+        optimizer = exhaustive.ExhaustiveOptimizer(
             space=transcription_config.space,
             distill_functions=transcription_config.sweep_distill_functions,
             metric=transcription_config.sweep_metric_function,
