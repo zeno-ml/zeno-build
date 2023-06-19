@@ -1,20 +1,13 @@
 """Tools to generate from prompts."""
 import asyncio
 
-import re
-import tqdm
-import torch
-import openai
-import asyncio
-import transformers
 from zeno_build.models import lm_config
-from zeno_build.prompts.prompt_utils import replace_variables
+from zeno_build.models.providers.cohere_utils import generate_code_from_cohere
+from zeno_build.models.providers.huggingface_utils import generate_code_from_huggingface
 from zeno_build.models.providers.openai_utils import (
     generate_code_from_openai_chat_completion,
     generate_code_from_openai_completion,
 )
-from zeno_build.models.providers.huggingface_utils import generate_code_from_huggingface
-from zeno_build.models.providers.cohere_utils import generate_code_from_cohere
 
 
 def generate_from_code_prompt(
