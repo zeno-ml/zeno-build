@@ -4,12 +4,13 @@ from __future__ import annotations
 import json
 import os
 import traceback
+import asyncio
 
 import datasets
 
 from examples.code_generation import config as codegen_config
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
-from zeno_build.models.code_generate import generate_from_code_prompt
+from zeno_build.models.text_generate import generate_from_text_prompt
 
 
 def build_input_from_intents_and_prompts(
@@ -179,13 +180,15 @@ def make_predictions(
             return None
         # Make predictions
         try:
-            predictions: list[str] = generate_from_code_prompt(
-                [{"source": x.rstrip()} for x in data],
-                prompt_template,
-                model_config,
-                temperature,
-                max_tokens,
-                top_p,
+            predictions: list[str] = asyncio.run(
+                generate_from_text_prompt(
+                    [{"source": x.rstrip()} for x in data],
+                    prompt_template,
+                    model_config,
+                    temperature,
+                    max_tokens,
+                    top_p,
+                )
             )
         except Exception:
             tb = traceback.format_exc()
