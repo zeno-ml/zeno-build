@@ -11,8 +11,6 @@ from examples.code_generation import config as codegen_config
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
 from zeno_build.models.code_generate import generate_from_code_prompt
 
-# from zeno_build.models.text_generate import generate_from_text_prompt
-
 
 def build_input_from_intents_and_prompts(
     intent: str,
