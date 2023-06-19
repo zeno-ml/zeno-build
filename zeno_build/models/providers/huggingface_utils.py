@@ -94,7 +94,7 @@ def generate_from_huggingface(
     return results
 
 
-def generate_code_from_huggingface(
+def text_generate_from_huggingface(
     variables: list[dict[str, str]],
     prompt_template: str,
     model_config: lm_config.LMConfig,

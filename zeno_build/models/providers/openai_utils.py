@@ -97,51 +97,6 @@ async def generate_from_openai_completion(
     return [x["choices"][0]["text"] for x in responses]
 
 
-async def generate_code_from_openai_completion(
-    variables: list[dict[str, str]],
-    prompt_template: str,
-    model_config: lm_config.LMConfig,
-    temperature: float,
-    max_tokens: int,
-    top_p: float,
-    requests_per_minute: int = 300,
-) -> list[str]:
-    """Generate from OpenAI Completion API.
-
-    Args:
-        variables: The variables to be replaced in the prompt template.
-        prompt_template: The prompt template to use.
-        model_config: The model configuration.
-        temperature: The temperature to use.
-        max_tokens: The maximum number of tokens to generate.
-        top_p: The top-p value to use.
-        requests_per_minute: Number of requests per minute to allow.
-
-    Returns:
-        List of generated responses.
-    """
-    if "OPENAI_API_KEY" not in os.environ:
-        raise ValueError(
-            "OPENAI_API_KEY environment variable must be set when using OpenAI API."
-        )
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    limiter = aiolimiter.AsyncLimiter(requests_per_minute)
-    prompts = [replace_variables(prompt_template, vars) for vars in variables]
-    async_responses = [
-        _throttled_openai_completion_acreate(
-            engine=model_config.model,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            limiter=limiter,
-        )
-        for prompt in prompts
-    ]
-    responses = await tqdm_asyncio.gather(*async_responses)
-    return [x["choices"][0]["text"] for x in responses]
-
-
 async def _throttled_openai_chat_completion_acreate(
     model: str,
     messages: list[dict[str, str]],

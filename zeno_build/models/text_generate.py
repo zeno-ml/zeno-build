@@ -7,6 +7,7 @@ import tqdm
 
 from zeno_build.models import global_models, lm_config
 from zeno_build.prompts.prompt_utils import replace_variables
+from zeno_build.models.providers.huggingface_utils import text_generate_from_huggingface
 
 
 async def generate_from_text_prompt(
@@ -34,7 +35,16 @@ async def generate_from_text_prompt(
         f"Generating with {prompt_template=}, {model_config.model=}, "
         f"{temperature=}, {max_tokens=}, {top_p=}..."
     )
-    if model_config.provider == "openai":
+    if model_config.provider == "huggingface":
+        return text_generate_from_huggingface(
+            variables,
+            prompt_template,
+            model_config,
+            temperature,
+            max_tokens,
+            top_p,
+        )
+    elif model_config.provider == "openai":
         async_responses = [
             openai.Completion.acreate(
                 engine=model_config.model,
