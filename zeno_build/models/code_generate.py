@@ -5,7 +5,6 @@ from zeno_build.models import lm_config
 from zeno_build.models.providers.cohere_utils import generate_code_from_cohere
 from zeno_build.models.providers.huggingface_utils import generate_code_from_huggingface
 from zeno_build.models.providers.openai_utils import (
-    generate_code_from_openai_chat_completion,
     generate_code_from_openai_completion,
 )
 
@@ -50,18 +49,6 @@ def generate_from_code_prompt(
     elif model_config.provider == "openai":
         return asyncio.run(
             generate_code_from_openai_completion(
-                variables,
-                prompt_template,
-                model_config,
-                temperature,
-                max_tokens,
-                top_p,
-                requests_per_minute,
-            )
-        )
-    elif model_config.provider == "openai_chat":
-        return asyncio.run(
-            generate_code_from_openai_chat_completion(
                 variables,
                 prompt_template,
                 model_config,

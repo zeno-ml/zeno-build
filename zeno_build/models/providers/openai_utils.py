@@ -126,7 +126,7 @@ async def generate_code_from_openai_completion(
         )
     openai.api_key = os.environ["OPENAI_API_KEY"]
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
-    prompts = replace_variables(prompt_template, vars)
+    prompts = [replace_variables(prompt_template, vars) for vars in variables]
     async_responses = [
         _throttled_openai_completion_acreate(
             engine=model_config.model,
@@ -237,48 +237,4 @@ async def generate_from_openai_chat_completion(
     responses = await tqdm_asyncio.gather(*async_responses)
     # Note: will never be none because it's set, but mypy doesn't know that.
     await openai.aiosession.get().close()  # type: ignore
-    return [x["choices"][0]["message"]["content"] for x in responses]
-
-
-async def generate_code_from_openai_chat_completion(
-    variables: list[dict[str, str]],
-    prompt_template: str,
-    model_config: lm_config.LMConfig,
-    temperature: float,
-    max_tokens: int,
-    top_p: float,
-    requests_per_minute: int = 300,
-) -> list[str]:
-    """Generate from OpenAI Chat Completion API.
-
-    Args:
-        variables: The variables to be replaced in the prompt template.
-        prompt_template: The prompt template to use.
-        model_config: The model configuration.
-        temperature: The temperature to use.
-        max_tokens: The maximum number of tokens to generate.
-        top_p: The top-p value to use.
-        requests_per_minute: Number of requests per minute to allow.
-
-    Returns:
-        List of generated responses.
-    """
-    if "OPENAI_API_KEY" not in os.environ:
-        raise ValueError(
-            "OPENAI_API_KEY environment variable must be set when using OpenAI API."
-        )
-    openai.api_key = os.environ["OPENAI_API_KEY"]
-    limiter = aiolimiter.AsyncLimiter(requests_per_minute)
-    async_responses = [
-        _throttled_openai_chat_completion_acreate(
-            model=model_config.model,
-            messages=replace_variables(prompt_template, vars),
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            limiter=limiter,
-        )
-        for vars in variables
-    ]
-    responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["message"]["content"] for x in responses]
