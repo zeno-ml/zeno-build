@@ -73,6 +73,9 @@ main_space = search_space.CombinatorialSearchSpace(
                 "text-davinci-003-zeroshot",
                 "wmt-best",
                 "MS-Translator",
+                "google-cloud",
+                "gpt-3.5-turbo-0301-zeroshot",
+                "gpt-4-0314-zeroshot",
             ]
         ),
     }
@@ -108,6 +111,11 @@ model_configs = {
     ),
     "wmt-best": GptMtConfig("wmt-best", "wmt-best"),
     "MS-Translator": GptMtConfig("MS-Translator", "MS-Translator"),
+    "google-cloud": GptMtConfig("google-cloud", "google-cloud"),
+    "gpt-3.5-turbo-0301-zeroshot": GptMtConfig(
+        "gpt-3.5-turbo-0301/zeroshot", "gpt-3.5-turbo-0301", None, 0
+    ),
+    "gpt-4-0314-zeroshot": GptMtConfig("gpt-4-0314/zeroshot", "gpt-4-0314", None, 0),
 }
 
 sweep_distill_functions = [chrf]

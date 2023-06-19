@@ -54,10 +54,11 @@ INSPIREDCO_API_KEY=...
 
 ## Run the Example
 
-To run the example, first clone the GPT-MT library.
+To run the example, first clone the GPT-MT library (we clone a fork by
+[Zhiwei He](https://github.com/zwhe99) that contains more translation systems).
 
 ```bash
-git clone git@github.com:microsoft/gpt-MT.git
+git clone git@github.com:zwhe99/gpt-MT.git
 ```
 
 Then run the following command to perform evaluation and analysis:
