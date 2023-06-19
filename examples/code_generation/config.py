@@ -17,6 +17,12 @@ from zeno_build.evaluation.text_metrics.huggingface import (
     avg_execution_accuracy,
     execution_accuracy,
 )
+from zeno_build.evaluation.text_metrics.critique import (
+    avg_chrf,
+    avg_length_ratio,
+    chrf,
+    length_ratio,
+)
 from zeno_build.experiments import search_space
 from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
@@ -27,13 +33,14 @@ space = search_space.CombinatorialSearchSpace(
         "dataset_preset": search_space.Constant("odex"),
         "model_preset": search_space.Categorical(
             [
+                "text-davinci-003"
                 # "gpt-3.5-turbo",
                 # "cohere-command-xlarge",
                 # "gpt2",
                 # "gpt2-xl",
                 # "llama-7b",
                 # "alpaca-7b",
-                "codegen-350M-mono"
+                # "codegen-350M-mono"
                 # "codegen-2B-mono"
             ]
         ),
@@ -177,9 +184,9 @@ zeno_distill_and_metric_functions = [
     input_length,
     label_length,
     execution_accuracy,
-    # chrf,
-    # length_ratio,
+    chrf,
+    length_ratio,
     avg_execution_accuracy,
-    # avg_chrf,
-    # avg_length_ratio,
+    avg_chrf,
+    avg_length_ratio,
 ]
