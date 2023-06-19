@@ -8,28 +8,18 @@ from __future__ import annotations
 
 import transformers
 
-from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.length import (
     input_length,
     label_length,
     output_length,
 )
-from zeno_build.evaluation.text_metrics.critique import (
-    avg_bert_score,
-    avg_chrf,
-    avg_length_ratio,
-    bert_score,
-    chrf,
-    length_ratio,
-)
 from zeno_build.evaluation.text_metrics.huggingface import (
-    execution_accuracy,
     avg_execution_accuracy,
+    execution_accuracy,
 )
 from zeno_build.experiments import search_space
 from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
-
 
 # Define the space of hyperparameters to search over.
 space = search_space.CombinatorialSearchSpace(
@@ -47,9 +37,7 @@ space = search_space.CombinatorialSearchSpace(
                 # "codegen-2B-mono"
             ]
         ),
-        "prompt_preset": search_space.Categorical(
-            ["standard"]
-        ),
+        "prompt_preset": search_space.Categorical(["standard"]),
         "temperature": search_space.Discrete([0.2]),
         "max_tokens": search_space.Constant(512),
         "top_p": search_space.Constant(0.95),
@@ -64,8 +52,8 @@ dataset_configs = {
     "odex": DatasetConfig(
         dataset="neulab/odex",
         split="test",
-        data_column=["intent", "prompt"],
-        label_column=["test_start", "test", "entry_point"],
+        data_column=("intent", "prompt"),
+        label_column=("test_start", "test", "entry_point"),
         data_format="odex",
     ),
     "odex_lexical": DatasetConfig(
@@ -81,7 +69,7 @@ dataset_configs = {
         data_column=["intent", "prompt"],
         label_column=["test_start", "test", "entry_point"],
         data_format="odex",
-    ), # TODO: add other languages
+    ),  # TODO: add other languages
     "odex-ja": DatasetConfig(
         dataset=["neulab/odex", "ja"],
         split="test",
@@ -167,12 +155,14 @@ model_configs = {
     "codegen-6B-mono": LMConfig(
         provider="huggingface",
         model="Salesforce/codegen-6B-mono",
-    )
+    ),
 }
 
 # The details of the prompts
 prompt_text = {
-    "standard": "Generate Python code solution for the following intent:\n{{source}}\n\n",
+    "standard": (
+        "Generate Python code solution for the following intent:" "\n{{source}}\n\n"
+    ),
 }
 
 # The functions to use to calculate scores for the hyperparameter sweep
@@ -187,7 +177,7 @@ zeno_distill_and_metric_functions = [
     input_length,
     label_length,
     execution_accuracy,
-    # chrf, 
+    # chrf,
     # length_ratio,
     avg_execution_accuracy,
     # avg_chrf,

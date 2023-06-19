@@ -1,7 +1,8 @@
 # Code Generation
 
 This is an example of usin zeno-build to test the code generation abilities of LLMs.
-In the example here we test several text and code-specific generation models, including API-based models like:
+In the example here we test several text and code-specific generation models,
+including API-based models like:
 [OpenAI's ChatGPT](https://openai.com/blog/gpt-3-apps/), and
 [Cohere's text generation models](https://cohere.ai/generate),
 as well as publicly available models such as
@@ -12,9 +13,11 @@ as well as publicly available models such as
 and [CodeGen](https://huggingface.co/Salesforce/codegen2-16B).
 
 Evaluation of the models is done with the
-[Inspired Cognition Critique](https://docs.inspiredco.ai/critique/) tool for text generation evaluation.
+[Inspired Cognition Critique](https://docs.inspiredco.ai/critique/) tool
+for text generation evaluation.
 We demonstrate the case for Code LMs on examples from the
-[HumanEval](https://github.com/openai/human-eval) and [ODEX](https://github.com/zorazrw/odex) datasets.
+[HumanEval](https://github.com/openai/human-eval)
+and [ODEX](https://github.com/zorazrw/odex) datasets.
 
 But you can
 swap in whatever models, prompts, metrics, and data that you would like to try on

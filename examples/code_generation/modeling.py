@@ -1,12 +1,9 @@
 """Code Generation using API-based services."""
 from __future__ import annotations
 
-import itertools
 import json
 import os
 import traceback
-from collections.abc import Iterable
-from typing import Literal
 
 import datasets
 
@@ -14,17 +11,38 @@ from examples.code_generation import config as codegen_config
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
 from zeno_build.models.code_generate import generate_from_code_prompt
 
+# from zeno_build.models.text_generate import generate_from_text_prompt
+
 
 def build_input_from_intents_and_prompts(
     intent: str,
     prompt: str,
 ) -> str:
+    """Building input text from ODEX intent and prompt.
+
+    Args:
+        intent: The natural languag instruction.
+        prompt: The function signature.
+
+    Returns:
+        The function signature with the intent as a docstring.
+    """
     func_head, ret_msg = prompt.split("\n")
     input_text = func_head + "\n\t" + f'"""{intent}"""' + "\n" + ret_msg
     return input_text
 
 
 def build_test(test_start: str, test: list[str], entry_point: str) -> str:
+    """Constructing test cases from function signature, cases, and entry point.
+
+    Args:
+        test_start: The checking function signature.
+        test: The list of test cases.
+        entry_point: The entry point of the function being checked.
+
+    Returns:
+        Test cases wrapped into function for execution.
+    """
     return "\n".join(
         [
             test_start.replace("candidate", entry_point),
@@ -65,7 +83,7 @@ def process_data(
           - The processed data to a 'jsonl' file in the output directory
 
     Returns:
-        The loaded dataset as code generation examples of input prompts and reference snippets.
+        The loaded dataset as code examples of input prompts and reference snippets.
     """
     # Load from cache and return if existing
     parameters = {k: v for k, v in locals().items() if k != "output_dir"}
@@ -100,9 +118,7 @@ def process_data(
             {"input": p, "label": l, "suffix": s}
             for p, l, s in zip(prompts, labels, suffixes)
         ]
-    elif (
-        data_format == "humaneval"
-    ):
+    elif data_format == "humaneval":
         data_examples = [
             {
                 "input": x[data_column],
@@ -132,6 +148,22 @@ def make_predictions(
     top_p: float = 0.95,
     output_dir: str = "results",
 ) -> list[str] | None:
+    """Make predictions over a particular dataset.
+
+    Args:
+        data: The data to make predictions over.
+        prompt_preset: The prompt to use for the API call, as specified in
+          prompt_configs.
+        model_preset: The model to use for the API call, as specified in
+          model_configs.
+        temperature: The temperature to use for sampling.
+        max_tokens: The maximum number of tokens to generate.
+        top_p: The value to use for top-p sampling.
+        output_dir: The directory to save the predictions to.
+
+    Returns:
+        The predictions in string format.
+    """
     # Load from cache if existing
     parameters = {k: v for k, v in locals().items() if k not in {"data", "output_dir"}}
     file_root = get_cache_path(output_dir, parameters)
