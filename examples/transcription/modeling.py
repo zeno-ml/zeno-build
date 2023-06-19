@@ -40,7 +40,7 @@ def get_audio_paths(
             with open(files["loading"], "w"):
                 pass
             try:
-                for path in relative_paths:
+                for path in tqdm.tqdm(relative_paths, "Downloading data"):
                     urllib.request.urlretrieve(
                         os.path.join(data_source, path),
                         os.path.join(local_cache, path),

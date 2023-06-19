@@ -107,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--input-metadata",
         type=str,
+        required=True,
         help="Metadata file pointing to input audio files.",
     )
     parser.add_argument(
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--local-cache",
         type=str,
-        optional=True,
+        required=False,
         help="An optional local cache where the audio files are stored.",
     )
     args = parser.parse_args()
