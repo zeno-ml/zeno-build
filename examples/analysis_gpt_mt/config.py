@@ -115,9 +115,7 @@ model_configs = {
     "gpt-3.5-turbo-0301-zeroshot": GptMtConfig(
         "gpt-3.5-turbo-0301/zeroshot", "gpt-3.5-turbo-0301", None, 0
     ),
-    "gpt-4-0314-zeroshot": GptMtConfig(
-        "gpt-4-0314/zeroshot", "gpt-4-0314", None, 0
-    ),
+    "gpt-4-0314-zeroshot": GptMtConfig("gpt-4-0314/zeroshot", "gpt-4-0314", None, 0),
 }
 
 sweep_distill_functions = [chrf]
