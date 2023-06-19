@@ -126,16 +126,17 @@ async def generate_code_from_openai_completion(
         )
     openai.api_key = os.environ["OPENAI_API_KEY"]
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
+    prompts = replace_variables(prompt_template, vars)
     async_responses = [
         _throttled_openai_completion_acreate(
             engine=model_config.model,
-            prompt=replace_variables(prompt_template, vars),
+            prompt=prompt,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for vars in variables
+        for prompt in prompts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     return [x["choices"][0]["text"] for x in responses]

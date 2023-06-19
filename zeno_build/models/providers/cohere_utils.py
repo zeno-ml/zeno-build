@@ -90,7 +90,7 @@ async def generate_from_cohere(
 
 
 async def generate_code_from_cohere(
-    variables: list[str],
+    variables: list[dict[str, str]],
     prompt_template: str,
     model_config: lm_config.LMConfig,
     temperature: float,
