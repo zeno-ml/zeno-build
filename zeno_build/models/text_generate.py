@@ -6,8 +6,8 @@ import openai
 import tqdm
 
 from zeno_build.models import global_models, lm_config
-from zeno_build.prompts.prompt_utils import replace_variables
 from zeno_build.models.providers.huggingface_utils import text_generate_from_huggingface
+from zeno_build.prompts.prompt_utils import replace_variables
 
 
 async def generate_from_text_prompt(

@@ -8,7 +8,6 @@ from tqdm.asyncio import tqdm_asyncio
 
 from zeno_build.models import global_models, lm_config
 from zeno_build.prompts import chat_prompt
-from zeno_build.prompts.prompt_utils import replace_variables
 
 
 async def _throttled_cohere_acreate(
