@@ -34,6 +34,16 @@ Then install the requirements for this example:
 pip install -r requirements.txt
 ```
 
+This example also requires the `ffmpeg` library to be installed. You can test
+if it is installed by running `ffmpeg --help`. If it is not found, you should
+install it through your package manager. For example, if you are using conda,
+you can just run the following (and other managers such as `brew` and `apt` also
+work).
+
+```bash
+conda install ffmpeg
+```
+
 ## Run the Example
 
 Run the following command to perform evaluation and analysis:
