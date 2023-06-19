@@ -63,6 +63,8 @@ def codegen_main(
 
         while not optimizer.is_complete(predictions_dir, include_in_progress=True):
             parameters = optimizer.get_parameters()
+            if parameters is None:
+                break
             predictions = make_predictions(
                 data=inputs,
                 prompt_preset=parameters["prompt_preset"],
@@ -94,12 +96,16 @@ def codegen_main(
         for param_file in param_files:
             assert param_file.endswith(".zbp")
             with open(param_file, "r") as f:
-                parameters = json.load(f)
+                loaded_parameters = json.load(f)
             with open(f"{param_file[:-4]}.json", "r") as f:
                 predictions = json.load(f)
-            name = reporting_utils.parameters_to_name(parameters, codegen_config.space)
+            name = reporting_utils.parameters_to_name(
+                loaded_parameters, codegen_config.space
+            )
             results.append(
-                ExperimentRun(parameters=parameters, predictions=predictions, name=name)
+                ExperimentRun(
+                    parameters=loaded_parameters, predictions=predictions, name=name
+                )
             )
 
         # Perform the visualization
