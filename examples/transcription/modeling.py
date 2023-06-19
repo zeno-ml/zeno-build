@@ -34,6 +34,7 @@ def get_audio_paths(
         if os.path.exists(files["failed"]):
             raise RuntimeError("Failed to load data")
         elif os.path.exists(files["loading"]):
+            print(f"Waiting for data to load... {files['loading']}")
             time.sleep(60)
         else:
             # Touch the loading file
