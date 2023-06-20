@@ -9,7 +9,12 @@ import traceback
 import datasets
 
 from examples.code_generation import config as codegen_config
-from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
+from zeno_build.cache_utils import (
+    CacheLock,
+    fail_cache,
+    get_cache_id_and_path,
+    get_cache_path,
+)
 from zeno_build.models.text_generate import generate_from_text_prompt
 
 
@@ -146,7 +151,7 @@ def make_predictions(
     max_tokens: int = 512,
     top_p: float = 0.95,
     output_dir: str = "results",
-) -> list[str] | None:
+) -> tuple[str, list[str]] | None:
     """Make predictions over a particular dataset.
 
     Args:
@@ -161,14 +166,16 @@ def make_predictions(
         output_dir: The directory to save the predictions to.
 
     Returns:
-        The predictions in string format.
+        A tuple of:
+        - The system id
+        - The predictions in string format.
     """
     # Load from cache if existing
     parameters = {k: v for k, v in locals().items() if k not in {"data", "output_dir"}}
-    file_root = get_cache_path(output_dir, parameters)
+    system_id, file_root = get_cache_id_and_path(output_dir, parameters)
     if os.path.exists(f"{file_root}.json"):
         with open(f"{file_root}.json", "r") as f:
-            return json.load(f)
+            return system_id, json.load(f)
 
     prompt_template = codegen_config.prompt_text[prompt_preset]
     model_config = codegen_config.model_configs[model_preset]
@@ -199,4 +206,4 @@ def make_predictions(
         with open(f"{file_root}.json", "w") as f:
             json.dump(predictions, f)
 
-    return predictions
+    return system_id, predictions

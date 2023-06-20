@@ -65,7 +65,7 @@ def codegen_main(
             parameters = optimizer.get_parameters()
             if parameters is None:
                 break
-            predictions = make_predictions(
+            id_and_predictions = make_predictions(
                 data=inputs,
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
@@ -74,11 +74,19 @@ def codegen_main(
                 top_p=parameters["top_p"],
                 output_dir=predictions_dir,
             )
-            if predictions is None:
+            if id_and_predictions is None:
                 print(f"*** Skipped run for {parameters=} ***")
                 continue
+            # Run or read the evaluation result
+            id, predictions = id_and_predictions
             predictions = [p + s for p, s in zip(predictions, suffixes)]
-            eval_result = optimizer.calculate_metric(inputs, labels, predictions)
+            if os.path.exists(f"{predictions_dir}/{id}.eval"):
+                with open(f"{predictions_dir}/{id}.eval", "r") as f:
+                    eval_result = float(next(f).strip())
+            else:
+                eval_result = optimizer.calculate_metric(inputs, labels, predictions)
+                with open(f"{predictions_dir}/{id}.eval", "w") as f:
+                    f.write(f"{eval_result}")
             print("*** Iteration complete. ***")
             print(f"Parameters: {parameters}")
             print(f"Eval: {eval_result}")
