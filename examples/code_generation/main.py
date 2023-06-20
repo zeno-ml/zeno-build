@@ -122,6 +122,7 @@ def codegen_main(
             "code-generation",
             "data",
             codegen_config.zeno_distill_and_metric_functions,
+            zeno_config={"cache_path": os.path.join(results_dir, "zeno_cache")},
         )
 
 

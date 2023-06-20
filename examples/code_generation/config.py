@@ -33,14 +33,14 @@ space = search_space.CombinatorialSearchSpace(
         "dataset_preset": search_space.Constant("odex"),
         "model_preset": search_space.Categorical(
             [
-                "text-davinci-003"
+                # "text-davinci-003"
                 # "gpt-3.5-turbo",
                 # "cohere-command-xlarge",
-                # "gpt2",
+                "gpt2",
                 # "gpt2-xl",
                 # "llama-7b",
                 # "alpaca-7b",
-                # "codegen-350M-mono"
+                "codegen-350M-mono"
                 # "codegen-2B-mono"
             ]
         ),
