@@ -50,7 +50,7 @@ def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     df["execution_accuracy_messages"] = [
         r[0].error_message or r[0].success_value for r in results
     ]
-    return DistillReturn(distill_output=pass_at_k["pass@1"])
+    return DistillReturn(distill_output=pass_at_k["pass@1"].tolist())
 
 
 @metric

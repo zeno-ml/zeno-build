@@ -105,7 +105,6 @@ def _unsafe_execute(
 ) -> None:
     """Execute a program and record the result."""
     with _create_tempdir():
-
         # These system calls are needed when cleaning up tempdir.
         import os
         import shutil
@@ -113,6 +112,7 @@ def _unsafe_execute(
         rmtree = shutil.rmtree
         rmdir = os.rmdir
         chdir = os.chdir
+        unlink = os.unlink
 
         # Disable functionalities that can make destructive changes to the test.
         reliability_guard()
@@ -139,6 +139,7 @@ def _unsafe_execute(
         shutil.rmtree = rmtree
         os.rmdir = rmdir
         os.chdir = chdir
+        os.unlink = unlink
 
 
 @contextlib.contextmanager
