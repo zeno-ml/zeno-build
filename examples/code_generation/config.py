@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import transformers
 
+from zeno_build.evaluation.code_metrics.execution_accuracy import (
+    avg_execution_accuracy,
+    execution_accuracy,
+)
 from zeno_build.evaluation.text_features.length import (
     input_length,
     label_length,
@@ -18,10 +22,6 @@ from zeno_build.evaluation.text_metrics.critique import (
     avg_length_ratio,
     chrf,
     length_ratio,
-)
-from zeno_build.evaluation.text_metrics.huggingface import (
-    avg_execution_accuracy,
-    execution_accuracy,
 )
 from zeno_build.experiments import search_space
 from zeno_build.models.dataset_config import DatasetConfig

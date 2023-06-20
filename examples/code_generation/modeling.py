@@ -44,7 +44,7 @@ def build_test(test_start: str, test: list[str], entry_point: str) -> str:
     """
     return "\n".join(
         [
-            test_start.replace("candidate", entry_point),
+            test_start,
             "".join(test),
             "",
             f"check({entry_point})",

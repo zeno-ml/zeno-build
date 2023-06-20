@@ -1,9 +1,9 @@
 """Evaluating code execution accuracy."""
 
-import evaluate
-import tqdm
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
+
+from zeno_build.evaluation.code_metrics import execution_accuracy_utils
 
 
 @distill
@@ -35,35 +35,22 @@ def execution_accuracy(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         "records"
     )
 
+    predictions: list[list[str]] = []
+    tests: list[str] = []
     for d in eval_dict:
-        d["references"] = d.get(ops.label_column)
-        d["target"] = [d.get(ops.data_column) + d.get(ops.output_column)]
-        if len(d["references"]) == 0 or len(d["references"][0]) == 0:
-            raise ValueError(f"Empty references at {d}")
+        predictions.append([d.get(ops.data_column) + d.get(ops.output_column)])
+        tests.append(d.get(ops.label_column))
 
-    metric_name = "code_eval"
-    eval_metric = evaluate.load(metric_name)
+    pass_at_k, results = execution_accuracy_utils.compute_execution_accuracy(
+        predictions=predictions,
+        tests=tests,
+        k=[1],
+    )
 
-    # evaluate all outputs
-    all_results = []
-    all_messages = []
-    for i in tqdm.tqdm(
-        range(0, len(eval_dict)),
-        desc=f"Evaluating {metric_name}",
-    ):
-        predictions = [eval_dict[i]["target"]]
-        references = [eval_dict[i]["references"]]
-
-        pass_at_k, results = eval_metric.compute(
-            predictions=predictions,
-            references=references,
-            k=[1],
-        )
-        all_results.append(pass_at_k["pass@1"])
-        all_messages.append(results[0])
-    # Save the messages for possible future reference
-    df["execution_accuracy_messages"] = all_messages
-    return DistillReturn(distill_output=all_results)
+    df["execution_accuracy_messages"] = [
+        r[0].error_message or r[0].success_value for r in results
+    ]
+    return DistillReturn(distill_output=pass_at_k["pass@1"])
 
 
 @metric
