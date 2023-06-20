@@ -132,6 +132,25 @@ def chrf(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
 
 
 @distill
+def comet(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
+    """COMET score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        DistillReturn: COMET scores
+    """
+    # NOTE: It is necessary to mention "ops.output_column" in this function
+    # to work-around a hack in Zeno (as of v0.4.11):
+    # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
+    return call_critique(
+        df, ops, "comet", {"model": "unbabel_comet/wmt21-comet-qe-da"}, batch_size=150
+    )
+
+
+@distill
 def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     """Length ratio.
 
@@ -145,7 +164,9 @@ def length_ratio(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     # NOTE: It is necessary to mention "ops.output_column" in this function
     # to work-around a hack in Zeno (as of v0.4.11):
     # https://github.com/zeno-ml/zeno/blob/5c064e74b5276173fa354c4a546ce0d762d8f4d7/zeno/backend.py#L187  # noqa: E501
-    return call_critique(df, ops, "length_ratio", {})
+    return call_critique(
+        df, ops, "length_ratio", {"tokenizer": {"name": "character", "config": {}}}
+    )
 
 
 @distill
@@ -381,6 +402,22 @@ def avg_chrf(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
     if len(df) == 0:
         return MetricReturn(metric=0)
     return MetricReturn(metric=df[ops.distill_columns["chrf"]].fillna(0).mean())
+
+
+@metric
+def avg_comet(df: DataFrame, ops: ZenoOptions) -> MetricReturn:
+    """Average comet score.
+
+    Args:
+        df: Zeno DataFrame
+        ops: Zeno options
+
+    Returns:
+        MetricReturn: Average comet score
+    """
+    if len(df) == 0:
+        return MetricReturn(metric=0)
+    return MetricReturn(metric=df[ops.distill_columns["comet"]].fillna(0).mean())
 
 
 @metric

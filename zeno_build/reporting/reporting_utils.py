@@ -2,13 +2,10 @@
 
 from typing import Any
 
-from zeno_build.experiments import search_space
-from zeno_build.experiments.search_space import CombinatorialSearchSpace
+from zeno_build.experiments.search_space import SearchSpace
 
 
-def parameters_to_name(
-    parameters: dict[str, Any], space: CombinatorialSearchSpace
-) -> str:
+def parameters_to_name(parameters: dict[str, Any], space: SearchSpace) -> str:
     """Convert parameters into a readable model name.
 
     Args:
@@ -21,7 +18,6 @@ def parameters_to_name(
     return " ".join(
         [
             parameters[k] if isinstance(parameters[k], str) else f"{k}={parameters[k]}"
-            for k, v in space.dimensions.items()
-            if not isinstance(v, search_space.Constant)
+            for k in space.get_non_constant_dimensions()
         ]
     )

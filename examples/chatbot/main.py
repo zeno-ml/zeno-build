@@ -14,7 +14,7 @@ from examples.chatbot import config as chatbot_config
 from examples.chatbot.modeling import make_predictions, process_data
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
-from zeno_build.optimizers import standard
+from zeno_build.optimizers import exhaustive
 from zeno_build.prompts.chat_prompt import ChatMessages
 from zeno_build.reporting import reporting_utils
 from zeno_build.reporting.visualize import visualize
@@ -27,7 +27,7 @@ def chatbot_main(
 ):
     """Run the chatbot experiment."""
     # Get the dataset configuration
-    dataset_preset = chatbot_config.space.dimensions["dataset_preset"]
+    dataset_preset = chatbot_config.report_space.spaces[0].dimensions["dataset_preset"]
     if not isinstance(dataset_preset, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
@@ -56,18 +56,20 @@ def chatbot_main(
 
     if do_prediction:
         # Perform the hyperparameter sweep
-        optimizer = standard.StandardOptimizer(
-            space=chatbot_config.space,
+        optimizer = exhaustive.ExhaustiveOptimizer(
+            space=chatbot_config.report_space,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
             num_trials=chatbot_config.num_trials,
         )
 
         while not optimizer.is_complete(predictions_dir, include_in_progress=True):
+            # Get parameters
             parameters = optimizer.get_parameters()
             if parameters is None:
                 break
-            predictions = make_predictions(
+            # Get the run ID and resulting predictions
+            id_and_predictions = make_predictions(
                 contexts=contexts,
                 dataset_preset=parameters["dataset_preset"],
                 prompt_preset=parameters["prompt_preset"],
@@ -78,17 +80,25 @@ def chatbot_main(
                 context_length=parameters["context_length"],
                 output_dir=predictions_dir,
             )
-            if predictions is None:
+            if id_and_predictions is None:
                 print(f"*** Skipped run for {parameters=} ***")
                 continue
-            eval_result = optimizer.calculate_metric(contexts, labels, predictions)
+            # Run or read the evaluation result
+            id, predictions = id_and_predictions
+            if os.path.exists(f"{predictions_dir}/{id}.eval"):
+                with open(f"{predictions_dir}/{id}.eval", "r") as f:
+                    eval_result = float(next(f).strip())
+            else:
+                eval_result = optimizer.calculate_metric(contexts, labels, predictions)
+                with open(f"{predictions_dir}/{id}.eval", "w") as f:
+                    f.write(f"{eval_result}")
+            # Print out the results
             print("*** Iteration complete. ***")
-            print(f"Parameters: {parameters}")
-            print(f"Eval: {eval_result}")
+            print(f"Eval: {eval_result}, Parameters: {parameters}")
             print("***************************")
 
     if do_visualization:
-        param_files = chatbot_config.space.get_valid_param_files(
+        param_files = chatbot_config.report_space.get_valid_param_files(
             predictions_dir, include_in_progress=False
         )
         if len(param_files) < chatbot_config.num_trials:
@@ -103,7 +113,7 @@ def chatbot_main(
             with open(f"{param_file[:-4]}.json", "r") as f:
                 predictions = json.load(f)
             name = reporting_utils.parameters_to_name(
-                loaded_parameters, chatbot_config.space
+                loaded_parameters, chatbot_config.report_space
             )
             results.append(
                 ExperimentRun(
@@ -125,6 +135,7 @@ def chatbot_main(
             "openai-chat",
             "messages",
             chatbot_config.zeno_distill_and_metric_functions,
+            zeno_config={"cache_path": os.path.join(results_dir, "zeno_cache")},
         )
 
 

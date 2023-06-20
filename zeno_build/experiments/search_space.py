@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 import os
 from abc import ABC, abstractmethod
@@ -95,6 +96,11 @@ class SearchSpace(ABC):
         """Check whether the search space contains the given parameters."""
         ...
 
+    @abstractmethod
+    def get_non_constant_dimensions(self) -> list[str]:
+        """Get the names of the non-constant dimensions."""
+        ...
+
     def get_valid_param_files(
         self, output_dir: str, include_in_progress: bool
     ) -> list[str]:
@@ -148,6 +154,10 @@ class CombinatorialSearchSpace(SearchSpace):
                 return False
         return True
 
+    def get_non_constant_dimensions(self) -> list[str]:
+        """See base class."""
+        return [k for k, v in self.dimensions.items() if not isinstance(v, Constant)]
+
 
 class CompositeSearchSpace(SearchSpace):
     """A search space consisting of multiple search spaces."""
@@ -166,3 +176,15 @@ class CompositeSearchSpace(SearchSpace):
     def contains_params(self, params: dict[str, Any]) -> bool:
         """Check if the parameters are contained in the search space."""
         return any([s.contains_params(params) for s in self.spaces])
+
+    def get_non_constant_dimensions(self) -> list[str]:
+        """See base class."""
+        return sorted(
+            list(
+                set(
+                    itertools.chain.from_iterable(
+                        s.get_non_constant_dimensions() for s in self.spaces
+                    )
+                )
+            )
+        )
