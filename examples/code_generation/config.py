@@ -37,11 +37,16 @@ space = search_space.CombinatorialSearchSpace(
                 # "gpt-3.5-turbo",
                 # "cohere-command-xlarge",
                 "gpt2",
-                # "gpt2-xl",
+                "gpt2-xl",
                 # "llama-7b",
                 # "alpaca-7b",
-                "codegen-350M-mono"
-                # "codegen-2B-mono"
+                "codegen-350M-mono",
+                # "codegen-2B-mono",
+                # "codegen-6B-mono",
+                # "codegen-16B-mono",
+                # "santacoder",
+                # "starcoder",
+                # "falcon-7b",
             ]
         ),
         "prompt_preset": search_space.Categorical(["source_only", "standard_request"]),
@@ -52,7 +57,7 @@ space = search_space.CombinatorialSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 1
+num_trials = 6
 
 # The details of each dataset
 dataset_configs = {
@@ -162,6 +167,22 @@ model_configs = {
     "codegen-6B-mono": LMConfig(
         provider="huggingface",
         model="Salesforce/codegen-6B-mono",
+    ),
+    "codegen-16B-mono": LMConfig(
+        provider="huggingface",
+        model="Salesforce/codegen-16B-mono",
+    ),
+    "santacoder": LMConfig(
+        provider="huggingface",
+        model="bigcode/santacoder",
+    ),
+    "starcoder": LMConfig(
+        provider="huggingface",
+        model="bigcode/starcoder",
+    ),
+    "falcon-7b": LMConfig(
+        provider="huggingface",
+        model="tiiuae/falcon-7b",
     ),
 }
 
