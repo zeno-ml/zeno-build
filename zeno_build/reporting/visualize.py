@@ -57,6 +57,7 @@ def visualize(
         data_column=data_column,
         label_column="label",
         batch_size=100000,
+        # multiprocessing=False,
     )
     config = config.copy(update=zeno_config)
 
