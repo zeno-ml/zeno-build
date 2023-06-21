@@ -5,6 +5,7 @@ import os
 import tqdm
 from inspiredco.critique import Critique
 from inspiredco.critique_utils.exceptions import CritiqueError
+from requests.exceptions import ConnectionError
 from pandas import DataFrame
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
@@ -67,7 +68,7 @@ def call_critique(
                 for r in result["examples"]:
                     all_results.append(round(r["value"], 6))
                 break
-            except CritiqueError:
+            except (CritiqueError, ConnectionError):
                 if j == 2:
                     raise
                 else:
