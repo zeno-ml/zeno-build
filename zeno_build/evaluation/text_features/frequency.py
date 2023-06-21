@@ -10,7 +10,11 @@ def _count_max_word_freq(string: Any) -> int:
     """Count max word frequency in a single string."""
     if not isinstance(string, str):
         raise TypeError(f"Input must be a string but got {type(string)} for {string}.")
-    return max(Counter(string.split()).values())
+    tokens = string.split()
+    if not tokens:
+        return 0
+    else:
+        return max(Counter(tokens).values())
 
 
 @distill
