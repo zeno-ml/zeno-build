@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 
 from examples.analysis_gpt_mt import config
@@ -58,6 +59,27 @@ def process_data(
     return data
 
 
+def remove_leading_language(line: str) -> str:
+    """Remove a language at the beginning of the string.
+
+    Some zero-shot models output the name of the language at the beginning of the
+    string. This is a manual post-processing function that removes the language name
+    (partly as an example of how you can do simple fixes to issues that come up during
+    analysis using Zeno).
+
+    Args:
+        line: The line to process.
+
+    Returns:
+        The line with the language removed.
+    """
+    return re.sub(
+        r"^(English|Japanese|Chinese|Hausa|Icelandic|French|German|Russian|Ukranian): ",
+        "",
+        line,
+    )
+
+
 def process_output(
     input_dir: str,
     lang_pairs: list[str],
@@ -66,7 +88,8 @@ def process_output(
     """Load model outputs."""
     # Load the data
     data: list[str] = []
-    model_path = config.model_configs[model_preset].path
+    model_config = config.model_configs[model_preset]
+    model_path = model_config.path
     system_dir = os.path.join(input_dir, "evaluation", "system-outputs", model_path)
     for lang_pair in lang_pairs:
         src_lang, trg_lang = lang_pair[:2], lang_pair[2:]
@@ -75,5 +98,9 @@ def process_output(
         )
         with open(sys_file, "r") as sys_in:
             for sys_line in sys_in:
-                data.append(sys_line.strip())
+                sys_line = sys_line.strip()
+                if model_config.post_processors is not None:
+                    for postprocessor in model_config.post_processors:
+                        sys_line = postprocessor(sys_line)
+                data.append(sys_line)
     return data
