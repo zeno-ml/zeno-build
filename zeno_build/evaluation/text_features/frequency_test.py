@@ -14,7 +14,7 @@ example_df = pd.DataFrame(
         "id": [0, 1],
         "input": ["hello hello", "a b c a b c a b"],
         "output": ["yes", "no no"],
-        "label": ["blah blah", "a b r a c a d a b r a c a d"],
+        "label": ["", "a b r a c a d a b r a c a d"],
     }
 )
 
@@ -50,6 +50,6 @@ def test_output_max_word_freq():
 def test_label_max_word_freq():
     """Test the label frequency function."""
     actual_result = label_max_word_freq(example_df, example_ops)
-    expected_result = DistillReturn(distill_output=[2, 6])
+    expected_result = DistillReturn(distill_output=[0, 6])
     assert isinstance(actual_result, DistillReturn)
     assert all(expected_result.distill_output == actual_result.distill_output)
