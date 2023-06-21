@@ -44,7 +44,7 @@ space = search_space.CombinatorialSearchSpace(
                 # "codegen-2B-mono"
             ]
         ),
-        "prompt_preset": search_space.Categorical(["standard"]),
+        "prompt_preset": search_space.Categorical(["source_only", "standard_request"]),
         "temperature": search_space.Discrete([0.2]),
         "max_tokens": search_space.Constant(512),
         "top_p": search_space.Constant(0.95),
@@ -167,9 +167,8 @@ model_configs = {
 
 # The details of the prompts
 prompt_text = {
-    "standard": (
-        "Generate Python code solution for the following intent:" "\n{{source}}\n\n"
-    ),
+    "source_only": ("{{source}}"),
+    "standard_request": ("# Complete the following Python function:\n\n{{source}}"),
 }
 
 # The functions to use to calculate scores for the hyperparameter sweep
