@@ -20,7 +20,7 @@ visualize and examine the system outputs provided by these experiments.
 The result of running Zeno Build will be an interface where you
 can browse and explore the results. See an example below:
 
-* [Browsing Interface](https://zeno-ml-gpt-mt-report.hf.space)
+* [Browsing Interface](https://zeno-ml-translation-report.hf.space)
 * [Textual Summary](report/)
 
 ## Setup
