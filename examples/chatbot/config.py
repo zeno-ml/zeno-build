@@ -15,6 +15,7 @@ from zeno_build.evaluation.text_features.length import (
     label_length,
     output_length,
 )
+from zeno_build.evaluation.text_features.numbers import english_number_count
 from zeno_build.evaluation.text_metrics.critique import (
     avg_bert_score,
     avg_chrf,
@@ -239,6 +240,7 @@ zeno_distill_and_metric_functions = [
     input_length,
     label_length,
     chat_context_length,
+    english_number_count,
     chrf,
     length_ratio,
     bert_score,
