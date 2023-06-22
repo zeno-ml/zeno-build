@@ -1,9 +1,7 @@
 """Features related to clustering of text data."""
 import math
 
-import numpy as np
 from pandas import DataFrame
-from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
 from zeno import DistillReturn, ZenoOptions, distill
 
@@ -12,7 +10,14 @@ def _cluster_docs(
     documents: list[str],
     num_clusters: int,
     model_name: str,
-) -> np.ndarray:
+) -> list[int]:
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError:
+        raise ImportError(
+            "Please install sentence-transformers to use clustering features."
+        )
+
     # Load the model. Models are downloaded automatically if not present
     model = SentenceTransformer(model_name)
 
@@ -24,7 +29,7 @@ def _cluster_docs(
     kmeans.fit(document_embeddings)
 
     # Get the cluster number for each document
-    return kmeans.labels_
+    return kmeans.labels_.tolist()
 
 
 @distill
