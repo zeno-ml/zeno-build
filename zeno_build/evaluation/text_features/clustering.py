@@ -10,7 +10,7 @@ def _cluster_docs(
     documents: list[str],
     num_clusters: int,
     model_name: str,
-) -> list[int]:
+) -> list[str]:
     try:
         from sentence_transformers import SentenceTransformer
     except ImportError:
@@ -29,7 +29,7 @@ def _cluster_docs(
     kmeans.fit(document_embeddings)
 
     # Get the cluster number for each document
-    return kmeans.labels_.tolist()
+    return [f"C{x}" for x in kmeans.labels_.tolist()]
 
 
 @distill
