@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import transformers
 
+from zeno_build.evaluation.text_features.clustering import label_clusters
 from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.length import (
     chat_context_length,
@@ -241,6 +242,7 @@ zeno_distill_and_metric_functions = [
     label_length,
     chat_context_length,
     english_number_count,
+    label_clusters,
     chrf,
     length_ratio,
     bert_score,
