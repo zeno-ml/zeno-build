@@ -1,6 +1,4 @@
 """Features related to clustering of text data."""
-import math
-
 from pandas import DataFrame
 from sklearn.cluster import KMeans
 from zeno import DistillReturn, ZenoOptions, distill
@@ -44,7 +42,11 @@ def data_clusters(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         DistillReturn: Number of digits in the output
     """
     documents = [str(x) for x in df[ops.data_column]]
-    num_clusters = int(math.sqrt(len(documents)))
+    # TODO(gneubig): having something like the sqrt of the number of documents seems
+    #   like a good number of clusters, but more than 20 are not supported in Zeno:
+    #   https://github.com/zeno-ml/zeno/issues/873
+    # num_clusters = int(math.sqrt(len(documents)))
+    num_clusters = 20
     document_clusters = _cluster_docs(documents, num_clusters, "all-MiniLM-L6-v2")
     return DistillReturn(distill_output=document_clusters)
 
@@ -61,6 +63,10 @@ def label_clusters(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         DistillReturn: Number of digits in the output
     """
     documents = [str(x) for x in df[ops.label_column]]
-    num_clusters = int(math.sqrt(len(documents)))
+    # TODO(gneubig): having something like the sqrt of the number of documents seems
+    #   like a good number of clusters, but more than 20 are not supported in Zeno:
+    #   https://github.com/zeno-ml/zeno/issues/873
+    # num_clusters = int(math.sqrt(len(documents)))
+    num_clusters = 20
     document_clusters = _cluster_docs(documents, num_clusters, "all-MiniLM-L6-v2")
     return DistillReturn(distill_output=document_clusters)
