@@ -20,7 +20,7 @@ def generate_from_vllm(
     top_p: float,
     context_length: int,
 ) -> list[str]:
-    """Generate outputs from a huggingface model.
+    """Generate outputs from a VLLM model.
 
     Args:
         full_contexts: The full contexts to generate from.
@@ -35,36 +35,11 @@ def generate_from_vllm(
         The generated outputs.
     """
     # Load model
-    torch_device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_cls = (
-        model_config.model_cls
-        if model_config.model_cls is not None
-        else transformers.AutoModelForCausalLM
-    )
-    tokenizer_cls = (
-        model_config.tokenizer_cls
-        if model_config.tokenizer_cls is not None
-        else transformers.AutoTokenizer
-    )
-    model: transformers.PreTrainedModel = model_cls.from_pretrained(
-        model_config.model,
-        **model_config.model_loader_kwargs,
-    ).to(torch_device)
-    tokenizer: transformers.PreTrainedTokenizer = tokenizer_cls.from_pretrained(
-        model_config.model
-    )
-    tokenizer.padding_side = "left"
-    if not tokenizer.pad_token:
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-
-    gen_config = transformers.GenerationConfig(
-        do_sample=True,
+    llm = vllm.LLM(model=model_config.model_name)
+    sampling_params = vllm.SamplingParams(
         temperature=temperature,
         max_new_tokens=max_tokens,
         top_p=top_p,
-        eos_token_id=tokenizer.eos_token_id,
-        pad_token_id=tokenizer.pad_token_id,
     )
     # Create the prompts
     filled_prompts: list[str] = [
@@ -75,20 +50,7 @@ def generate_from_vllm(
         for full_context in full_contexts
     ]
     # Process in batches
-    results = []
-    batch_size = 8
-    for i in tqdm.trange(0, len(filled_prompts), batch_size):
-        batch_prompts = filled_prompts[i : i + batch_size]
-        encoded_prompts = tokenizer(
-            batch_prompts,
-            padding=True,
-            return_tensors="pt",
-            return_token_type_ids=False,
-        ).to(torch_device)
-        with torch.no_grad():
-            outputs = model.generate(**encoded_prompts, generation_config=gen_config)
-        outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
-        results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+    results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
     results = [re.split("\n\n", x)[0].strip() for x in results]
     return results
@@ -116,61 +78,16 @@ def text_generate_from_vllm(
         The generated outputs.
     """
     # Load model
-    torch_device = "cuda" if torch.cuda.is_available() else "cpu"
-    model_cls = (
-        model_config.model_cls
-        if model_config.model_cls is not None
-        else transformers.AutoModelForCausalLM
-    )
-    tokenizer_cls = (
-        model_config.tokenizer_cls
-        if model_config.tokenizer_cls is not None
-        else transformers.AutoTokenizer
-    )
-    model: transformers.PreTrainedModel = model_cls.from_pretrained(
-        model_config.model,
-        **model_config.model_loader_kwargs,
-    ).to(torch_device)
-    tokenizer: transformers.PreTrainedTokenizer = tokenizer_cls.from_pretrained(
-        model_config.model
-    )
-    tokenizer.padding_side = "left"
-    if not tokenizer.pad_token:
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.pad_token_id = tokenizer.eos_token_id
-
-    gen_config = transformers.GenerationConfig(
-        do_sample=True,
+    llm = vllm.LLM(model=model_config.model_name)
+    sampling_params = vllm.SamplingParams(
         temperature=temperature,
         max_new_tokens=max_tokens,
         top_p=top_p,
-        eos_token_id=tokenizer.eos_token_id,
-        pad_token_id=tokenizer.pad_token_id,
     )
     # Generate
     filled_prompts = [replace_variables(prompt_template, vars) for vars in variables]
     # Process in batches
-    results = []
-    batch_size = 8
-    for i in tqdm.trange(0, len(filled_prompts), batch_size):
-        batch = filled_prompts[i : i + batch_size]
-        encoded_prompts = tokenizer(
-            batch,
-            padding=True,
-            truncation=True,
-            max_length=max_tokens,
-            return_tensors="pt",
-        ).to(torch_device)
-        with torch.no_grad():
-            outputs = model.generate(**encoded_prompts, generation_config=gen_config)
-        outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
-        results.extend(
-            tokenizer.batch_decode(
-                outputs,
-                skip_special_tokens=True,
-                truncate_before_pattern=["\nclass", "\ndef", "\n#", "\nif", "\nprint"],
-            )
-        )
+    results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
     results = [re.split("\n\n", x)[0].strip() for x in results]
     return results
