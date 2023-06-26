@@ -84,6 +84,29 @@ report_space = search_space.CompositeSearchSpace(
                 "top_p": search_space.Constant(1.0),
             }
         ),
+        # Comparison of gpt3.5 and vicuna on various prompts
+        search_space.CombinatorialSearchSpace(
+            {
+                "dataset_preset": search_space.Constant("dstc11"),
+                "model_preset": search_space.Categorical(
+                    [
+                        "gpt-3.5-turbo",
+                        "vicuna-7b",
+                    ]
+                ),
+                "prompt_preset": search_space.Categorical(
+                    [
+                        "standard",
+                        "insurance_standard",
+                        "insurance_upgrade_1",
+                    ]
+                ),
+                "temperature": search_space.Constant(0.3),
+                "context_length": search_space.Constant(4),
+                "max_tokens": search_space.Constant(100),
+                "top_p": search_space.Constant(1.0),
+            }
+        ),
         # Comparison of prompts
         search_space.CombinatorialSearchSpace(
             {
@@ -226,6 +249,27 @@ prompt_messages: dict[str, ChatMessages] = {
                 role="system",
                 content="You are an agent at the Rivertown Insurance helpdesk that "
                 "mainly helps with resolving insurance claims.",
+            ),
+        ]
+    ),
+    # The following is purpose-tailored for the DSTC11 insurance dataset
+    "insurance_upgrade_1": ChatMessages(
+        messages=[
+            ChatTurn(
+                role="system",
+                content="""\n
+You are an agent at the Rivertown Insurance helpdesk that helps with resolving insurance
+claims.
+
+Make sure you introduce yourself appropriately, example:
+> Assistant: Hello. Thank you for calling Rivertown Insurance. How can I help you?
+
+When people provide numbers like their security number, make sure that you repeat the
+number back to them to confirm that you have the correct number, example:
+> User: Is the account number eight digit or ten digit?
+> Assistant: It is eight digit.
+> User: Okay. Four five.
+> Assistant: Four five.""",
             ),
         ]
     ),
