@@ -8,9 +8,9 @@ import traceback
 from collections.abc import Iterable
 from typing import Literal
 
+import config as chatbot_config
 import datasets
 
-from examples.chatbot import config as chatbot_config
 from zeno_build.cache_utils import (
     CacheLock,
     fail_cache,

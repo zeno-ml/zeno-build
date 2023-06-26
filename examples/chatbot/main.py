@@ -8,10 +8,10 @@ import logging
 import os
 from dataclasses import asdict
 
+import config as chatbot_config
 import pandas as pd
+from modeling import make_predictions, process_data
 
-from examples.chatbot import config as chatbot_config
-from examples.chatbot.modeling import make_predictions, process_data
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import exhaustive
