@@ -137,7 +137,7 @@ report_space = search_space.CompositeSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 13
+num_trials = 16
 
 # The details of each dataset
 dataset_configs = {
