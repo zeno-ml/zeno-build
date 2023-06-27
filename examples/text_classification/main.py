@@ -7,11 +7,11 @@ import json
 import logging
 import os
 
+import config as text_classification_config
 import datasets
 import pandas as pd
+from modeling import load_data, train_and_predict
 
-from examples.text_classification import config as text_classification_config
-from examples.text_classification.modeling import load_data, train_and_predict
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
