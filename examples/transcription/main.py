@@ -7,10 +7,10 @@ import json
 import logging
 import os
 
+import config as transcription_config
 import pandas as pd
+from modeling import get_audio_paths, make_predictions
 
-import examples.transcription.config as transcription_config
-from examples.transcription.modeling import get_audio_paths, make_predictions
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import exhaustive
 from zeno_build.reporting import reporting_utils

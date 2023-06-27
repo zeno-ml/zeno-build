@@ -5,14 +5,10 @@ from __future__ import annotations
 import argparse
 import os
 
+import config
 import pandas as pd
+from modeling import GptMtInstance, process_data, process_output
 
-from examples.analysis_gpt_mt import config
-from examples.analysis_gpt_mt.modeling import (
-    GptMtInstance,
-    process_data,
-    process_output,
-)
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.reporting.visualize import visualize

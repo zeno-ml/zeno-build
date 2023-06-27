@@ -6,9 +6,9 @@ import json
 import os
 import traceback
 
+import config as codegen_config
 import datasets
 
-from examples.code_generation import config as codegen_config
 from zeno_build.cache_utils import (
     CacheLock,
     fail_cache,
