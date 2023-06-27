@@ -38,9 +38,30 @@ async def _throttled_openai_completion_acreate(
                     "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
                 )
                 await asyncio.sleep(10)
+            except asyncio.exceptions.TimeoutError:
+                logging.warning("OpenAI API timeout. Sleeping for 10 seconds.")
+                await asyncio.sleep(10)
+            except openai.error.InvalidRequestError:
+                logging.warning("OpenAI API Invalid Request: Prompt was filtered")
+                return {
+                    "choices": [
+                        {"message": {"content": "Invalid Request: Prompt was filtered"}}
+                    ]
+                }
+            except openai.error.APIConnectionError:
+                logging.warning(
+                    "OpenAI API Connection Error: Error Communicating with OpenAI"
+                )
+                await asyncio.sleep(10)
+            except openai.error.Timeout:
+                logging.warning("OpenAI APITimeout Error: OpenAI Timeout")
+                await asyncio.sleep(10)
+            except openai.error.ServiceUnavailableError as e:
+                logging.warning(f"OpenAI service unavailable error: {e}")
+                await asyncio.sleep(10)
             except openai.error.APIError as e:
                 logging.warning(f"OpenAI API error: {e}")
-                break
+                await asyncio.sleep(10)
         return {"choices": [{"message": {"content": ""}}]}
 
 
@@ -52,7 +73,7 @@ async def generate_from_openai_completion(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from OpenAI Completion API.
 
@@ -137,9 +158,12 @@ async def _throttled_openai_chat_completion_acreate(
             except openai.error.Timeout:
                 logging.warning("OpenAI APITimeout Error: OpenAI Timeout")
                 await asyncio.sleep(10)
+            except openai.error.ServiceUnavailableError as e:
+                logging.warning(f"OpenAI service unavailable error: {e}")
+                await asyncio.sleep(10)
             except openai.error.APIError as e:
                 logging.warning(f"OpenAI API error: {e}")
-                break
+                await asyncio.sleep(10)
         return {"choices": [{"message": {"content": ""}}]}
 
 
@@ -151,7 +175,7 @@ async def generate_from_openai_chat_completion(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from OpenAI Chat Completion API.
 
