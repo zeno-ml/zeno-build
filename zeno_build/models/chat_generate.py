@@ -19,7 +19,7 @@ def generate_from_chat_prompt(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
 

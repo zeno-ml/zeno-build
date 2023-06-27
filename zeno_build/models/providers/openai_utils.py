@@ -73,7 +73,7 @@ async def generate_from_openai_completion(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from OpenAI Completion API.
 
@@ -175,7 +175,7 @@ async def generate_from_openai_chat_completion(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from OpenAI Chat Completion API.
 
