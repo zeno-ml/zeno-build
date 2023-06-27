@@ -69,7 +69,7 @@ report_space = search_space.CompositeSearchSpace(
                 "dataset_preset": search_space.Constant("dstc11"),
                 "model_preset": search_space.Categorical(
                     [
-                        "gpt-3.5-turbo",
+                        # "gpt-3.5-turbo",
                         "gpt2",
                         "gpt2-xl",
                         "llama-7b",
@@ -134,27 +134,25 @@ model_configs = {
         provider="cohere", model="command-xlarge-nightly"
     ),
     "gpt2": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="gpt2",
         model_cls=transformers.GPT2LMHeadModel,
     ),
     "gpt2-xl": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="gpt2-xl",
         model_cls=transformers.GPT2LMHeadModel,
     ),
     "llama-7b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="decapoda-research/llama-7b-hf",
-        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "llama-13b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="decapoda-research/llama-13b-hf",
-        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "vicuna-7b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="eachadea/vicuna-7b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -163,7 +161,7 @@ model_configs = {
         },
     ),
     "vicuna-13b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="eachadea/vicuna-13b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -172,7 +170,7 @@ model_configs = {
         },
     ),
     "mpt-7b-chat": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="mosaicml/mpt-7b-chat",
         model_loader_kwargs={"trust_remote_code": True},
     ),

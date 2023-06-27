@@ -27,7 +27,7 @@ def chatbot_main(
 ):
     """Run the chatbot experiment."""
     # Get the dataset configuration
-    dataset_preset = chatbot_config.report_space.spaces[0].dimensions["dataset_preset"]
+    dataset_preset = chatbot_config.report_space.dimensions["dataset_preset"]
     if not isinstance(dataset_preset, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
     dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
