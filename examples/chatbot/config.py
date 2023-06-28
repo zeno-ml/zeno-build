@@ -75,6 +75,9 @@ report_space = search_space.CompositeSearchSpace(
                         "llama-7b",
                         "vicuna-7b",
                         "mpt-7b-chat",
+                        "vicuna-7b-v1.3",
+                        "vicuna-13b-v1.3",
+                        "vicuna-33b-v1.3",
                     ]
                 ),
                 "prompt_preset": search_space.Constant("standard"),
@@ -114,7 +117,7 @@ report_space = search_space.CompositeSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 13
+num_trials = 16
 
 # The details of each dataset
 dataset_configs = {
@@ -146,6 +149,7 @@ model_configs = {
     "llama-7b": LMConfig(
         provider="vllm",
         model="decapoda-research/llama-7b-hf",
+        model_cls=transformers.LlamaForCausalLM,
     ),
     "llama-13b": LMConfig(
         provider="vllm",
@@ -163,6 +167,33 @@ model_configs = {
     "vicuna-13b": LMConfig(
         provider="vllm",
         model="eachadea/vicuna-13b-1.1",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    "vicuna-7b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-7b-v1.3",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    "vicuna-13b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-13b-v1.3",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    "vicuna-33b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-33b-v1.3",
         name_replacements={
             "system": "ASSISTANT",
             "assistant": "ASSISTANT",

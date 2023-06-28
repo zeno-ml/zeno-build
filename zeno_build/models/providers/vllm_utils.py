@@ -11,6 +11,8 @@ this inference library.
 
 import re
 
+import torch.cuda
+
 from zeno_build.models import lm_config
 from zeno_build.prompts import chat_prompt
 from zeno_build.prompts.prompt_utils import replace_variables
@@ -47,7 +49,8 @@ def generate_from_vllm(
             "Please `pip install vllm` to perform vllm-based inference"
         )
     # Load model
-    llm = vllm.LLM(model=model_config.model)
+    num_gpus = torch.cuda.device_count()
+    llm = vllm.LLM(model=model_config.model, tensor_parallel_size=num_gpus)
     sampling_params = vllm.SamplingParams(
         temperature=temperature,
         max_tokens=max_tokens,
@@ -64,7 +67,7 @@ def generate_from_vllm(
     # Process in batches
     results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
-    results = [re.split("\n\n", x)[0].strip() for x in results]
+    results = [re.split("\n\n", x.outputs[0].text)[0].strip() for x in results]
     return results
 
 
@@ -97,7 +100,8 @@ def text_generate_from_vllm(
             "Please `pip install vllm` to perform vllm-based inference"
         )
     # Load model
-    llm = vllm.LLM(model=model_config.model)
+    num_gpus = torch.cuda.device_count()
+    llm = vllm.LLM(model=model_config.model, tensor_parallel_size=num_gpus)
     sampling_params = vllm.SamplingParams(
         temperature=temperature,
         max_tokens=max_tokens,
@@ -108,5 +112,5 @@ def text_generate_from_vllm(
     # Process in batches
     results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
-    results = [re.split("\n\n", x)[0].strip() for x in results]
+    results = [re.split("\n\n", x.outputs[0].text)[0].strip() for x in results]
     return results
