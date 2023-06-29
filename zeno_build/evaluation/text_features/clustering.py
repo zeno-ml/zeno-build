@@ -39,7 +39,7 @@ def data_clusters(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         ops: Zeno options
 
     Returns:
-        DistillReturn: Number of digits in the output
+        DistillReturn: Cluster IDs of each of the input data points
     """
     documents = [str(x) for x in df[ops.data_column]]
     # TODO(gneubig): having something like the sqrt of the number of documents seems
@@ -60,7 +60,7 @@ def label_clusters(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
         ops: Zeno options
 
     Returns:
-        DistillReturn: Number of digits in the output
+        DistillReturn: Cluster IDs of each of the labels
     """
     documents = [str(x) for x in df[ops.label_column]]
     # TODO(gneubig): having something like the sqrt of the number of documents seems
