@@ -174,8 +174,9 @@ model_configs = {
         tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "llama-13b": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="decapoda-research/llama-13b-hf",
+        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "vicuna-7b": LMConfig(
         provider="vllm",
