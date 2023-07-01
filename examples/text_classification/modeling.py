@@ -7,10 +7,10 @@ import os
 import traceback
 from collections.abc import Sequence
 
+import config as text_classification_config
 import datasets
 import transformers
 
-from examples.text_classification import config as text_classification_config
 from zeno_build.cache_utils import CacheLock, fail_cache, get_cache_path
 
 

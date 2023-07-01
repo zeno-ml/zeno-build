@@ -4,11 +4,11 @@ import asyncio
 from zeno_build.models import lm_config
 from zeno_build.models.providers.cohere_utils import generate_from_cohere
 from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
-from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.models.providers.openai_utils import (
     generate_from_openai_chat_completion,
     generate_from_openai_completion,
 )
+from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.prompts import chat_prompt
 
 
@@ -20,7 +20,7 @@ def generate_from_chat_prompt(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    requests_per_minute: int = 300,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
 

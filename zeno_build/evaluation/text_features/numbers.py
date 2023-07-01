@@ -69,7 +69,7 @@ def english_number_count(df: DataFrame, ops: ZenoOptions) -> DistillReturn:
     }
     number_of_numbers = [
         sum(
-            1 if y in english_number_words else 0
+            1 if y.lower() in english_number_words else 0
             for y in tokenize(x, merge_symbol="").split()
         )
         for x in df[ops.label_column]

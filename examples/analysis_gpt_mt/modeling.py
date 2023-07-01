@@ -5,7 +5,7 @@ import os
 import re
 from dataclasses import dataclass
 
-from examples.analysis_gpt_mt import config
+import config
 
 
 @dataclass(frozen=True)

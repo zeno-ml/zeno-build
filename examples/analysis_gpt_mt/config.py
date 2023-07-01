@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from examples.analysis_gpt_mt.modeling import remove_leading_language
+from modeling import remove_leading_language
+
 from zeno_build.evaluation.text_features.capitalization import input_capital_char_ratio
 from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
 from zeno_build.evaluation.text_features.frequency import output_max_word_freq

@@ -7,10 +7,10 @@ import json
 import logging
 import os
 
+import config as codegen_config
 import pandas as pd
+from modeling import make_predictions, process_data
 
-from examples.code_generation import config as codegen_config
-from examples.code_generation.modeling import make_predictions, process_data
 from zeno_build.experiments import search_space
 from zeno_build.experiments.experiment_run import ExperimentRun
 from zeno_build.optimizers import standard
@@ -28,7 +28,6 @@ def codegen_main(
     dataset_preset = codegen_config.space.dimensions["dataset_preset"]
     if not isinstance(dataset_preset, search_space.Constant):
         raise ValueError("All experiments must be run on a single dataset.")
-    dataset_config = codegen_config.dataset_configs[dataset_preset.value]
 
     # Define the directories for storing data and predictions
     data_dir = os.path.join(results_dir, "data")
@@ -38,18 +37,14 @@ def codegen_main(
     # processed data will be stored in the `results_dir/data` directory
     # both for browsing and for caching for fast reloading on future runs.
     inputs_and_labels: list[dict[str, str]] = process_data(
-        dataset=dataset_config.dataset,
-        split=dataset_config.split,
-        examples=None,
-        data_format=dataset_config.data_format,
-        data_column=dataset_config.data_column,
-        label_column=dataset_config.label_column,
+        dataset_preset=dataset_preset.value,
         output_dir=data_dir,
     )
 
     # Organize the data into labels (output) and context (input)
     inputs: list[str] = [d["input"] for d in inputs_and_labels]
-    labels: list[str] = [d["label"] for d in inputs_and_labels]
+    tests: list[str] = [d["test"] for d in inputs_and_labels]
+    datasets: list[str] = [d["dataset"] for d in inputs_and_labels]
     suffixes: list[str] = [d["suffix"] for d in inputs_and_labels]
 
     if do_prediction:
@@ -84,7 +79,7 @@ def codegen_main(
                 with open(f"{predictions_dir}/{id}.eval", "r") as f:
                     eval_result = float(next(f).strip())
             else:
-                eval_result = optimizer.calculate_metric(inputs, labels, predictions)
+                eval_result = optimizer.calculate_metric(inputs, tests, predictions)
                 with open(f"{predictions_dir}/{id}.eval", "w") as f:
                     f.write(f"{eval_result}")
             print("*** Iteration complete. ***")
@@ -120,12 +115,13 @@ def codegen_main(
         df = pd.DataFrame(
             {
                 "data": inputs,
-                "labels": labels,
+                "labels": tests,
+                "dataset": datasets,
             }
         )
         visualize(
             df,
-            labels,
+            tests,
             results,
             "code-generation",
             "data",

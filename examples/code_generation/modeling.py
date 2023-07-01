@@ -6,9 +6,9 @@ import json
 import os
 import traceback
 
+import config as codegen_config
 import datasets
 
-from examples.code_generation import config as codegen_config
 from zeno_build.cache_utils import (
     CacheLock,
     fail_cache,
@@ -57,13 +57,68 @@ def build_test(test_start: str, test: list[str], entry_point: str) -> str:
     )
 
 
+def _load_single_dataset(
+    dataset_preset: str,
+) -> list[dict[str, str]]:
+    dataset_config = codegen_config.dataset_configs[dataset_preset]
+
+    # Load and standardize from Hugging Face if not in cache
+    if isinstance(dataset_config.dataset, tuple):
+        dname, subdname = dataset_config.dataset
+        loaded_data = datasets.load_dataset(dname, subdname, split=dataset_config.split)
+    else:
+        loaded_data = datasets.load_dataset(
+            dataset_config.dataset, split=dataset_config.split
+        )
+
+    if dataset_config.data_format == "odex":
+        intent_column, prompt_column = dataset_config.data_column.split()
+        prompts = [
+            build_input_from_intents_and_prompts(x[intent_column], x[prompt_column])
+            for x in loaded_data
+        ]
+        (
+            start_column,
+            test_column,
+            entry_column,
+            canonical_column,
+        ) = dataset_config.label_column.split()
+        tests = [
+            build_test(x[start_column], x[test_column], x[entry_column])
+            for x in loaded_data
+        ]
+        canonicals = [x[canonical_column] for x in loaded_data]
+        suffixes = [x["suffix"] for x in loaded_data]
+
+        data_examples = [
+            {
+                "input": p,
+                "test": t,
+                "canonical": c,
+                "suffix": s,
+                "dataset": dataset_preset,
+            }
+            for p, t, c, s in zip(prompts, tests, canonicals, suffixes)
+        ]
+    elif dataset_config.data_format == "humaneval":
+        test_column, canonical_column = dataset_config.label_column.split()
+        data_examples = [
+            {
+                "input": x[dataset_config.data_column],
+                "test": x[test_column],
+                "canonical": x[canonical_column],
+                "suffix": "",
+                "dataset": dataset_preset,
+            }
+            for x in loaded_data
+        ]
+    else:
+        raise ValueError(f"Unknown data format {dataset_config.data_format}")
+    return data_examples
+
+
 def process_data(
-    dataset: str | tuple[str, str],
-    split: str,
-    examples: int,
-    data_format: str,
-    data_column: str,
-    label_column: str,
+    dataset_preset: str,
     output_dir: str = "results",
 ) -> list[dict[str, str]]:
     """Load and process data from the huggingface library.
@@ -96,43 +151,12 @@ def process_data(
         with open(output_path, "r") as f:
             return [json.loads(x.strip()) for x in f]
 
-    # Load and standardize from Hugging Face if not in cache
-    if isinstance(dataset, tuple):
-        dname, subdname = dataset
-        loaded_data = datasets.load_dataset(dname, subdname, split=split)
+    if dataset_preset == "all_datasets":
+        data_examples = []
+        for dataset_preset in codegen_config.dataset_configs.keys():
+            data_examples.extend(_load_single_dataset(dataset_preset))
     else:
-        loaded_data = datasets.load_dataset(dataset, split=split)
-    if examples is not None:
-        loaded_data = loaded_data.select(range(examples))
-
-    if data_format == "odex":
-        intent_column, prompt_column = data_column.split()
-        prompts = [
-            build_input_from_intents_and_prompts(x[intent_column], x[prompt_column])
-            for x in loaded_data
-        ]
-        start_column, test_column, entry_column = label_column.split()
-        labels = [
-            build_test(x[start_column], x[test_column], x[entry_column])
-            for x in loaded_data
-        ]
-        suffixes = [x["suffix"] for x in loaded_data]
-
-        data_examples = [
-            {"input": p, "label": l, "suffix": s}
-            for p, l, s in zip(prompts, labels, suffixes)
-        ]
-    elif data_format == "humaneval":
-        data_examples = [
-            {
-                "input": x[data_column],
-                "label": x[label_column],
-                "suffix": "",
-            }
-            for x in loaded_data
-        ]
-    else:
-        raise ValueError(f"Unknown data format {data_format}")
+        data_examples = _load_single_dataset(dataset_preset)
 
     # Save output
     os.makedirs(os.path.dirname(output_path), exist_ok=True)

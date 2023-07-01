@@ -53,7 +53,7 @@ Read on for more!
 The experiments introduce seven different main systems:
 
 - Zero-shot GPT-3.5 (**text-davinci-003-zeroshot**),
-  ChatGPT (**gpt-3.5-turbo-zeroshot**), and GPT-4 (**gpt-3.5-turbo-zeroshot**):
+  ChatGPT (**gpt-3.5-turbo-0301-zeroshot**), and GPT-4 (**gpt-4-0314-zeroshot**):
   GPT models using no examples.
 - Few-shot GPT with random examples (**text-davinci-003-RR-1-shot** and
   **text-davinci-003-RR-5-shot**): This uses 1 or 5 random examples from a
@@ -62,8 +62,6 @@ The experiments introduce seven different main systems:
   examples (**text-davinci-003-QR-1-shot** and **text-davinci-003-QR-5-shot**):
   This uses 1 or 5 examples that are selected for their high degree of alignment
   between the inputs and outputs.
-- Zero-shot ChatGPT (**gpt-3.5-turbo-zeroshot**).
-- Zero-shot GPT-4 (**gpt-3.5-turbo-zeroshot**): GPT-3.5 using no examples.
 
 These are compared with both Microsoft Translator (**MS-Translator**),
 Google Translate (**google-cloud**) and the

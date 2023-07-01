@@ -30,7 +30,7 @@ from zeno_build.models.lm_config import LMConfig
 # Define the space of hyperparameters to search over.
 space = search_space.CombinatorialSearchSpace(
     {
-        "dataset_preset": search_space.Constant("odex"),
+        "dataset_preset": search_space.Constant("all_datasets"),
         "model_preset": search_space.Categorical(
             [
                 # "text-davinci-003"
@@ -65,49 +65,35 @@ dataset_configs = {
         dataset="neulab/odex",
         split="test",
         data_column="intent prompt",
-        label_column="test_start test entry_point",
-        data_format="odex",
-    ),
-    "odex_lexical": DatasetConfig(
-        dataset="neulab/odex",
-        split="test",
-        data_column="intent prompt",
-        label_column="canonical_solution",
+        label_column="test_start test entry_point canonical_solution",
         data_format="odex",
     ),
     "odex-es": DatasetConfig(
         dataset=("neulab/odex", "es"),
         split="test",
         data_column="intent prompt",
-        label_column="test_start test entry_point",
+        label_column="test_start test entry_point canonical_solution",
         data_format="odex",
-    ),  # TODO: add other languages
+    ),
     "odex-ja": DatasetConfig(
         dataset=("neulab/odex", "ja"),
         split="test",
         data_column="intent prompt",
-        label_column="test_start test entry_point",
+        label_column="test_start test entry_point canonical_solution",
         data_format="odex",
     ),
     "odex-ru": DatasetConfig(
         dataset=("neulab/odex", "ru"),
         split="test",
         data_column="intent prompt",
-        label_column="test_start test entry_point",
+        label_column="test_start test entry_point canonical_solution",
         data_format="odex",
     ),
     "humaneval": DatasetConfig(
         dataset="openai_humaneval",
         split="test",
         data_column="prompt",
-        label_column="test",
-        data_format="humaneval",
-    ),
-    "humaneval_lexical": DatasetConfig(
-        dataset="openai_humaneval",
-        split="test",
-        data_column="prompt",
-        label_column="canonical_solution",
+        label_column="test canonical_solution",
         data_format="humaneval",
     ),
 }
