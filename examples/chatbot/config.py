@@ -86,36 +86,20 @@ report_space = search_space.CompositeSearchSpace(
                 "top_p": search_space.Constant(1.0),
             }
         ),
-        # Comparison of gpt3.5 and vicuna on various prompts
-        search_space.CombinatorialSearchSpace(
-            {
-                "dataset_preset": search_space.Constant("dstc11"),
-                "model_preset": search_space.Categorical(
-                    [
-                        "gpt-3.5-turbo",
-                        "vicuna-7b",
-                    ]
-                ),
-                "prompt_preset": search_space.Categorical(
-                    [
-                        "standard",
-                        "insurance_standard",
-                        "insurance_upgrade_1",
-                    ]
-                ),
-                "temperature": search_space.Constant(0.3),
-                "context_length": search_space.Constant(4),
-                "max_tokens": search_space.Constant(100),
-                "top_p": search_space.Constant(1.0),
-            }
-        ),
         # Comparison of prompts
         search_space.CombinatorialSearchSpace(
             {
                 "dataset_preset": search_space.Constant("dstc11"),
                 "model_preset": search_space.Constant("vicuna-7b"),
                 "prompt_preset": search_space.Categorical(
-                    ["standard", "friendly", "polite", "cynical", "insurance_standard"]
+                    [
+                        "standard",
+                        "friendly",
+                        "polite",
+                        "cynical",
+                        "insurance_standard",
+                        "insurance_upgrade_1",
+                    ]
                 ),
                 "temperature": search_space.Constant(0.3),
                 "context_length": search_space.Constant(4),
