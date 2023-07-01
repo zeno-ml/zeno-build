@@ -77,7 +77,6 @@ report_space = search_space.CompositeSearchSpace(
                         "mpt-7b-chat",
                         "vicuna-7b-v1.3",
                         "vicuna-13b-v1.3",
-                        "vicuna-33b-v1.3",
                     ]
                 ),
                 "prompt_preset": search_space.Constant("standard"),
@@ -117,7 +116,7 @@ report_space = search_space.CompositeSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 16
+num_trials = 15
 
 # The details of each dataset
 dataset_configs = {
