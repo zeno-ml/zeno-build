@@ -44,13 +44,15 @@ def generate_from_vllm(
     # Import vllm
     try:
         import vllm
-    except:
-        raise ImportError(
-            "Please `pip install vllm` to perform vllm-based inference"
-        )
+    except ImportError:
+        raise ImportError("Please `pip install vllm` to perform vllm-based inference")
     # Load model
     num_gpus = torch.cuda.device_count()
-    llm = vllm.LLM(model=model_config.model, tensor_parallel_size=num_gpus)
+    llm = vllm.LLM(
+        model=model_config.model,
+        tokenizer=model_config.tokenizer_cls,
+        tensor_parallel_size=num_gpus,
+    )
     sampling_params = vllm.SamplingParams(
         temperature=temperature,
         max_tokens=max_tokens,
@@ -95,10 +97,8 @@ def text_generate_from_vllm(
     # Import vllm
     try:
         import vllm
-    except:
-        raise ImportError(
-            "Please `pip install vllm` to perform vllm-based inference"
-        )
+    except ImportError:
+        raise ImportError("Please `pip install vllm` to perform vllm-based inference")
     # Load model
     num_gpus = torch.cuda.device_count()
     llm = vllm.LLM(model=model_config.model, tensor_parallel_size=num_gpus)

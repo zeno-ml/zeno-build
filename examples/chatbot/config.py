@@ -139,17 +139,17 @@ model_configs = {
     "gpt2": LMConfig(
         provider="vllm",
         model="gpt2",
-        model_cls=transformers.GPT2LMHeadModel,
     ),
     "gpt2-xl": LMConfig(
         provider="vllm",
         model="gpt2-xl",
-        model_cls=transformers.GPT2LMHeadModel,
     ),
+    # We need to use the transformers library instead of VLLM here
+    # because the tokenizer library needs to be set manually
     "llama-7b": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="decapoda-research/llama-7b-hf",
-        model_cls=transformers.LlamaForCausalLM,
+        tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "llama-13b": LMConfig(
         provider="vllm",
@@ -200,8 +200,10 @@ model_configs = {
             "user": "HUMAN",
         },
     ),
+    # We need to use huggingface instead of vllm here because we need to
+    # set trust_remote_code to True
     "mpt-7b-chat": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="mosaicml/mpt-7b-chat",
         model_loader_kwargs={"trust_remote_code": True},
     ),
