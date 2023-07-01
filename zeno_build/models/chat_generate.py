@@ -8,6 +8,7 @@ from zeno_build.models.providers.openai_utils import (
     generate_from_openai_chat_completion,
     generate_from_openai_completion,
 )
+from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.prompts import chat_prompt
 
 
@@ -81,6 +82,16 @@ def generate_from_chat_prompt(
         )
     elif model_config.provider == "huggingface":
         return generate_from_huggingface(
+            full_contexts,
+            prompt_template,
+            model_config,
+            temperature,
+            max_tokens,
+            top_p,
+            context_length,
+        )
+    elif model_config.provider == "vllm":
+        return generate_from_vllm(
             full_contexts,
             prompt_template,
             model_config,

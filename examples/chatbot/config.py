@@ -69,38 +69,17 @@ report_space = search_space.CompositeSearchSpace(
                 "dataset_preset": search_space.Constant("dstc11"),
                 "model_preset": search_space.Categorical(
                     [
-                        "gpt-3.5-turbo",
+                        # "gpt-3.5-turbo",
                         "gpt2",
                         "gpt2-xl",
                         "llama-7b",
                         "vicuna-7b",
                         "mpt-7b-chat",
+                        "vicuna-7b-v1.3",
+                        "vicuna-13b-v1.3",
                     ]
                 ),
                 "prompt_preset": search_space.Constant("standard"),
-                "temperature": search_space.Constant(0.3),
-                "context_length": search_space.Constant(4),
-                "max_tokens": search_space.Constant(100),
-                "top_p": search_space.Constant(1.0),
-            }
-        ),
-        # Comparison of gpt3.5 and vicuna on various prompts
-        search_space.CombinatorialSearchSpace(
-            {
-                "dataset_preset": search_space.Constant("dstc11"),
-                "model_preset": search_space.Categorical(
-                    [
-                        "gpt-3.5-turbo",
-                        "vicuna-7b",
-                    ]
-                ),
-                "prompt_preset": search_space.Categorical(
-                    [
-                        "standard",
-                        "insurance_standard",
-                        "insurance_upgrade_1",
-                    ]
-                ),
                 "temperature": search_space.Constant(0.3),
                 "context_length": search_space.Constant(4),
                 "max_tokens": search_space.Constant(100),
@@ -113,7 +92,14 @@ report_space = search_space.CompositeSearchSpace(
                 "dataset_preset": search_space.Constant("dstc11"),
                 "model_preset": search_space.Constant("vicuna-7b"),
                 "prompt_preset": search_space.Categorical(
-                    ["standard", "friendly", "polite", "cynical", "insurance_standard"]
+                    [
+                        "standard",
+                        "friendly",
+                        "polite",
+                        "cynical",
+                        "insurance_standard",
+                        "insurance_upgrade_1",
+                    ]
                 ),
                 "temperature": search_space.Constant(0.3),
                 "context_length": search_space.Constant(4),
@@ -137,7 +123,7 @@ report_space = search_space.CompositeSearchSpace(
 )
 
 # The number of trials to run
-num_trials = 16
+num_trials = 15
 
 # The details of each dataset
 dataset_configs = {
@@ -157,15 +143,15 @@ model_configs = {
         provider="cohere", model="command-xlarge-nightly"
     ),
     "gpt2": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="gpt2",
-        model_cls=transformers.GPT2LMHeadModel,
     ),
     "gpt2-xl": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="gpt2-xl",
-        model_cls=transformers.GPT2LMHeadModel,
     ),
+    # We need to use the transformers library instead of VLLM here
+    # because the tokenizer library needs to be set manually
     "llama-7b": LMConfig(
         provider="huggingface",
         model="decapoda-research/llama-7b-hf",
@@ -177,7 +163,7 @@ model_configs = {
         tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "vicuna-7b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="eachadea/vicuna-7b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -186,7 +172,7 @@ model_configs = {
         },
     ),
     "vicuna-13b": LMConfig(
-        provider="huggingface",
+        provider="vllm",
         model="eachadea/vicuna-13b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -194,6 +180,35 @@ model_configs = {
             "user": "HUMAN",
         },
     ),
+    "vicuna-7b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-7b-v1.3",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    "vicuna-13b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-13b-v1.3",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    "vicuna-33b-v1.3": LMConfig(
+        provider="vllm",
+        model="lmsys/vicuna-33b-v1.3",
+        name_replacements={
+            "system": "ASSISTANT",
+            "assistant": "ASSISTANT",
+            "user": "HUMAN",
+        },
+    ),
+    # We need to use huggingface instead of vllm here because we need to
+    # set trust_remote_code to True
     "mpt-7b-chat": LMConfig(
         provider="huggingface",
         model="mosaicml/mpt-7b-chat",
