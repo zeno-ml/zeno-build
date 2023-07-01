@@ -50,7 +50,6 @@ def generate_from_vllm(
     num_gpus = torch.cuda.device_count()
     llm = vllm.LLM(
         model=model_config.model,
-        tokenizer=model_config.tokenizer_cls,
         tensor_parallel_size=num_gpus,
     )
     sampling_params = vllm.SamplingParams(
