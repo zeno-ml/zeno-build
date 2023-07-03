@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import logging
 import os
 from dataclasses import asdict
+from typing import cast
 
 import config as chatbot_config
 import pandas as pd
@@ -21,16 +23,30 @@ from zeno_build.reporting.visualize import visualize
 
 
 def chatbot_main(
+    models: list[str],
+    prompts: list[str],
+    experiments: list[str],
+    hf_inference_method: str,
     results_dir: str,
     do_prediction: bool = True,
     do_visualization: bool = True,
 ):
     """Run the chatbot experiment."""
+    # Update the experiment settings with the provided models and prompts
+    experiment_settings: list[search_space.CombinatorialSearchSpace] = [
+        copy.deepcopy(chatbot_config.experiments[x]) for x in experiments
+    ]
+    for setting in experiment_settings:
+        if isinstance(setting.dimensions["model_preset"], search_space.Categorical):
+            setting.dimensions["model_preset"] = search_space.Categorical(models)
+        if isinstance(setting.dimensions["prompt_preset"], search_space.Categorical):
+            setting.dimensions["prompt_preset"] = search_space.Categorical(prompts)
+    my_space = search_space.CompositeSearchSpace(
+        cast(list[search_space.SearchSpace], experiment_settings)
+    )
+
     # Get the dataset configuration
-    dataset_preset = chatbot_config.report_space.spaces[0].dimensions["dataset_preset"]
-    if not isinstance(dataset_preset, search_space.Constant):
-        raise ValueError("All experiments must be run on a single dataset.")
-    dataset_config = chatbot_config.dataset_configs[dataset_preset.value]
+    dataset_config = chatbot_config.dataset_configs[chatbot_config.dataset]
 
     # Define the directories for storing data and predictions
     data_dir = os.path.join(results_dir, "data")
@@ -50,14 +66,14 @@ def chatbot_main(
     # Organize the data into labels (output) and context (input)
     labels: list[str] = []
     contexts: list[ChatMessages] = []
-    for x in contexts_and_labels:
-        labels.append(x.messages[-1].content)
-        contexts.append(ChatMessages(x.messages[:-1]))
+    for candl in contexts_and_labels:
+        labels.append(candl.messages[-1].content)
+        contexts.append(ChatMessages(candl.messages[:-1]))
 
     if do_prediction:
         # Perform the hyperparameter sweep
         optimizer = exhaustive.ExhaustiveOptimizer(
-            space=chatbot_config.report_space,
+            space=my_space,
             distill_functions=chatbot_config.sweep_distill_functions,
             metric=chatbot_config.sweep_metric_function,
             num_trials=chatbot_config.num_trials,
@@ -71,7 +87,6 @@ def chatbot_main(
             # Get the run ID and resulting predictions
             id_and_predictions = make_predictions(
                 contexts=contexts,
-                dataset_preset=parameters["dataset_preset"],
                 prompt_preset=parameters["prompt_preset"],
                 model_preset=parameters["model_preset"],
                 temperature=parameters["temperature"],
@@ -79,6 +94,7 @@ def chatbot_main(
                 top_p=parameters["top_p"],
                 context_length=parameters["context_length"],
                 output_dir=predictions_dir,
+                hf_inference_method=hf_inference_method,
             )
             if id_and_predictions is None:
                 print(f"*** Skipped run for {parameters=} ***")
@@ -143,6 +159,34 @@ if __name__ == "__main__":
     # Parse the command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--models",
+        type=str,
+        nargs="+",
+        default=chatbot_config.default_models,
+        help="The models to use (for experimental settings with multiple models).",
+    )
+    parser.add_argument(
+        "--prompts",
+        type=str,
+        nargs="+",
+        default=chatbot_config.default_prompts,
+        help="The prompts to use (for experimental settings with multiple prompts).",
+    )
+    parser.add_argument(
+        "--experiments",
+        type=str,
+        nargs="+",
+        default=["exhaustive"],
+        help="The experiments to run.",
+    )
+    parser.add_argument(
+        "--hf-inference-method",
+        type=str,
+        default="huggingface",
+        help="The method used to perform inference on HuggingFace models.",
+        choices=["huggingface", "vllm"],
+    )
+    parser.add_argument(
         "--results-dir",
         type=str,
         default="results",
@@ -166,6 +210,10 @@ if __name__ == "__main__":
         )
 
     chatbot_main(
+        models=args.models,
+        prompts=args.prompts,
+        experiments=args.experiments,
+        hf_inference_method=args.hf_inference_method,
         results_dir=args.results_dir,
         do_prediction=not args.skip_prediction,
         do_visualization=not args.skip_visualization,
