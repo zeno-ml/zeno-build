@@ -18,7 +18,12 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["aiolimiter>=1.0.0", "inspiredco>=0.0.2", "zenoml>=0.6.1"]
+dependencies = [
+  "aiolimiter>=1.0.0",
+  "inspiredco>=0.0.2",
+  "openai>=0.27.0",
+  "zenoml>=0.6.1",
+]
 dynamic = ["version"]
 
 [project.optional-dependencies]

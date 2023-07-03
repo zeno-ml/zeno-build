@@ -3,7 +3,6 @@ import logging
 import os
 
 import aiolimiter
-import cohere
 from tqdm.asyncio import tqdm_asyncio
 
 from zeno_build.models import global_models, lm_config
@@ -18,6 +17,12 @@ async def _throttled_cohere_acreate(
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
 ) -> str:
+    try:
+        import cohere
+    except ImportError:
+        raise ImportError(
+            "Please `pip install cohere` to perform cohere-based inference"
+        )
     async with limiter:
         assert global_models.cohere_client is not None
         try:
@@ -68,6 +73,12 @@ async def generate_from_cohere(
         raise ValueError(
             "COHERE_API_KEY environment variable must be set when using the "
             "Cohere API."
+        )
+    try:
+        import cohere
+    except ImportError:
+        raise ImportError(
+            "Please `pip install cohere` to perform cohere-based inference"
         )
     global_models.cohere_client = cohere.Client(os.environ["COHERE_API_KEY"])
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)

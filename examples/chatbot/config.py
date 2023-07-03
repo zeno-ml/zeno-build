@@ -30,110 +30,7 @@ from zeno_build.models.dataset_config import DatasetConfig
 from zeno_build.models.lm_config import LMConfig
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 
-# Define the space of hyperparameters to search over if using
-# hyperparameter search.
-full_space = search_space.CombinatorialSearchSpace(
-    {
-        "dataset_preset": search_space.Constant("dstc11"),
-        "model_preset": search_space.Categorical(
-            [
-                # "gpt-3.5-turbo",
-                # "cohere-command-xlarge",
-                "gpt2",
-                "gpt2-xl",
-                "llama-7b",
-                "vicuna-7b",
-                "mpt-7b-chat",
-            ]
-        ),
-        "prompt_preset": search_space.Categorical(
-            ["standard", "friendly", "polite", "cynical"]
-        ),
-        "temperature": search_space.Discrete([0.2, 0.3, 0.4]),
-        "context_length": search_space.Discrete([1, 2, 3, 4]),
-        "max_tokens": search_space.Constant(100),
-        "top_p": search_space.Constant(1.0),
-    }
-)
-
-# Specifically, this is the space of hyperparameters used in the Zeno
-# chatbot report on the DSTC11 dataset:
-# https://github.com/zeno-ml/zeno-build/tree/main/examples/chatbot
-# It can be used together with ExhaustiveOptimizer to reproduce the
-# results in the report.
-report_space = search_space.CompositeSearchSpace(
-    [
-        # Comparison of models
-        search_space.CombinatorialSearchSpace(
-            {
-                "dataset_preset": search_space.Constant("dstc11"),
-                "model_preset": search_space.Categorical(
-                    [
-                        # "gpt-3.5-turbo",
-                        "gpt2",
-                        "gpt2-xl",
-                        "llama-7b",
-                        "vicuna-7b",
-                        "mpt-7b-chat",
-                        "vicuna-7b-v1.3",
-                        "vicuna-13b-v1.3",
-                    ]
-                ),
-                "prompt_preset": search_space.Constant("standard"),
-                "temperature": search_space.Constant(0.3),
-                "context_length": search_space.Constant(4),
-                "max_tokens": search_space.Constant(100),
-                "top_p": search_space.Constant(1.0),
-            }
-        ),
-        # Comparison of prompts
-        search_space.CombinatorialSearchSpace(
-            {
-                "dataset_preset": search_space.Constant("dstc11"),
-                "model_preset": search_space.Constant("vicuna-7b"),
-                "prompt_preset": search_space.Categorical(
-                    [
-                        "standard",
-                        "friendly",
-                        "polite",
-                        "cynical",
-                        "insurance_standard",
-                        "insurance_upgrade_1",
-                    ]
-                ),
-                "temperature": search_space.Constant(0.3),
-                "context_length": search_space.Constant(4),
-                "max_tokens": search_space.Constant(100),
-                "top_p": search_space.Constant(1.0),
-            }
-        ),
-        # Comparison of context lengths
-        search_space.CombinatorialSearchSpace(
-            {
-                "dataset_preset": search_space.Constant("dstc11"),
-                "model_preset": search_space.Constant("vicuna-7b"),
-                "prompt_preset": search_space.Constant("standard"),
-                "temperature": search_space.Constant(0.3),
-                "context_length": search_space.Discrete([1, 2, 3, 4]),
-                "max_tokens": search_space.Constant(100),
-                "top_p": search_space.Constant(1.0),
-            }
-        ),
-    ]
-)
-
-# The number of trials to run
-num_trials = 15
-
-# The details of each dataset
-dataset_configs = {
-    "dstc11": DatasetConfig(
-        dataset="gneubig/dstc11",
-        split="validation",
-        data_column="turns",
-        data_format="dstc11",
-    ),
-}
+# --- Model Configuration ---
 
 # The details of each model
 model_configs = {
@@ -143,11 +40,11 @@ model_configs = {
         provider="cohere", model="command-xlarge-nightly"
     ),
     "gpt2": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="gpt2",
     ),
     "gpt2-xl": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="gpt2-xl",
     ),
     # We need to use the transformers library instead of VLLM here
@@ -163,7 +60,7 @@ model_configs = {
         tokenizer_cls=transformers.LlamaTokenizer,
     ),
     "vicuna-7b": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="eachadea/vicuna-7b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -172,7 +69,7 @@ model_configs = {
         },
     ),
     "vicuna-13b": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="eachadea/vicuna-13b-1.1",
         name_replacements={
             "system": "ASSISTANT",
@@ -181,7 +78,7 @@ model_configs = {
         },
     ),
     "vicuna-7b-v1.3": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="lmsys/vicuna-7b-v1.3",
         name_replacements={
             "system": "ASSISTANT",
@@ -190,7 +87,7 @@ model_configs = {
         },
     ),
     "vicuna-13b-v1.3": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="lmsys/vicuna-13b-v1.3",
         name_replacements={
             "system": "ASSISTANT",
@@ -199,7 +96,7 @@ model_configs = {
         },
     ),
     "vicuna-33b-v1.3": LMConfig(
-        provider="vllm",
+        provider="huggingface",
         model="lmsys/vicuna-33b-v1.3",
         name_replacements={
             "system": "ASSISTANT",
@@ -215,6 +112,33 @@ model_configs = {
         model_loader_kwargs={"trust_remote_code": True},
     ),
 }
+
+# These models are used by default in the experiments.
+# This can be modified by using the "--models" command line argument.
+default_models = [
+    "gpt2",
+    "gpt2-xl",
+    "llama-7b",
+    "vicuna-7b",
+    "mpt-7b-chat",
+]
+# The default single model to use in experiments that don't iterate over
+# multiple models.
+default_single_model = "vicuna-7b"
+
+# --- Dataset Configuration ---
+
+# The details of each dataset
+dataset_configs = {
+    "dstc11": DatasetConfig(
+        dataset="gneubig/dstc11",
+        split="validation",
+        data_column="turns",
+        data_format="dstc11",
+    ),
+}
+
+# --- Prompt Configuration ---
 
 # The details of the prompts
 prompt_messages: dict[str, ChatMessages] = {
@@ -290,6 +214,26 @@ number back to them to confirm that you have the correct number, example:
     ),
 }
 
+default_prompts = list(prompt_messages.keys())
+# The default prompt to use in experiments that don't iterate over
+# multiple prompts.
+default_single_prompt = "standard"
+
+# --- Other Hyperparameters ---
+
+default_temperatures = [0.2, 0.3, 0.4]
+default_single_temperature = 0.3
+
+default_context_lengths = [1, 2, 3, 4, 6, 8]
+default_single_context_length = 4
+
+default_single_max_tokens = 100
+default_single_max_p = 1.0
+
+dataset = "dstc11"
+
+# --- Evaluation/Feature Configuartion ---
+
 # The functions to use to calculate scores for the hyperparameter sweep
 sweep_distill_functions = [chrf]
 sweep_metric_function = avg_chrf
@@ -311,3 +255,69 @@ zeno_distill_and_metric_functions = [
     avg_bert_score,
     avg_exact_match,
 ]
+
+# --- Experiment Configuration ---
+
+# A bunch of different experiments that could be run. Which ones to run
+# is controlled by the "--experiments" command line argument.
+experiments = {
+    # An exhaustive experiment that tests many different combinations
+    "exhaustive": search_space.CombinatorialSearchSpace(
+        {
+            "model_preset": search_space.Categorical(default_models),
+            "prompt_preset": search_space.Categorical(default_prompts),
+            "temperature": search_space.Discrete(default_temperatures),
+            "context_length": search_space.Discrete(default_context_lengths),
+            "max_tokens": search_space.Constant(default_single_max_tokens),
+            "top_p": search_space.Constant(default_single_max_p),
+        }
+    ),
+    # An experiment that varies only the model
+    "model": search_space.CombinatorialSearchSpace(
+        {
+            "model_preset": search_space.Categorical(default_models),
+            "prompt_preset": search_space.Constant(default_single_prompt),
+            "temperature": search_space.Constant(default_single_temperature),
+            "context_length": search_space.Constant(default_single_context_length),
+            "max_tokens": search_space.Constant(default_single_max_tokens),
+            "top_p": search_space.Constant(default_single_max_p),
+        }
+    ),
+    # An experiment that varies only the prompt
+    "prompt": search_space.CombinatorialSearchSpace(
+        {
+            "model_preset": search_space.Constant(default_single_model),
+            "prompt_preset": search_space.Categorical(default_prompts),
+            "temperature": search_space.Constant(default_single_temperature),
+            "context_length": search_space.Constant(default_single_context_length),
+            "max_tokens": search_space.Constant(default_single_max_tokens),
+            "top_p": search_space.Constant(default_single_max_p),
+        }
+    ),
+    # An experiment that varies only the temperature
+    "temperature": search_space.CombinatorialSearchSpace(
+        {
+            "model_preset": search_space.Constant(default_single_model),
+            "prompt_preset": search_space.Constant(default_single_prompt),
+            "temperature": search_space.Discrete(default_temperatures),
+            "context_length": search_space.Constant(default_single_context_length),
+            "max_tokens": search_space.Constant(default_single_max_tokens),
+            "top_p": search_space.Constant(default_single_max_p),
+        }
+    ),
+    # An experiment that varies only the context_length
+    "context_length": search_space.CombinatorialSearchSpace(
+        {
+            "model_preset": search_space.Constant(default_single_model),
+            "prompt_preset": search_space.Constant(default_single_prompt),
+            "temperature": search_space.Constant(default_single_temperature),
+            "context_length": search_space.Discrete(default_context_lengths),
+            "max_tokens": search_space.Constant(default_single_max_tokens),
+            "top_p": search_space.Constant(default_single_max_p),
+        }
+    ),
+}
+
+# The number of trials to run. If set to None, all combinations of experiments will be
+# run.
+num_trials: int | None = None

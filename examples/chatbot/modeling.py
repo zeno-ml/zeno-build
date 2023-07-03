@@ -1,6 +1,7 @@
 """Chatbots using API-based services."""
 from __future__ import annotations
 
+import dataclasses
 import itertools
 import json
 import os
@@ -131,7 +132,6 @@ def process_data(
 
 def make_predictions(
     contexts: list[ChatMessages],
-    dataset_preset: str,
     prompt_preset: str,
     model_preset: str,
     temperature: float = 0.3,
@@ -139,13 +139,12 @@ def make_predictions(
     top_p: float = 1,
     context_length: int = -1,
     output_dir: str = "results",
+    hf_inference_method: str = "huggingface",
 ) -> tuple[str, list[str]] | None:
     """Make predictions over a particular dataset.
 
     Args:
         contexts: The previous chat contexts to generate from.
-        dataset_preset: The name of the dataset to use (solely for the purpose)
-            of recording in the system output parameters.
         prompt_preset: The prompt to use for the API call.
         model_preset: The model to use for the API call.
         temperature: The temperature to use for sampling.
@@ -154,6 +153,8 @@ def make_predictions(
         context_length: The maximum length of the context to use. If 0,
             use the full context.
         output_dir: The location of the cache directory if any
+        hf_inference_method: The inference method to use for Hugging Face models.
+            This can be huggingface or vllm.
 
     Side effects:
         - Saves the predictions in a '.json' file in the `output_dir` directory
@@ -165,7 +166,9 @@ def make_predictions(
     """
     # Load from cache if existing
     parameters = {
-        k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
+        k: v
+        for k, v in locals().items()
+        if k not in {"contexts", "output_dir", "hf_inference_method"}
     }
     system_id, file_root = get_cache_id_and_path(output_dir, parameters)
     if os.path.exists(f"{file_root}.json"):
@@ -179,10 +182,15 @@ def make_predictions(
             return None
         # Make predictions
         try:
+            # Set the inference method for huggingface models
+            my_model = chatbot_config.model_configs[model_preset]
+            if my_model.provider == "huggingface":
+                my_model = dataclasses.replace(my_model, provider=hf_inference_method)
+            # Generate from the chat prompt
             predictions: list[str] = generate_from_chat_prompt(
                 contexts,
                 chatbot_config.prompt_messages[prompt_preset],
-                chatbot_config.model_configs[model_preset],
+                my_model,
                 temperature,
                 max_tokens,
                 top_p,
