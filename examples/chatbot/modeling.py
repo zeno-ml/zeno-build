@@ -166,7 +166,9 @@ def make_predictions(
     """
     # Load from cache if existing
     parameters = {
-        k: v for k, v in locals().items() if k not in {"contexts", "output_dir"}
+        k: v
+        for k, v in locals().items()
+        if k not in {"contexts", "output_dir", "hf_inference_method"}
     }
     system_id, file_root = get_cache_id_and_path(output_dir, parameters)
     if os.path.exists(f"{file_root}.json"):

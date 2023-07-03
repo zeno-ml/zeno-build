@@ -68,7 +68,10 @@ def generate_from_vllm(
     # Process in batches
     results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
-    results = [re.split("\n\n", x.outputs[0].text)[0].strip() for x in results]
+    results = [
+        re.split("\n\n", x.outputs[0].text)[0].replace("</s>", "").strip()
+        for x in results
+    ]
     return results
 
 
@@ -111,5 +114,8 @@ def text_generate_from_vllm(
     # Process in batches
     results = llm.generate(filled_prompts, sampling_params)
     # Post-processing to get only the system utterance
-    results = [re.split("\n\n", x.outputs[0].text)[0].strip() for x in results]
+    results = [
+        re.split("\n\n", x.outputs[0].text)[0].replace("</s>", "").strip()
+        for x in results
+    ]
     return results
