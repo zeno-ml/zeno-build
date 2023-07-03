@@ -138,9 +138,7 @@ def chatbot_main(
                 loaded_parameters = json.load(f)
             with open(f"{param_file[:-4]}.json", "r") as f:
                 predictions = json.load(f)
-            name = reporting_utils.parameters_to_name(
-                loaded_parameters, chatbot_config.report_space
-            )
+            name = reporting_utils.parameters_to_name(loaded_parameters, my_space)
             results.append(
                 ExperimentRun(
                     parameters=loaded_parameters, predictions=predictions, name=name
