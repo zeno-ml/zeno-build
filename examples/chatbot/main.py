@@ -114,7 +114,7 @@ def chatbot_main(
             print("***************************")
 
     if do_visualization:
-        param_files = chatbot_config.report_space.get_valid_param_files(
+        param_files = my_space.get_valid_param_files(
             predictions_dir, include_in_progress=False
         )
         if len(param_files) < chatbot_config.num_trials:
