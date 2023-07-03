@@ -117,7 +117,7 @@ def chatbot_main(
         param_files = my_space.get_valid_param_files(
             predictions_dir, include_in_progress=False
         )
-        if len(param_files) < chatbot_config.num_trials:
+        if chatbot_config.num_trials and len(param_files) < chatbot_config.num_trials:
             logging.getLogger().warning(
                 "Not enough completed but performing visualization anyway."
             )
