@@ -1,9 +1,6 @@
-cohere
 datasets
 einops
-openai
 protobuf==3.20.0
 sentencepiece
 transformers
 torch
-vllm
