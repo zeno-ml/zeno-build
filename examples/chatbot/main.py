@@ -24,7 +24,9 @@ from zeno_build.reporting.visualize import visualize
 
 def chatbot_main(
     models: list[str],
+    single_model: str,
     prompts: list[str],
+    single_prompt: str,
     experiments: list[str],
     hf_inference_method: str,
     results_dir: str,
@@ -39,8 +41,16 @@ def chatbot_main(
     for setting in experiment_settings:
         if isinstance(setting.dimensions["model_preset"], search_space.Categorical):
             setting.dimensions["model_preset"] = search_space.Categorical(models)
+        else:
+            assert isinstance(setting.dimensions["model_preset"], search_space.Constant)
+            setting.dimensions["model_preset"] = search_space.Constant(single_model)
         if isinstance(setting.dimensions["prompt_preset"], search_space.Categorical):
             setting.dimensions["prompt_preset"] = search_space.Categorical(prompts)
+        else:
+            assert isinstance(
+                setting.dimensions["prompt_preset"], search_space.Constant
+            )
+            setting.dimensions["prompt_preset"] = search_space.Constant(single_prompt)
     my_space = search_space.CompositeSearchSpace(
         cast(list[search_space.SearchSpace], experiment_settings)
     )
@@ -166,11 +176,23 @@ if __name__ == "__main__":
         help="The models to use (for experimental settings with multiple models).",
     )
     parser.add_argument(
+        "--single-model",
+        type=str,
+        default=None,
+        help="The model to use (for experimental settings with a single model).",
+    )
+    parser.add_argument(
         "--prompts",
         type=str,
         nargs="+",
         default=chatbot_config.default_prompts,
         help="The prompts to use (for experimental settings with multiple prompts).",
+    )
+    parser.add_argument(
+        "--single-prompt",
+        type=str,
+        default=None,
+        help="The prompt to use (for experimental settings with a single prompt).",
     )
     parser.add_argument(
         "--experiments",
@@ -211,7 +233,9 @@ if __name__ == "__main__":
 
     chatbot_main(
         models=args.models,
+        single_model=args.single_model,
         prompts=args.prompts,
+        single_prompt=args.single_prompt,
         experiments=args.experiments,
         hf_inference_method=args.hf_inference_method,
         results_dir=args.results_dir,
