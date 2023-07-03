@@ -178,7 +178,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--single-model",
         type=str,
-        default=None,
+        default=chatbot_config.default_single_model,
         help="The model to use (for experimental settings with a single model).",
     )
     parser.add_argument(
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--single-prompt",
         type=str,
-        default=None,
+        default=chatbot_config.default_single_prompt,
         help="The prompt to use (for experimental settings with a single prompt).",
     )
     parser.add_argument(
