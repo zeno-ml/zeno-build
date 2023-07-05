@@ -70,17 +70,19 @@ COHERE_API_KEY=...
 To run the example, run the following command:
 
 ```bash
-python main.py
+python main.py --results-dir results
 ```
-
-This will run ten training runs with various hyperparameters for:
-
-* `prompt_template`: four different prompts (found in [prompt_configs.py](prompt_configs.py))
-* `model`: gpt2, llama, vicuna, mpt-chat, chatgpt, or cohere
-* `temperature`: between 0.2, 0.3, or 0.4
 
 The results will be saved to the `results` directory, and a report of the
 comparison will be displayed using [Zeno](https://zenoml.com/).
+
+There are also many command line arguments that allow you to configure:
+
+* `--experiments`: what types of experiments to run
+* `--prompts`: what types of prompts to use
+* `--models`: what types of models to use
+
+For more details on each of these, you can see `main.py` and `config.py`
 
 ## Modification
 
