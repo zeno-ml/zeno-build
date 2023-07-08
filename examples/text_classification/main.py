@@ -108,6 +108,7 @@ def text_classification_main(
                     parameters=loaded_parameters, predictions=predictions, name=name
                 )
             )
+        results.sort(key=lambda x: x.name)
 
         # Perform the visualization
         df = pd.DataFrame(
