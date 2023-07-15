@@ -22,9 +22,9 @@ def main():
 
     # Perform inference
     all_results = []
-    for provider, model in [
-        ("openai_chat", "gpt-3.5-turbo"),
-        ("huggingface", "gpt2"),
+    for lm_config in [
+        LMConfig(provider="openai_chat", model="gpt-3.5-turbo"),
+        LMConfig(provider="huggingface", model="gpt2"),
     ]:
         predictions = generate_from_text_prompt(
             [{"text": x} for x in data],
@@ -33,14 +33,14 @@ def main():
                 "Please answer with a single word. "
                 "Is this review 'positive', 'negative', or 'neutral'?\n\n"
             ),
-            model_config=LMConfig(provider=provider, model=model),
+            model_config=lm_config,
             temperature=0.0001,
             max_tokens=1,
             top_p=1.0,
         )
         result = ExperimentRun(
-            name=f"{provider}_{model}",
-            parameters={"provider": provider, "model": model},
+            name=lm_config.model,
+            parameters={"provider": lm_config.provider, "model": lm_config.model},
             predictions=predictions,
         )
         all_results.append(result)
