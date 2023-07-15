@@ -66,25 +66,21 @@ async def _throttled_openai_completion_acreate(
 
 
 async def generate_from_openai_completion(
-    full_contexts: list[chat_prompt.ChatMessages],
-    prompt_template: chat_prompt.ChatMessages,
+    prompts: list[str],
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
-    context_length: int,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from OpenAI Completion API.
 
     Args:
-        full_contexts: List of full contexts to generate from.
-        prompt_template: Prompt template to use.
+        prompts: List of prompts to generate from.
         model_config: Model configuration.
         temperature: Temperature to use.
         max_tokens: Maximum number of tokens to generate.
         top_p: Top p to use.
-        context_length: Length of context to use.
         requests_per_minute: Number of requests per minute to allow.
 
     Returns:
@@ -100,16 +96,13 @@ async def generate_from_openai_completion(
     async_responses = [
         _throttled_openai_completion_acreate(
             engine=model_config.model,
-            prompt=prompt_template.to_text_prompt(
-                full_context=full_context.limit_length(context_length),
-                name_replacements=model_config.name_replacements,
-            ),
+            prompt=prompt,
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=top_p,
             limiter=limiter,
         )
-        for full_context in full_contexts
+        for prompt in prompts
     ]
     responses = await tqdm_asyncio.gather(*async_responses)
     # Note: will never be none because it's set, but mypy doesn't know that.
