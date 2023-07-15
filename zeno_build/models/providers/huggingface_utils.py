@@ -74,7 +74,8 @@ def generate_from_huggingface(
         with torch.no_grad():
             outputs = model.generate(**encoded_prompts, generation_config=gen_config)
         outputs = outputs[:, encoded_prompts["input_ids"].shape[-1] :]
-        results.extend(tokenizer.batch_decode(outputs, skip_special_tokens=True))
+        decoded_outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        results.extend(decoded_outputs)
     # Post-processing to get only the system utterance
     results = [re.split("\n\n", x)[0].strip() for x in results]
     return results

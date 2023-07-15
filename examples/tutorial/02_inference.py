@@ -14,34 +14,45 @@ from zeno_build.reporting.visualize import visualize
 def main():
     """Run the inference example."""
     # Get data from hugging face
-    dataset = load_dataset("glue", "sst2")
-    data = list(dataset["test"]["sentence"])
-    label_map = {0: "negative", 1: "positive", -1: "neutral"}
-    labels = [label_map[label] for label in dataset["test"]["label"]]
+    dataset = load_dataset("glue", "sst2", split="validation")
+    data = list(dataset["sentence"])
+    label_map = dataset.features["label"].names
+    labels = [label_map[label] for label in dataset["label"]]
     df = pd.DataFrame({"text": data, "label": labels})
+
+    # Prompt templates for text or chat
+    prompt_templates = {
+        "huggingface": (
+            "Review: {{text}}\n\n"
+            "Q: Is this review a negative or positive review?\n\nA: It is a"
+        ),
+        "openai_chat": (
+            "Review: {{text}}\n\n"
+            "Please answer with one word. "
+            "Is this review a negative or positive review?"
+        ),
+    }
 
     # Perform inference
     all_results = []
     for lm_config in [
         LMConfig(provider="openai_chat", model="gpt-3.5-turbo"),
         LMConfig(provider="huggingface", model="gpt2"),
+        LMConfig(provider="huggingface", model="gpt2-xl"),
     ]:
         predictions = generate_from_text_prompt(
             [{"text": x} for x in data],
-            prompt_template=(
-                "Review: {{text}}\n\n"
-                "Please answer with a single word. "
-                "Is this review 'positive', 'negative', or 'neutral'?\n\n"
-            ),
+            prompt_template=prompt_templates[lm_config.provider],
             model_config=lm_config,
             temperature=0.0001,
             max_tokens=1,
             top_p=1.0,
+            requests_per_minute=400,
         )
         result = ExperimentRun(
             name=lm_config.model,
             parameters={"provider": lm_config.provider, "model": lm_config.model},
-            predictions=predictions,
+            predictions=[x.strip().lower() for x in predictions],
         )
         all_results.append(result)
 
