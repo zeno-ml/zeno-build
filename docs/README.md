@@ -20,10 +20,27 @@ Zeno Build allows you to:
     report that allows you to slice-and-dice data and uncover insights that
     can feed back to better model, data, and prompt engineering.
 
-In order to demonstrate how each of the above features work, we have a number
-of [examples](../examples/) of how you can use `zeno-build` for different tasks.
+## Tutorial
 
-Read on for more details:
+Getting started with Zeno Build is easy! We'll walk you through a simple
+tutorial. All of the scripts for the tutorial are available in the
+[examples/tutorial](../examples/tutorial) directory.
+
+* **Tutorial 1:** [Visualizing results](tutorial_01_visualization.md)
+* **Tutorial 2:** [Running inference](tutorial_02_inference.md)
+* **Tutorial 3:** [Evaluating text generation](tutorial_03_text_generation.md)
+* **Tutorial 4:** Cacheing results (coming soon)
+* **Tutorial 5:** Hyperparameter optimization (coming soon)
+* **Tutorial 6:** Other tasks (coming soon)
+
+## End-to-end Examples
+
+In addition to our simple tutorial above, we also have a number of end-to-end
+[examples](../examples/) of how you can use `zeno-build` to implement and run
+a full set of experiments. You can take a look at the example directory to see
+all of the tasks that we have examples for, but most of them follow the same
+general pattern. See below for a comprehensive explanation (specifically based)
+on our chatbot example.
 
 * [Implementing Models](implementing_models.md)
 * [Specifying Experimental Parameters](specifying_parameters.md)
