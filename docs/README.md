@@ -22,16 +22,9 @@ Zeno Build allows you to:
 
 ## Tutorial
 
-Getting started with Zeno Build is easy! We'll walk you through a simple
-tutorial. All of the scripts for the tutorial are available in the
-[examples/tutorial](../examples/tutorial) directory.
-
-* **Tutorial 1:** [Visualizing results](tutorial_01_visualization.md)
-* **Tutorial 2:** [Running inference](tutorial_02_inference.md)
-* **Tutorial 3:** [Evaluating text generation](tutorial_03_text_generation.md)
-* **Tutorial 4:** Cacheing results (coming soon)
-* **Tutorial 5:** Hyperparameter optimization (coming soon)
-* **Tutorial 6:** Other tasks (coming soon)
+Getting started with Zeno Build is easy!
+Click over to our the [tutorial](tutorial/) directory to get started with
+some simple exercises that demonstrate the main concepts.
 
 ## End-to-end Examples
 
