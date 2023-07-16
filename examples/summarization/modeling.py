@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import os
@@ -89,15 +88,13 @@ def make_predictions(
     model_config = summarization_config.model_configs[model_preset]
 
     # Make predictions
-    predictions = asyncio.run(
-        generate_from_text_prompt(
-            [{"source": x} for x in data],
-            prompt_template,
-            model_config,
-            temperature,
-            max_tokens,
-            top_p,
-        )
+    predictions = generate_from_text_prompt(
+        [{"source": x} for x in data],
+        prompt_template,
+        model_config,
+        temperature,
+        max_tokens,
+        top_p,
     )
 
     # Cache

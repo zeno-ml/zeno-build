@@ -1,7 +1,6 @@
 """Code Generation using API-based services."""
 from __future__ import annotations
 
-import asyncio
 import json
 import os
 import traceback
@@ -211,15 +210,13 @@ def make_predictions(
             return None
         # Make predictions
         try:
-            predictions: list[str] = asyncio.run(
-                generate_from_text_prompt(
-                    [{"source": x.rstrip()} for x in data],
-                    prompt_template,
-                    model_config,
-                    temperature,
-                    max_tokens,
-                    top_p,
-                )
+            predictions: list[str] = generate_from_text_prompt(
+                [{"source": x.rstrip()} for x in data],
+                prompt_template,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
             )
         except Exception:
             tb = traceback.format_exc()
