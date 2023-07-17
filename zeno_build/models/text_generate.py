@@ -2,21 +2,26 @@
 
 import asyncio
 
-import openai
 import tqdm
 
 from zeno_build.models import global_models, lm_config
-from zeno_build.models.providers.huggingface_utils import text_generate_from_huggingface
+from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
+from zeno_build.models.providers.openai_utils import (
+    generate_from_openai_chat_completion,
+    generate_from_openai_completion,
+)
+from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 from zeno_build.prompts.prompt_utils import replace_variables
 
 
-async def generate_from_text_prompt(
+def generate_from_text_prompt(
     variables: list[dict[str, str]],
     prompt_template: str,
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
     top_p: float,
+    requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a textual prompt.
 
@@ -27,6 +32,7 @@ async def generate_from_text_prompt(
         temperature: The temperature to use.
         max_tokens: The maximum number of tokens to generate.
         top_p: The top p value to use.
+        requests_per_minute: Limit on the number of OpenAI requests per minute.
 
     Returns:
         The generated text.
@@ -36,45 +42,50 @@ async def generate_from_text_prompt(
         f"{temperature=}, {max_tokens=}, {top_p=}..."
     )
     if model_config.provider == "huggingface":
-        return text_generate_from_huggingface(
-            variables,
-            prompt_template,
+        prompts = [replace_variables(prompt_template, vars) for vars in variables]
+        return generate_from_huggingface(
+            prompts,
             model_config,
             temperature,
             max_tokens,
             top_p,
         )
     elif model_config.provider == "openai":
-        async_responses = [
-            openai.Completion.acreate(
-                engine=model_config.model,
-                prompt=replace_variables(prompt_template, vars),
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
+        prompts = [replace_variables(prompt_template, vars) for vars in variables]
+        return asyncio.run(
+            generate_from_openai_completion(
+                prompts,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                requests_per_minute,
             )
-            for vars in variables
-        ]
-        responses = await asyncio.gather(*async_responses)
-        return [x["choices"][0]["text"] for x in responses]
+        )
     elif model_config.provider == "openai_chat":
-        async_responses = [
-            openai.ChatCompletion.acreate(
-                model=model_config.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": replace_variables(prompt_template, vars),
-                    },
-                ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
+        full_contexts = [
+            ChatMessages(
+                [
+                    ChatTurn(
+                        role="user",
+                        content=replace_variables(prompt_template, vars),
+                    )
+                ]
             )
             for vars in variables
         ]
-        responses = await asyncio.gather(*async_responses)
-        return [x["choices"][0]["message"]["content"] for x in responses]
+        return asyncio.run(
+            generate_from_openai_chat_completion(
+                full_contexts=full_contexts,
+                prompt_template=ChatMessages([]),
+                model_config=model_config,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                context_length=1,
+                requests_per_minute=requests_per_minute,
+            )
+        )
     elif model_config.provider == "cohere":
         import cohere
 

@@ -12,6 +12,21 @@ from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.prompts import chat_prompt
 
 
+def _contexts_to_prompts(
+    full_contexts: list[chat_prompt.ChatMessages],
+    prompt_template: chat_prompt.ChatMessages,
+    model_config: lm_config.LMConfig,
+    context_length: int,
+) -> list[str]:
+    return [
+        prompt_template.to_text_prompt(
+            full_context=full_context.limit_length(context_length),
+            name_replacements=model_config.name_replacements,
+        )
+        for full_context in full_contexts
+    ]
+
+
 def generate_from_chat_prompt(
     full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
@@ -44,13 +59,13 @@ def generate_from_chat_prompt(
     if model_config.provider == "openai":
         return asyncio.run(
             generate_from_openai_completion(
-                full_contexts,
-                prompt_template,
+                _contexts_to_prompts(
+                    full_contexts, prompt_template, model_config, context_length
+                ),
                 model_config,
                 temperature,
                 max_tokens,
                 top_p,
-                context_length,
                 requests_per_minute,
             )
         )
@@ -70,35 +85,35 @@ def generate_from_chat_prompt(
     elif model_config.provider == "cohere":
         return asyncio.run(
             generate_from_cohere(
-                full_contexts,
-                prompt_template,
+                _contexts_to_prompts(
+                    full_contexts, prompt_template, model_config, context_length
+                ),
                 model_config,
                 temperature,
                 max_tokens,
                 top_p,
-                context_length,
                 requests_per_minute,
             )
         )
     elif model_config.provider == "huggingface":
         return generate_from_huggingface(
-            full_contexts,
-            prompt_template,
+            _contexts_to_prompts(
+                full_contexts, prompt_template, model_config, context_length
+            ),
             model_config,
             temperature,
             max_tokens,
             top_p,
-            context_length,
         )
     elif model_config.provider == "vllm":
         return generate_from_vllm(
-            full_contexts,
-            prompt_template,
+            _contexts_to_prompts(
+                full_contexts, prompt_template, model_config, context_length
+            ),
             model_config,
             temperature,
             max_tokens,
             top_p,
-            context_length,
         )
     else:
         raise ValueError("Unknown provider, but you can add your own!")
