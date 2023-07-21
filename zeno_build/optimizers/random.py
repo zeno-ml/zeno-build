@@ -8,8 +8,8 @@ from typing import Any, TypeVar
 
 import numpy as np
 from pandas import DataFrame
-from zeno import DistillReturn, MetricReturn, ZenoOptions
 
+from zeno import DistillReturn, MetricReturn, ZenoOptions
 from zeno_build.experiments import search_space
 from zeno_build.optimizers.base import Optimizer
 

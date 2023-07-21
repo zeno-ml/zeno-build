@@ -1,8 +1,8 @@
 """Evaluating code execution accuracy."""
 
 from pandas import DataFrame
-from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
+from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 from zeno_build.evaluation.code_metrics import execution_accuracy_utils
 
 

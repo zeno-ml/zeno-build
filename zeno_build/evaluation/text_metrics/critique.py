@@ -7,6 +7,7 @@ from inspiredco.critique import Critique
 from inspiredco.critique_utils.exceptions import CritiqueError
 from pandas import DataFrame
 from requests.exceptions import ConnectionError
+
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
 
