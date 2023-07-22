@@ -1,8 +1,8 @@
 """Tests for the distill functions based on sequence capitalization."""
 
 import pandas as pd
-from zeno import DistillReturn, ZenoOptions
 
+from zeno import DistillReturn, ZenoOptions
 from zeno_build.evaluation.text_features.capitalization import (
     input_capital_char_ratio,
     label_capital_char_ratio,

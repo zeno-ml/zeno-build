@@ -7,8 +7,8 @@ from collections.abc import Callable
 from typing import Any, TypeVar
 
 from pandas import DataFrame
-from zeno import DistillReturn, MetricReturn, ZenoOptions
 
+from zeno import DistillReturn, MetricReturn, ZenoOptions
 from zeno_build.experiments import search_space
 
 T = TypeVar("T")

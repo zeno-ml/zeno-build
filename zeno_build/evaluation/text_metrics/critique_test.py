@@ -5,8 +5,8 @@ from unittest import mock
 
 import pandas as pd
 import pytest
-from zeno import DistillReturn, MetricReturn, ZenoOptions
 
+from zeno import DistillReturn, MetricReturn, ZenoOptions
 from zeno_build.evaluation.text_metrics.critique import avg_bert_score, bert_score
 
 example_df = pd.DataFrame(

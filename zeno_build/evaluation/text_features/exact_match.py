@@ -1,6 +1,7 @@
 """Ground truth and prediction are identical."""
 
 from pandas import DataFrame
+
 from zeno import DistillReturn, MetricReturn, ZenoOptions, distill, metric
 
 

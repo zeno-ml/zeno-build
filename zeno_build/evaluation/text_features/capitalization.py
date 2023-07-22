@@ -1,5 +1,6 @@
 """Capitalization-related features."""
 from pandas import DataFrame
+
 from zeno import DistillReturn, ZenoOptions, distill
 
 

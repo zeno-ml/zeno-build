@@ -4,8 +4,8 @@ from operator import itemgetter
 from typing import Any
 
 import pandas as pd
-from zeno import ModelReturn, ZenoParameters, model, zeno
 
+from zeno import ModelReturn, ZenoParameters, model, zeno
 from zeno_build.experiments.experiment_run import ExperimentRun
 
 

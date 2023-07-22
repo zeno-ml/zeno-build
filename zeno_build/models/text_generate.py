@@ -51,6 +51,7 @@ def generate_from_text_prompt(
             top_p,
         )
     elif model_config.provider == "openai":
+        response_per_api_call = 1
         prompts = [replace_variables(prompt_template, vars) for vars in variables]
         return asyncio.run(
             generate_from_openai_completion(
@@ -58,6 +59,7 @@ def generate_from_text_prompt(
                 model_config,
                 temperature,
                 max_tokens,
+                response_per_api_call,
                 top_p,
                 requests_per_minute,
             )
@@ -81,6 +83,7 @@ def generate_from_text_prompt(
                 model_config=model_config,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                n=1,
                 top_p=top_p,
                 context_length=1,
                 requests_per_minute=requests_per_minute,
