@@ -7,12 +7,21 @@ from typing import Any
 
 import aiolimiter
 import openai
-import openai.error
 from aiohttp import ClientSession
+from openai import error
 from tqdm.asyncio import tqdm_asyncio
 
 from zeno_build.models import lm_config
 from zeno_build.prompts import chat_prompt
+
+ERROR_ERRORS_TO_MESSAGES = {
+    error.InvalidRequestError: "OpenAI API Invalid Request: Prompt was filtered",
+    error.RateLimitError: "OpenAI API rate limit exceeded. Sleeping for 10 seconds.",
+    error.APIConnectionError: "OpenAI API Connection Error: Error Communicating with OpenAI",  # noqa E501
+    error.Timeout: "OpenAI APITimeout Error: OpenAI Timeout",
+    error.ServiceUnavailableError: "OpenAI service unavailable error: {e}",
+    error.APIError: "OpenAI API error: {e}",
+}
 
 
 async def _throttled_openai_completion_acreate(
@@ -20,6 +29,7 @@ async def _throttled_openai_completion_acreate(
     prompt: str,
     temperature: float,
     max_tokens: int,
+    n: int,
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
@@ -31,36 +41,25 @@ async def _throttled_openai_completion_acreate(
                     prompt=prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    n=n,
                     top_p=top_p,
                 )
-            except openai.error.RateLimitError:
-                logging.warning(
-                    "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
-                )
-                await asyncio.sleep(10)
-            except asyncio.exceptions.TimeoutError:
-                logging.warning("OpenAI API timeout. Sleeping for 10 seconds.")
-                await asyncio.sleep(10)
-            except openai.error.InvalidRequestError:
-                logging.warning("OpenAI API Invalid Request: Prompt was filtered")
-                return {
-                    "choices": [
-                        {"message": {"content": "Invalid Request: Prompt was filtered"}}
-                    ]
-                }
-            except openai.error.APIConnectionError:
-                logging.warning(
-                    "OpenAI API Connection Error: Error Communicating with OpenAI"
-                )
-                await asyncio.sleep(10)
-            except openai.error.Timeout:
-                logging.warning("OpenAI APITimeout Error: OpenAI Timeout")
-                await asyncio.sleep(10)
-            except openai.error.ServiceUnavailableError as e:
-                logging.warning(f"OpenAI service unavailable error: {e}")
-                await asyncio.sleep(10)
-            except openai.error.APIError as e:
-                logging.warning(f"OpenAI API error: {e}")
+            except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
+                if isinstance(e, (error.ServiceUnavailableError, error.APIError)):
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)].format(e=e))
+                elif isinstance(e, error.InvalidRequestError):
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)])
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": "Invalid Request: Prompt was filtered"
+                                }
+                            }
+                        ]
+                    }
+                else:
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)])
                 await asyncio.sleep(10)
         return {"choices": [{"message": {"content": ""}}]}
 
@@ -70,6 +69,7 @@ async def generate_from_openai_completion(
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
+    n: int,
     top_p: float,
     requests_per_minute: int = 150,
 ) -> list[str]:
@@ -80,6 +80,7 @@ async def generate_from_openai_completion(
         model_config: Model configuration.
         temperature: Temperature to use.
         max_tokens: Maximum number of tokens to generate.
+        n: Number of completions to generate for each API call.
         top_p: Top p to use.
         requests_per_minute: Number of requests per minute to allow.
 
@@ -99,6 +100,7 @@ async def generate_from_openai_completion(
             prompt=prompt,
             temperature=temperature,
             max_tokens=max_tokens,
+            n=n,
             top_p=top_p,
             limiter=limiter,
         )
@@ -115,6 +117,7 @@ async def _throttled_openai_chat_completion_acreate(
     messages: list[dict[str, str]],
     temperature: float,
     max_tokens: int,
+    n: int,
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
@@ -126,36 +129,25 @@ async def _throttled_openai_chat_completion_acreate(
                     messages=messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
+                    n=n,
                     top_p=top_p,
                 )
-            except openai.error.RateLimitError:
-                logging.warning(
-                    "OpenAI API rate limit exceeded. Sleeping for 10 seconds."
-                )
-                await asyncio.sleep(10)
-            except asyncio.exceptions.TimeoutError:
-                logging.warning("OpenAI API timeout. Sleeping for 10 seconds.")
-                await asyncio.sleep(10)
-            except openai.error.InvalidRequestError:
-                logging.warning("OpenAI API Invalid Request: Prompt was filtered")
-                return {
-                    "choices": [
-                        {"message": {"content": "Invalid Request: Prompt was filtered"}}
-                    ]
-                }
-            except openai.error.APIConnectionError:
-                logging.warning(
-                    "OpenAI API Connection Error: Error Communicating with OpenAI"
-                )
-                await asyncio.sleep(10)
-            except openai.error.Timeout:
-                logging.warning("OpenAI APITimeout Error: OpenAI Timeout")
-                await asyncio.sleep(10)
-            except openai.error.ServiceUnavailableError as e:
-                logging.warning(f"OpenAI service unavailable error: {e}")
-                await asyncio.sleep(10)
-            except openai.error.APIError as e:
-                logging.warning(f"OpenAI API error: {e}")
+            except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
+                if isinstance(e, (error.ServiceUnavailableError, error.APIError)):
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)].format(e=e))
+                elif isinstance(e, error.InvalidRequestError):
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)])
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": "Invalid Request: Prompt was filtered"
+                                }
+                            }
+                        ]
+                    }
+                else:
+                    logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)])
                 await asyncio.sleep(10)
         return {"choices": [{"message": {"content": ""}}]}
 
@@ -166,6 +158,7 @@ async def generate_from_openai_chat_completion(
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
+    n: int,
     top_p: float,
     context_length: int,
     requests_per_minute: int = 150,
@@ -178,6 +171,7 @@ async def generate_from_openai_chat_completion(
         model_config: Model configuration.
         temperature: Temperature to use.
         max_tokens: Maximum number of tokens to generate.
+        n: Number of responses to generate for each API call.
         top_p: Top p to use.
         context_length: Length of context to use.
         requests_per_minute: Number of requests per minute to allow.
@@ -200,6 +194,7 @@ async def generate_from_openai_chat_completion(
             ),
             temperature=temperature,
             max_tokens=max_tokens,
+            n=n,
             top_p=top_p,
             limiter=limiter,
         )
