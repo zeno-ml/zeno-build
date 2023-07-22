@@ -1,7 +1,10 @@
 """Tests of unicode tokenizer."""
 
 from zeno_build.evaluation.text_tokenizers.unicode import (
-    DEFAULT_MERGE_SYMBOL, detokenize, tokenize)
+    DEFAULT_MERGE_SYMBOL,
+    detokenize,
+    tokenize,
+)
 
 
 def test_unicode_tokenizer_basic():

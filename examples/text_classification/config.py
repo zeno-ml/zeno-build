@@ -6,10 +6,8 @@ of the variables to run different experiments.
 
 from __future__ import annotations
 
-from zeno_build.evaluation.text_features.exact_match import (avg_exact_match,
-                                                             exact_match)
-from zeno_build.evaluation.text_features.length import (input_length,
-                                                        output_length)
+from zeno_build.evaluation.text_features.exact_match import avg_exact_match, exact_match
+from zeno_build.evaluation.text_features.length import input_length, output_length
 from zeno_build.experiments import search_space
 from zeno_build.models.dataset_config import DatasetConfig
 

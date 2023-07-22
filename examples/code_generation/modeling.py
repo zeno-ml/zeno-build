@@ -8,8 +8,12 @@ import traceback
 import config as codegen_config
 import datasets
 
-from zeno_build.cache_utils import (CacheLock, fail_cache,
-                                    get_cache_id_and_path, get_cache_path)
+from zeno_build.cache_utils import (
+    CacheLock,
+    fail_cache,
+    get_cache_id_and_path,
+    get_cache_path,
+)
 from zeno_build.models.text_generate import generate_from_text_prompt
 
 

@@ -12,8 +12,12 @@ from typing import Literal
 import config as chatbot_config
 import datasets
 
-from zeno_build.cache_utils import (CacheLock, fail_cache,
-                                    get_cache_id_and_path, get_cache_path)
+from zeno_build.cache_utils import (
+    CacheLock,
+    fail_cache,
+    get_cache_id_and_path,
+    get_cache_path,
+)
 from zeno_build.models.chat_generate import generate_from_chat_prompt
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 

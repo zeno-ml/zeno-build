@@ -5,10 +5,11 @@ import asyncio
 import tqdm
 
 from zeno_build.models import global_models, lm_config
-from zeno_build.models.providers.huggingface_utils import \
-    generate_from_huggingface
+from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
 from zeno_build.models.providers.openai_utils import (
-    generate_from_openai_chat_completion, generate_from_openai_completion)
+    generate_from_openai_chat_completion,
+    generate_from_openai_completion,
+)
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 from zeno_build.prompts.prompt_utils import replace_variables
 
