@@ -4,10 +4,8 @@ import pandas as pd
 
 from zeno import DistillReturn, ZenoOptions
 from zeno_build.evaluation.text_features.capitalization import (
-    input_capital_char_ratio,
-    label_capital_char_ratio,
-    output_capital_char_ratio,
-)
+    input_capital_char_ratio, label_capital_char_ratio,
+    output_capital_char_ratio)
 
 example_df = pd.DataFrame(
     {

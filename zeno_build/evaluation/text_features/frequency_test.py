@@ -4,10 +4,7 @@ import pandas as pd
 
 from zeno import DistillReturn, ZenoOptions
 from zeno_build.evaluation.text_features.frequency import (
-    input_max_word_freq,
-    label_max_word_freq,
-    output_max_word_freq,
-)
+    input_max_word_freq, label_max_word_freq, output_max_word_freq)
 
 example_df = pd.DataFrame(
     {

@@ -3,7 +3,8 @@
 import pandas as pd
 
 from zeno import DistillReturn, ZenoOptions
-from zeno_build.evaluation.text_features.length import input_length, output_length
+from zeno_build.evaluation.text_features.length import (input_length,
+                                                        output_length)
 
 example_df = pd.DataFrame(
     {
