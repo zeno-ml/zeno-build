@@ -121,7 +121,6 @@ async def _throttled_openai_chat_completion_acreate(
     top_p: float,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
-    # This function is modified from https://github.com/zeno-ml/zeno-build/blob/main/zeno_build/models/providers/openai_utils.py # noqa E501
     async with limiter:
         for _ in range(3):
             try:
