@@ -197,7 +197,7 @@ if __name__ == "__main__":
         "--experiments",
         type=str,
         nargs="+",
-        default=["exhaustive"],
+        default=["model", "prompt", "temperature", "context_length"],
         help="The experiments to run.",
     )
     parser.add_argument(
