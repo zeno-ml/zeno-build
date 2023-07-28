@@ -116,6 +116,7 @@ model_configs = {
 # These models are used by default in the experiments.
 # This can be modified by using the "--models" command line argument.
 default_models = [
+    "gpt-3.5-turbo",
     "gpt2",
     "gpt2-xl",
     "llama-7b",
