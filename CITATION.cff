@@ -1,0 +1,20 @@
+cff-version: 0.0.1
+message: "If you use this software or technical report please cite it as below."
+authors:
+- family-names: "Neubig"
+  given-names: "Graham"
+- family-names: "He"
+  given-names: "Zhiwei"
+title: "Zeno GPT Machine Translation Report"
+version: 0.0.1
+url: "https://github.com/zeno-ml/zeno-build/tree/main/examples/analysis_gpt_mt/report"
+preferred-citation:
+  type: techreport
+  authors:
+  - family-names: "Neubig"
+    given-names: "Graham"
+  - family-names: "He"
+    given-names: "Zhiwei"
+  journal: "GitHub Repository"
+  title: "Zeno GPT Machine Translation Report"
+  year: 2023
