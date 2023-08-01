@@ -77,6 +77,7 @@ to you, please click through to our [contributing doc](contributing.md) doc to
 learn more.
 
 ## CITATION 
+To cite [GPT-MT report](examples/analysis_gpt_mt/README.md), please use the following BibTeX/APA entry.
 
 **BibTeX**
 
