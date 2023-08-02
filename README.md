@@ -76,10 +76,12 @@ and new functionality for the core `zeno_build` library. If this is of interest
 to you, please click through to our [contributing doc](contributing.md) doc to
 learn more.
 
-## CITATION 
-To cite [GPT-MT report](examples/analysis_gpt_mt/README.md), please use the following BibTeX/APA entry.
+## CITATION
 
-**BibTeX**
+To cite [GPT-MT report](examples/analysis_gpt_mt/README.md), please use the
+following BibTeX/APA entry.
+
+### BibTeX
 
 ```bibtex
 @misc{Neubig_Zeno_GPT_Machine_2023,
@@ -91,11 +93,12 @@ To cite [GPT-MT report](examples/analysis_gpt_mt/README.md), please use the foll
   year = {2023}
 }
 ```
-**APA**
-```bibtex 
+
+### APA
+
+```bibtex
 Neubig, G., & He, Z. (2023). Zeno GPT Machine Translation Report
 ```
-
 
 ## Get in Touch
 
