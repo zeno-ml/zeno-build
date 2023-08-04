@@ -71,6 +71,7 @@ def generate_from_chat_prompt(
                 requests_per_minute,
             )
         )
+    # TODO: check if model is litellm supported, make request in this condition
     elif model_config.provider == "openai_chat":
         response_per_api_call = 1
         return asyncio.run(

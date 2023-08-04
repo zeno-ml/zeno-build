@@ -7,6 +7,7 @@ from typing import Any
 
 import aiolimiter
 import openai
+from litellm import completion, acompletion
 from aiohttp import ClientSession
 from openai import error
 from tqdm.asyncio import tqdm_asyncio
@@ -124,7 +125,7 @@ async def _throttled_openai_chat_completion_acreate(
     async with limiter:
         for _ in range(3):
             try:
-                return await openai.ChatCompletion.acreate(
+                return await acompletion(
                     model=model,
                     messages=messages,
                     temperature=temperature,
