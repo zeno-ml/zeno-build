@@ -20,8 +20,8 @@ def generate_from_text_prompt(
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
-    num_responses: int,
     top_p: float,
+    num_responses: int = 1,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a textual prompt.
