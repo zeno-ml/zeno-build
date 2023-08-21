@@ -35,6 +35,7 @@ def generate_from_chat_prompt(
     max_tokens: int,
     top_p: float,
     context_length: int,
+    num_responses: int = 1,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
@@ -57,7 +58,6 @@ def generate_from_chat_prompt(
         f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}..."
     )
     if model_config.provider == "openai":
-        response_per_api_call = 1
         return asyncio.run(
             generate_from_openai_completion(
                 _contexts_to_prompts(
@@ -66,13 +66,12 @@ def generate_from_chat_prompt(
                 model_config,
                 temperature,
                 max_tokens,
-                response_per_api_call,
+                num_responses,
                 top_p,
                 requests_per_minute,
             )
         )
     elif model_config.provider == "openai_chat":
-        response_per_api_call = 1
         return asyncio.run(
             generate_from_openai_chat_completion(
                 full_contexts,
@@ -80,7 +79,7 @@ def generate_from_chat_prompt(
                 model_config,
                 temperature,
                 max_tokens,
-                response_per_api_call,
+                num_responses,
                 top_p,
                 context_length,
                 requests_per_minute,

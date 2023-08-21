@@ -21,6 +21,7 @@ def generate_from_text_prompt(
     temperature: float,
     max_tokens: int,
     top_p: float,
+    num_responses: int = 1,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a textual prompt.
@@ -31,6 +32,7 @@ def generate_from_text_prompt(
         model_config: Configuration of the model.
         temperature: The temperature to use.
         max_tokens: The maximum number of tokens to generate.
+        num_responses: The number of responses to generate.
         top_p: The top p value to use.
         requests_per_minute: Limit on the number of OpenAI requests per minute.
 
@@ -51,7 +53,6 @@ def generate_from_text_prompt(
             top_p,
         )
     elif model_config.provider == "openai":
-        response_per_api_call = 1
         prompts = [replace_variables(prompt_template, vars) for vars in variables]
         return asyncio.run(
             generate_from_openai_completion(
@@ -59,7 +60,7 @@ def generate_from_text_prompt(
                 model_config,
                 temperature,
                 max_tokens,
-                response_per_api_call,
+                num_responses,
                 top_p,
                 requests_per_minute,
             )
