@@ -29,8 +29,8 @@ async def _throttled_openai_completion_acreate(
     prompt: str,
     temperature: float,
     max_tokens: int,
-    n: int,
     top_p: float,
+    n: int,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
     async with limiter:
@@ -41,8 +41,8 @@ async def _throttled_openai_completion_acreate(
                     prompt=prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    n=n,
                     top_p=top_p,
+                    n=n,
                 )
             except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
                 if isinstance(e, (error.ServiceUnavailableError, error.APIError)):
@@ -69,10 +69,10 @@ async def generate_from_openai_completion(
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
-    n: int,
     top_p: float,
+    n: int,
     requests_per_minute: int = 150,
-) -> list[str]:
+) -> list[list[str]]:
     """Generate from OpenAI Completion API.
 
     Args:
@@ -100,8 +100,8 @@ async def generate_from_openai_completion(
             prompt=prompt,
             temperature=temperature,
             max_tokens=max_tokens,
-            n=n,
             top_p=top_p,
+            n=n,
             limiter=limiter,
         )
         for prompt in prompts
@@ -109,7 +109,10 @@ async def generate_from_openai_completion(
     responses = await tqdm_asyncio.gather(*async_responses)
     # Note: will never be none because it's set, but mypy doesn't know that.
     await openai.aiosession.get().close()  # type: ignore
-    return [x["choices"][0]["text"] for x in responses]
+    all_responses = []
+    for x in responses:
+        all_responses.append([x["choices"][i]["message"]["content"] for i in range(n)])
+    return all_responses
 
 
 async def _throttled_openai_chat_completion_acreate(
@@ -117,8 +120,8 @@ async def _throttled_openai_chat_completion_acreate(
     messages: list[dict[str, str]],
     temperature: float,
     max_tokens: int,
-    n: int,
     top_p: float,
+    n: int,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
     async with limiter:
@@ -129,8 +132,8 @@ async def _throttled_openai_chat_completion_acreate(
                     messages=messages,
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    n=n,
                     top_p=top_p,
+                    n=n,
                 )
             except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
                 if isinstance(e, (error.ServiceUnavailableError, error.APIError)):
@@ -158,11 +161,11 @@ async def generate_from_openai_chat_completion(
     model_config: lm_config.LMConfig,
     temperature: float,
     max_tokens: int,
-    n: int,
     top_p: float,
     context_length: int,
+    n: int,
     requests_per_minute: int = 150,
-) -> list[str]:
+) -> list[list[str]]:
     """Generate from OpenAI Chat Completion API.
 
     Args:
@@ -194,8 +197,8 @@ async def generate_from_openai_chat_completion(
             ),
             temperature=temperature,
             max_tokens=max_tokens,
-            n=n,
             top_p=top_p,
+            n=n,
             limiter=limiter,
         )
         for full_context in full_contexts
@@ -203,4 +206,7 @@ async def generate_from_openai_chat_completion(
     responses = await tqdm_asyncio.gather(*async_responses)
     # Note: will never be none because it's set, but mypy doesn't know that.
     await openai.aiosession.get().close()  # type: ignore
-    return [x["choices"][0]["message"]["content"] for x in responses]
+    all_responses = []
+    for x in responses:
+        all_responses.append([x["choices"][i]["message"]["content"] for i in range(n)])
+    return all_responses

@@ -21,7 +21,6 @@ def generate_from_text_prompt(
     temperature: float,
     max_tokens: int,
     top_p: float,
-    num_responses: int = 1,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a textual prompt.
@@ -39,6 +38,20 @@ def generate_from_text_prompt(
     Returns:
         The generated text.
     """
+    if model_config.provider == "openai" or model_config.provider == "openai_chat":
+        return [
+            x[0]
+            for x in multiple_generate_from_text_prompt(
+                variables,
+                prompt_template,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                num_responses=1,
+                requests_per_minute=150
+            )
+        ]
     print(
         f"Generating with {prompt_template=}, {model_config.model=}, "
         f"{temperature=}, {max_tokens=}, {top_p=}..."
@@ -51,44 +64,6 @@ def generate_from_text_prompt(
             temperature,
             max_tokens,
             top_p,
-        )
-    elif model_config.provider == "openai":
-        prompts = [replace_variables(prompt_template, vars) for vars in variables]
-        return asyncio.run(
-            generate_from_openai_completion(
-                prompts,
-                model_config,
-                temperature,
-                max_tokens,
-                num_responses,
-                top_p,
-                requests_per_minute,
-            )
-        )
-    elif model_config.provider == "openai_chat":
-        full_contexts = [
-            ChatMessages(
-                [
-                    ChatTurn(
-                        role="user",
-                        content=replace_variables(prompt_template, vars),
-                    )
-                ]
-            )
-            for vars in variables
-        ]
-        return asyncio.run(
-            generate_from_openai_chat_completion(
-                full_contexts=full_contexts,
-                prompt_template=ChatMessages([]),
-                model_config=model_config,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                n=1,
-                context_length=1,
-                requests_per_minute=requests_per_minute,
-            )
         )
     elif model_config.provider == "cohere":
         import cohere
@@ -113,3 +88,75 @@ def generate_from_text_prompt(
         return results
     else:
         raise ValueError("Unknown model_config.provider, but you can add your own!")
+
+
+def multiple_generate_from_text_prompt(
+    variables: list[dict[str, str]],
+    prompt_template: str,
+    model_config: lm_config.LMConfig,
+    temperature: float,
+    max_tokens: int,
+    top_p: float,
+    num_responses: int,
+    requests_per_minute: int = 150,
+) -> list[list[str]]:
+    """Generate from a list of chat-style prompts.
+
+    Args:
+        variables: The variables to be replaced in the prompt template.
+        prompt_template: The template for the prompt.
+        api_based_model_config: The API-based model configuration.
+        temperature: The temperature to use.
+        max_tokens: The maximum number of tokens to generate.
+        top_p: The top p value to use.
+        context_length: The length of the context to use.
+        num_responses: The number of responses to generate
+        requests_per_minute: Limit on the number of OpenAI requests per minute
+
+    Returns:
+        The generated text.
+    """
+    print(
+        f"Generating with {prompt_template=}, {model_config.model=}, "
+        f"{temperature=}, {max_tokens=}, {top_p=}, {num_responses=}..."
+    )
+    if model_config.provider == "openai":
+        prompts = [replace_variables(prompt_template, vars) for vars in variables]
+        return asyncio.run(
+            generate_from_openai_completion(
+                prompts,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                num_responses,
+                requests_per_minute
+            )
+        )
+    elif model_config.provider == "openai_chat":
+        full_contexts = [
+            ChatMessages(
+                [
+                    ChatTurn(
+                        role="user",
+                        content=replace_variables(prompt_template, vars),
+                    )
+                ]
+            )
+            for vars in variables
+        ]
+        return asyncio.run(
+            generate_from_openai_chat_completion(
+                full_contexts=full_contexts,
+                prompt_template=ChatMessages([]),
+                model_config=model_config,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                context_length=1,
+                n=num_responses,
+                requests_per_minute=requests_per_minute,
+            )
+        )
+    else:
+        raise ValueError("Unknown provider, but you can add your own!")
