@@ -49,7 +49,7 @@ def generate_from_text_prompt(
                 max_tokens,
                 top_p,
                 num_responses=1,
-                requests_per_minute=150
+                requests_per_minute=150,
             )
         ]
     print(
@@ -130,7 +130,7 @@ def multiple_generate_from_text_prompt(
                 max_tokens,
                 top_p,
                 num_responses,
-                requests_per_minute
+                requests_per_minute,
             )
         )
     elif model_config.provider == "openai_chat":

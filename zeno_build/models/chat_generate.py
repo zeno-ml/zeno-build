@@ -137,7 +137,7 @@ def multiple_generate_from_chat_prompt(
     """
     print(
         f"Generating with {prompt_template=}, {model_config.model=}, "
-        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}, {num_responses=}..."
+        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}, {num_responses=}"
     )
     if model_config.provider == "openai":
         return asyncio.run(
