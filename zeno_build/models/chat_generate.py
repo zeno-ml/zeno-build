@@ -35,7 +35,6 @@ def generate_from_chat_prompt(
     max_tokens: int,
     top_p: float,
     context_length: int,
-    num_responses: int = 1,
     requests_per_minute: int = 150,
 ) -> list[str]:
     """Generate from a list of chat-style prompts.
@@ -53,39 +52,26 @@ def generate_from_chat_prompt(
     Returns:
         The generated text.
     """
-    print(
-        f"Generating with {prompt_template=}, {model_config.model=}, "
-        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}..."
-    )
-    if model_config.provider == "openai":
-        return asyncio.run(
-            generate_from_openai_completion(
-                _contexts_to_prompts(
-                    full_contexts, prompt_template, model_config, context_length
-                ),
-                model_config,
-                temperature,
-                max_tokens,
-                num_responses,
-                top_p,
-                requests_per_minute,
-            )
-        )
-    elif model_config.provider == "openai_chat":
-        return asyncio.run(
-            generate_from_openai_chat_completion(
+    if model_config.provider == "openai" or model_config.provider == "openai_chat":
+        return [
+            x[0]
+            for x in multiple_generate_from_chat_prompt(
                 full_contexts,
                 prompt_template,
                 model_config,
                 temperature,
                 max_tokens,
-                num_responses,
                 top_p,
                 context_length,
-                requests_per_minute,
+                num_responses=1,
+                requests_per_minute=150,
             )
-        )
-    elif model_config.provider == "cohere":
+        ]
+    print(
+        f"Generating with {prompt_template=}, {model_config.model=}, "
+        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}..."
+    )
+    if model_config.provider == "cohere":
         return asyncio.run(
             generate_from_cohere(
                 _contexts_to_prompts(
@@ -117,6 +103,69 @@ def generate_from_chat_prompt(
             temperature,
             max_tokens,
             top_p,
+        )
+    else:
+        raise ValueError("Unknown provider, but you can add your own!")
+
+
+def multiple_generate_from_chat_prompt(
+    full_contexts: list[chat_prompt.ChatMessages],
+    prompt_template: chat_prompt.ChatMessages,
+    model_config: lm_config.LMConfig,
+    temperature: float,
+    max_tokens: int,
+    top_p: float,
+    context_length: int,
+    num_responses: int,
+    requests_per_minute: int = 150,
+) -> list[list[str]]:
+    """Generate from a list of chat-style prompts.
+
+    Args:
+        variables: The variables to be replaced in the prompt template.
+        prompt_template: The template for the prompt.
+        api_based_model_config: The API-based model configuration.
+        temperature: The temperature to use.
+        max_tokens: The maximum number of tokens to generate.
+        top_p: The top p value to use.
+        context_length: The length of the context to use.
+        num_responses: The number of responses to generate
+        requests_per_minute: Limit on the number of OpenAI requests per minute
+
+    Returns:
+        The generated text.
+    """
+    print(
+        f"Generating with {prompt_template=}, {model_config.model=}, "
+        f"{temperature=}, {max_tokens=}, {top_p=}, {context_length=}, {num_responses=}"
+    )
+    if model_config.provider == "openai":
+        return asyncio.run(
+            generate_from_openai_completion(
+                _contexts_to_prompts(
+                    full_contexts, prompt_template, model_config, context_length
+                ),
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                num_responses,
+                requests_per_minute,
+            )
+        )
+    elif model_config.provider == "openai_chat":
+        return asyncio.run(
+            generate_from_openai_chat_completion(
+                full_contexts,
+                prompt_template,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                context_length,
+                num_responses,
+                requests_per_minute,
+            )
         )
     else:
         raise ValueError("Unknown provider, but you can add your own!")
