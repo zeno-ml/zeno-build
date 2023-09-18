@@ -1,29 +1,17 @@
-"""Tools to generate from OpenAI prompts."""
+"""Tools to generate from litellm prompts."""
 
 import asyncio
 import logging
-import os
 from typing import Any
-from litellm import completion, acompletion
+
 import aiolimiter
-import litellm
-from aiohttp import ClientSession
-from openai import error
 from tqdm.asyncio import tqdm_asyncio
 
 from zeno_build.models import lm_config
 from zeno_build.prompts import chat_prompt
 
-ERROR_ERRORS_TO_MESSAGES = {
-    error.InvalidRequestError: "OpenAI API Invalid Request: Prompt was filtered",
-    error.RateLimitError: "OpenAI API rate limit exceeded. Sleeping for 10 seconds.",
-    error.APIConnectionError: "OpenAI API Connection Error: Error Communicating with OpenAI",  # noqa E501
-    error.Timeout: "OpenAI APITimeout Error: OpenAI Timeout",
-    error.ServiceUnavailableError: "OpenAI service unavailable error: {e}",
-    error.APIError: "OpenAI API error: {e}",
-}
 
-async def _throttled_openai_chat_completion_acreate(
+async def _throttled_litellm_completion_acreate(
     model: str,
     messages: list[dict[str, str]],
     temperature: float,
@@ -32,6 +20,20 @@ async def _throttled_openai_chat_completion_acreate(
     n: int,
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
+    try:
+        from litellm import acompletion, error
+    except ImportError:
+        raise ImportError(
+            "Please `pip install cohere` to perform cohere-based inference"
+        )
+    ERROR_ERRORS_TO_MESSAGES = {
+        error.InvalidRequestError: "litellm API Invalid Request: Prompt was filtered",
+        error.RateLimitError: "litellm API rate limit exceeded. Sleeping for 10 seconds.",  # noqa E501
+        error.APIConnectionError: "litellm API Connection Error: Error Communicating with litellm",  # noqa E501
+        error.Timeout: "litellm APITimeout Error: litellm Timeout",
+        error.ServiceUnavailableError: "litellm service unavailable error: {e}",
+        error.APIError: "litellm API error: {e}",
+    }
     async with limiter:
         for _ in range(3):
             try:
@@ -63,7 +65,7 @@ async def _throttled_openai_chat_completion_acreate(
         return {"choices": [{"message": {"content": ""}}]}
 
 
-async def generate_from_litellm_chat_completion(
+async def generate_from_litellm_completion(
     full_contexts: list[chat_prompt.ChatMessages],
     prompt_template: chat_prompt.ChatMessages,
     model_config: lm_config.LMConfig,
@@ -74,7 +76,7 @@ async def generate_from_litellm_chat_completion(
     n: int,
     requests_per_minute: int = 150,
 ) -> list[list[str]]:
-    """Generate from OpenAI Chat Completion API.
+    """Generate from litellm Chat Completion API.
 
     Args:
         full_contexts: List of full contexts to generate from.
@@ -92,7 +94,7 @@ async def generate_from_litellm_chat_completion(
     """
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
     async_responses = [
-        _throttled_openai_chat_completion_acreate(
+        _throttled_litellm_completion_acreate(
             model=model_config.model,
             messages=prompt_template.to_openai_chat_completion_messages(
                 full_context=full_context.limit_length(context_length),

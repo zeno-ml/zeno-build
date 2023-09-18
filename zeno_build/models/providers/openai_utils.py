@@ -4,7 +4,7 @@ import asyncio
 import logging
 import os
 from typing import Any
-from litellm import completion, acompletion
+
 import aiolimiter
 import openai
 from aiohttp import ClientSession
@@ -36,7 +36,7 @@ async def _throttled_openai_completion_acreate(
     async with limiter:
         for _ in range(3):
             try:
-                return await acompletion(
+                return await openai.Completion.acreate(
                     model=engine,
                     prompt=prompt,
                     temperature=temperature,

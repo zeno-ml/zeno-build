@@ -1,15 +1,13 @@
 """Tools to generate from prompts."""
 import asyncio
-import litellm
+
 from zeno_build.models import lm_config
 from zeno_build.models.providers.cohere_utils import generate_from_cohere
 from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
+from zeno_build.models.providers.litellm_utils import generate_from_litellm_completion
 from zeno_build.models.providers.openai_utils import (
     generate_from_openai_chat_completion,
     generate_from_openai_completion,
-)
-from zeno_build.models.providers.litellm_utils import (
-    generate_from_litellm_chat_completion
 )
 from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.prompts import chat_prompt
@@ -55,7 +53,7 @@ def generate_from_chat_prompt(
     Returns:
         The generated text.
     """
-    if model_config.provider == "openai" or model_config.provider == "openai_chat" or model_config.provider in litellm.provider_list:
+    if model_config.provider == "openai" or model_config.provider == "openai_chat":
         return [
             x[0]
             for x in multiple_generate_from_chat_prompt(
@@ -170,9 +168,9 @@ def multiple_generate_from_chat_prompt(
                 requests_per_minute,
             )
         )
-    elif model_config.provider in litellm.provider_list:
+    elif model_config.provider == "litellm":
         return asyncio.run(
-            generate_from_litellm_chat_completion(
+            generate_from_litellm_completion(
                 full_contexts,
                 prompt_template,
                 model_config,
