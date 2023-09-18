@@ -21,18 +21,18 @@ async def _throttled_litellm_completion_acreate(
     limiter: aiolimiter.AsyncLimiter,
 ) -> dict[str, Any]:
     try:
-        from litellm import acompletion, error
+        from litellm import acompletion, exceptions
     except ImportError:
         raise ImportError(
             "Please `pip install cohere` to perform cohere-based inference"
         )
     ERROR_ERRORS_TO_MESSAGES = {
-        error.InvalidRequestError: "litellm API Invalid Request: Prompt was filtered",
-        error.RateLimitError: "litellm API rate limit exceeded. Sleeping for 10 seconds.",  # noqa E501
-        error.APIConnectionError: "litellm API Connection Error: Error Communicating with litellm",  # noqa E501
-        error.Timeout: "litellm APITimeout Error: litellm Timeout",
-        error.ServiceUnavailableError: "litellm service unavailable error: {e}",
-        error.APIError: "litellm API error: {e}",
+        exceptions.InvalidRequestError: "litellm API Invalid Request: Prompt was filtered",  # noqa E501
+        exceptions.RateLimitError: "litellm API rate limit exceeded. Sleeping for 10 seconds.",  # noqa E501
+        exceptions.APIConnectionError: "litellm API Connection Error: Error Communicating with litellm",  # noqa E501
+        exceptions.Timeout: "litellm APITimeout Error: litellm Timeout",
+        exceptions.ServiceUnavailableError: "litellm service unavailable error: {e}",
+        exceptions.APIError: "litellm API error: {e}",
     }
     async with limiter:
         for _ in range(3):
@@ -46,9 +46,11 @@ async def _throttled_litellm_completion_acreate(
                     n=n,
                 )
             except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
-                if isinstance(e, (error.ServiceUnavailableError, error.APIError)):
+                if isinstance(
+                    e, (exceptions.ServiceUnavailableError, exceptions.APIError)
+                ):
                     logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)].format(e=e))
-                elif isinstance(e, error.InvalidRequestError):
+                elif isinstance(e, exceptions.InvalidRequestError):
                     logging.warning(ERROR_ERRORS_TO_MESSAGES[type(e)])
                     return {
                         "choices": [

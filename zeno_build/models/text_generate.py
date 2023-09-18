@@ -2,16 +2,20 @@
 
 import asyncio
 
+import nest_asyncio
 import tqdm
 
 from zeno_build.models import global_models, lm_config
 from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
+from zeno_build.models.providers.litellm_utils import generate_from_litellm_completion
 from zeno_build.models.providers.openai_utils import (
     generate_from_openai_chat_completion,
     generate_from_openai_completion,
 )
 from zeno_build.prompts.chat_prompt import ChatMessages, ChatTurn
 from zeno_build.prompts.prompt_utils import replace_variables
+
+nest_asyncio.apply()
 
 
 def generate_from_text_prompt(
@@ -38,7 +42,7 @@ def generate_from_text_prompt(
     Returns:
         The generated text.
     """
-    if model_config.provider == "openai" or model_config.provider == "openai_chat":
+    if model_config.provider in ("openai", "openai_chat", "litellm"):
         return [
             x[0]
             for x in multiple_generate_from_text_prompt(
@@ -87,7 +91,7 @@ def generate_from_text_prompt(
                 results.append("")
         return results
     else:
-        raise ValueError("Unknown model_config.provider, but you can add your own!")
+        raise ValueError(f"Unknown {model_config.provider=}, but you can add your own!")
 
 
 def multiple_generate_from_text_prompt(
@@ -133,7 +137,7 @@ def multiple_generate_from_text_prompt(
                 requests_per_minute,
             )
         )
-    elif model_config.provider == "openai_chat":
+    else:
         full_contexts = [
             ChatMessages(
                 [
@@ -145,18 +149,35 @@ def multiple_generate_from_text_prompt(
             )
             for vars in variables
         ]
-        return asyncio.run(
-            generate_from_openai_chat_completion(
-                full_contexts=full_contexts,
-                prompt_template=ChatMessages([]),
-                model_config=model_config,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                context_length=1,
-                n=num_responses,
-                requests_per_minute=requests_per_minute,
+        if model_config.provider == "openai_chat":
+            return asyncio.run(
+                generate_from_openai_chat_completion(
+                    full_contexts=full_contexts,
+                    prompt_template=ChatMessages([]),
+                    model_config=model_config,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    context_length=1,
+                    n=num_responses,
+                    requests_per_minute=requests_per_minute,
+                )
             )
-        )
-    else:
-        raise ValueError("Unknown provider, but you can add your own!")
+        elif model_config.provider == "litellm":
+            return asyncio.run(
+                generate_from_litellm_completion(
+                    full_contexts=full_contexts,
+                    prompt_template=ChatMessages([]),
+                    model_config=model_config,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    context_length=1,
+                    n=num_responses,
+                    requests_per_minute=requests_per_minute,
+                )
+            )
+        else:
+            raise ValueError(
+                f"Unknown {model_config.provider=}, but you can add your own!"
+            )
