@@ -1,15 +1,20 @@
 """Tools to generate from prompts."""
 import asyncio
 
+import nest_asyncio
+
 from zeno_build.models import lm_config
 from zeno_build.models.providers.cohere_utils import generate_from_cohere
 from zeno_build.models.providers.huggingface_utils import generate_from_huggingface
+from zeno_build.models.providers.litellm_utils import generate_from_litellm_completion
 from zeno_build.models.providers.openai_utils import (
     generate_from_openai_chat_completion,
     generate_from_openai_completion,
 )
 from zeno_build.models.providers.vllm_utils import generate_from_vllm
 from zeno_build.prompts import chat_prompt
+
+nest_asyncio.apply()
 
 
 def _contexts_to_prompts(
@@ -52,7 +57,7 @@ def generate_from_chat_prompt(
     Returns:
         The generated text.
     """
-    if model_config.provider == "openai" or model_config.provider == "openai_chat":
+    if model_config.provider in ("openai", "openai_chat", "litellm"):
         return [
             x[0]
             for x in multiple_generate_from_chat_prompt(
@@ -156,6 +161,20 @@ def multiple_generate_from_chat_prompt(
     elif model_config.provider == "openai_chat":
         return asyncio.run(
             generate_from_openai_chat_completion(
+                full_contexts,
+                prompt_template,
+                model_config,
+                temperature,
+                max_tokens,
+                top_p,
+                context_length,
+                num_responses,
+                requests_per_minute,
+            )
+        )
+    elif model_config.provider == "litellm":
+        return asyncio.run(
+            generate_from_litellm_completion(
                 full_contexts,
                 prompt_template,
                 model_config,

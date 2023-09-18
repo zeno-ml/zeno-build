@@ -37,7 +37,7 @@ async def _throttled_openai_completion_acreate(
         for _ in range(3):
             try:
                 return await openai.Completion.acreate(
-                    engine=engine,
+                    model=engine,
                     prompt=prompt,
                     temperature=temperature,
                     max_tokens=max_tokens,
