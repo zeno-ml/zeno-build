@@ -19,6 +19,7 @@ async def _throttled_litellm_completion_acreate(
     top_p: float,
     n: int,
     limiter: aiolimiter.AsyncLimiter,
+    api_base: str = None,
 ) -> dict[str, Any]:
     try:
         from litellm import acompletion, exceptions
@@ -44,6 +45,7 @@ async def _throttled_litellm_completion_acreate(
                     max_tokens=max_tokens,
                     top_p=top_p,
                     n=n,
+                    api_base=api_base,
                 )
             except tuple(ERROR_ERRORS_TO_MESSAGES.keys()) as e:
                 if isinstance(
@@ -90,6 +92,7 @@ async def generate_from_litellm_completion(
         top_p: Top p to use.
         context_length: Length of context to use.
         requests_per_minute: Number of requests per minute to allow.
+        api_base: Custom API endpoint
 
     Returns:
         List of generated responses.
@@ -106,6 +109,7 @@ async def generate_from_litellm_completion(
             top_p=top_p,
             n=n,
             limiter=limiter,
+            api_base=model_config.api_base,
         )
         for full_context in full_contexts
     ]
