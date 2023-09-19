@@ -18,6 +18,7 @@ class LMConfig:
              Hugging Face transformers.
         tokenizer_cls: The Python class corresponding to the tokenizer, mostly
             for Hugging Face transformers.
+        api_base:  Custom api base.
         name_replacements: A dictionary mapping from the names of the roles
             (e.g., "system", "assistant", "user") to the names of the
             roles in the model.
@@ -29,6 +30,7 @@ class LMConfig:
     model: str
     model_cls: type | None = None
     tokenizer_cls: type | None = None
+    api_base: str | None = None
     name_replacements: dict[str, str] = dataclasses.field(
         default_factory=lambda: dict(
             {
