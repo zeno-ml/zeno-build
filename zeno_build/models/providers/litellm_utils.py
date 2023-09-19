@@ -119,4 +119,3 @@ async def generate_from_litellm_completion(
     for x in responses:
         all_responses.append([x["choices"][i]["message"]["content"] for i in range(n)])
     return all_responses
-
