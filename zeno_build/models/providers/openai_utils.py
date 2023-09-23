@@ -111,7 +111,7 @@ async def generate_from_openai_completion(
     await openai.aiosession.get().close()  # type: ignore
     all_responses = []
     for x in responses:
-        all_responses.append([x["choices"][i]["message"]["content"] for i in range(n)])
+        all_responses.append([x["choices"][i]["text"] for i in range(n)])
     return all_responses
 
 
