@@ -5,3 +5,4 @@ zeno-client
 python-dotenv
 torch
 transformers
+tqdm

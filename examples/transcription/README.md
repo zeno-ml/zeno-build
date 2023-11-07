@@ -16,19 +16,12 @@ the different models on different accents and English fluency levels.
 The result of running Zeno Build will be an interface where you
 can browse and explore the results. See an example below:
 
-- [Browsing Interface](https://zeno-ml-transcription-report.hf.space)
-- [Textual Summary](report/)
+- [Browsing Interface](https://hub.zenoml.com/project/cabreraalex/Audio%20Transcription%20Accents/explore)
+- [Textual Summary](https://hub.zenoml.com/report/cabreraalex/Audio%20Transcription%20Report)
 
 ## Setup
 
 To run this example, you'll need to install the requirements.
-First install the `zeno-build` package:
-
-```bash
-pip install zeno-build
-```
-
-Then install the requirements for this example:
 
 ```bash
 pip install -r requirements.txt
@@ -46,16 +39,4 @@ conda install ffmpeg
 
 ## Run the Example
 
-Run the following command to perform evaluation and analysis:
-
-```bash
-python main.py --input-metadata speech_accent_archive.csv --results-dir results
-```
-
-The results will be saved to the `results` directory, and a report of the
-comparison will be displayed using [Zeno](https://zenoml.com/).
-Once the evalaution is finished you will be able to view the results at
-[https://localhost:8000](https://localhost:8000).
-You can then go in and explore the results, making slices, reports, etc.
-Alternatively, you can view the
-[ready-made hosted report](https://zeno-ml-transcription-report.hf.space).
+Follow `transcription.ipynb` to run inference and generate a Zeno project.
