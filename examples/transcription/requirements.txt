@@ -1,3 +1,7 @@
-openai-whisper
-librosa
 jiwer
+pandas
+openai-whisper
+zeno-client
+python-dotenv
+torch
+transformers
