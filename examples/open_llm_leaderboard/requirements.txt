@@ -2,3 +2,4 @@ datasets
 numpy
 pandas
 zeno-client
+python-dotenv
