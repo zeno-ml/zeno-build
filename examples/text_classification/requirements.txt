@@ -1,0 +1,4 @@
+accelerate
+datasets
+torch
+transformers
