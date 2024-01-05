@@ -19,7 +19,7 @@ Sound interesting? Read on!
 
 Each of the examples in this repository is specifically designed to be
 self-contained and easy to modify. To get started with
-zeno, we suggest that you find the closest example to what you're trying
+Zeno, we suggest that you find the closest example to what you're trying
 to do, copy the example to the new directory, and start hacking!
 
 ## Contributing Back
