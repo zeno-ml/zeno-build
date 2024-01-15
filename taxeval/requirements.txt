@@ -1,0 +1,4 @@
+pandas
+zeno-client
+python-dotenv
+bertopic
